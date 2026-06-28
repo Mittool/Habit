@@ -18,6 +18,9 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
+git config user.email "mithulgenius2019@gmail.com"
+git config user.name "Mittool"
+
 echo "🔄 Staging workspace modifications..."
 git add .
 

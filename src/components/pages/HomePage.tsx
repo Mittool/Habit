@@ -105,7 +105,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const totalFocusTime = focusSessions.reduce((sum, s) => sum + s.minutes, 0);
 
   const [quoteLoading, setQuoteLoading] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [aiMood, setAiMood] = useState("");
   const [aiNeed, setAiNeed] = useState("");
   const [aiAdvice, setAiAdvice] = useState("");
@@ -203,96 +202,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
           <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0, fontWeight: "500" }}>
             {format(new Date(), "EEEE, MMMM d, yyyy")} &bull; <span style={{ color: "var(--accent)", fontWeight: "600" }}>In Flow State</span>
           </p>
-        </div>
-        <div>
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="btn-secondary cursor-pointer"
-            style={{ padding: "10px 12px", borderRadius: "12px", border: menuOpen ? "1.5px solid var(--accent)" : "1px solid var(--border)" }}
-            title="All Shortcuts Menu"
-          >
-            <Menu size={22} color="var(--text-primary)" />
-          </button>
-
-          {menuOpen && (
-            <>
-              {/* Fixed Transparent Backdrop */}
-              <div
-                style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9990 }}
-                onClick={() => setMenuOpen(false)}
-              />
-
-              {/* Floating Animated Popover Sheet */}
-              <div
-                style={{
-                  position: "fixed",
-                  right: "24px",
-                  top: "76px",
-                  width: "220px",
-                  maxHeight: "80vh",
-                  overflowY: "auto",
-                  padding: "8px",
-                  zIndex: 9999,
-                  borderRadius: "16px",
-                  backgroundColor: "var(--bg-card)",
-                  border: "1px solid var(--border)",
-                  boxShadow: "0 20px 40px -10px var(--shadow-hover), 0 8px 16px -8px var(--shadow)",
-                  animation: "menuDropSpring 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "2px",
-                }}
-              >
-                <div style={{ padding: "6px 12px 8px", borderBottom: "1px solid var(--border)", marginBottom: "4px", fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase" }}>
-                  All Shortcuts
-                </div>
-
-                {[
-                  { id: "ai-hub", label: "Trac AI", icon: <img src="/logo.png" alt="" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} /> },
-                  { id: "habits", label: "Habits", icon: <CheckSquare size={16} color="#10B981" /> },
-                  { id: "todo", label: "Tasks", icon: <Clock size={16} color="#3B82F6" /> },
-                  { id: "pomodoro", label: "Focus Timer", icon: <Timer size={16} color="#F59E0B" /> },
-                  { id: "timebox", label: "TimeBox", icon: <Calendar size={16} color="#8B5CF6" /> },
-                  { id: "analytics", label: "Stats", icon: <BarChart2 size={16} color="#6366F1" /> },
-                  { id: "mood", label: "Mood", icon: <Smile size={16} color="#F97316" /> },
-                  { id: "sleep", label: "Sleep", icon: <Moon size={16} color="#4F46E5" /> },
-                  { id: "music", label: "Music", icon: <Music size={16} color="#EC4899" /> },
-                  { id: "settings", label: "Settings", icon: <Settings size={16} color="var(--text-muted)" /> },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onNavigate(item.id);
-                    }}
-                    className="cursor-pointer"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "10px 12px",
-                      borderRadius: "10px",
-                      background: "transparent",
-                      border: "none",
-                      color: "var(--text-primary)",
-                      fontSize: "13.5px",
-                      fontWeight: "600",
-                      textAlign: "left",
-                      width: "100%",
-                      transition: "background-color 0.15s",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-secondary)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "20px" }}>
-                      {item.icon}
-                    </div>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
         </div>
       </div>
 
