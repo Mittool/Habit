@@ -28,6 +28,7 @@ import {
   Smile,
   LayoutGrid,
   Moon,
+  Menu,
 } from "lucide-react";
 
 const MOODS = [
@@ -104,6 +105,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const totalFocusTime = focusSessions.reduce((sum, s) => sum + s.minutes, 0);
 
   const [quoteLoading, setQuoteLoading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [aiMood, setAiMood] = useState("");
   const [aiNeed, setAiNeed] = useState("");
   const [aiAdvice, setAiAdvice] = useState("");
@@ -202,14 +204,84 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
             {format(new Date(), "EEEE, MMMM d, yyyy")} &bull; <span style={{ color: "var(--accent)", fontWeight: "600" }}>In Flow State</span>
           </p>
         </div>
-        <button
-          onClick={() => onNavigate("settings")}
-          className="btn-secondary cursor-pointer"
-          style={{ padding: "12px", borderRadius: "14px" }}
-          title="Settings"
-        >
-          <Settings size={20} />
-        </button>
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="btn-secondary cursor-pointer"
+            style={{ padding: "10px", borderRadius: "12px", border: menuOpen ? "1px solid var(--accent)" : "1px solid var(--border)" }}
+            title="Shortcuts Menu"
+          >
+            <Menu size={22} color="var(--text-primary)" />
+          </button>
+
+          {menuOpen && (
+            <>
+              <div
+                style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }}
+                onClick={() => setMenuOpen(false)}
+              />
+
+              <div
+                className="card fade-in"
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "calc(100% + 8px)",
+                  width: "210px",
+                  padding: "8px",
+                  zIndex: 100,
+                  boxShadow: "0 12px 32px var(--shadow-hover), 0 4px 12px var(--shadow)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                }}
+              >
+                {[
+                  { id: "ai-hub", label: "Trac AI", icon: <img src="/logo.png" alt="" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} /> },
+                  { id: "habits", label: "Habits", icon: <CheckSquare size={16} color="#10B981" /> },
+                  { id: "todo", label: "Tasks", icon: <Clock size={16} color="#3B82F6" /> },
+                  { id: "pomodoro", label: "Focus Timer", icon: <Timer size={16} color="#F59E0B" /> },
+                  { id: "timebox", label: "TimeBox", icon: <Calendar size={16} color="#8B5CF6" /> },
+                  { id: "analytics", label: "Stats", icon: <BarChart2 size={16} color="#6366F1" /> },
+                  { id: "mood", label: "Mood", icon: <Smile size={16} color="#F97316" /> },
+                  { id: "sleep", label: "Sleep", icon: <Moon size={16} color="#4F46E5" /> },
+                  { id: "music", label: "Music", icon: <Music size={16} color="#EC4899" /> },
+                  { id: "settings", label: "Settings", icon: <Settings size={16} color="var(--text-muted)" /> },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onNavigate(item.id);
+                    }}
+                    className="cursor-pointer"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--text-primary)",
+                      fontSize: "13.5px",
+                      fontWeight: "600",
+                      textAlign: "left",
+                      width: "100%",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-secondary)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "20px" }}>
+                      {item.icon}
+                    </div>
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Quick Stats Row */}
@@ -523,162 +595,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
           </div>
         </div>
       )}
-
-      {/* Trac AI Coach Panel */}
-      {aiEnabled && (
-        <div className="card fade-in stagger-4" style={{ padding: "26px", marginBottom: "28px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-            <img src="/logo.png" alt="Trac AI" style={{ width: "36px", height: "36px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 2px 6px rgba(0,0,0,0.06)" }} />
-            <div>
-              <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
-                Trac AI
-              </h3>
-              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
-                Smart Daily Assistant
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div>
-              <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
-                How are you feeling right now?
-              </label>
-              <select
-                value={aiMood}
-                onChange={(e) => setAiMood(e.target.value)}
-                style={{ width: "100%", fontWeight: "500" }}
-                className="cursor-pointer"
-              >
-                <option value="">Select current mental state...</option>
-                {MOODS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
-                What goal or challenge are you tackling?
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., beating procrastination, starting deep focus, habit consistency..."
-                value={aiNeed}
-                onChange={(e) => setAiNeed(e.target.value)}
-                style={{ width: "100%", fontWeight: "500" }}
-                onKeyDown={(e) => e.key === "Enter" && handleGetAdvice()}
-              />
-            </div>
-            <button
-              className="btn-primary cursor-pointer"
-              onClick={() => handleGetAdvice()}
-              disabled={aiLoading}
-              style={{ width: "100%", padding: "12px", marginTop: "4px", fontSize: "15px" }}
-            >
-              {aiLoading ? (
-                <>
-                  <Loader size={18} className="spin" /> Trac AI is Synthesizing Coaching...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={18} /> Ask Trac AI Coach
-                </>
-              )}
-            </button>
-
-            {/* Quick One-Click Prompt Protocols - Clean Text No Emojis */}
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "6px" }}>
-              {["Initiate Flow State", "Overcome Inertia", "Mindfulness Reset", "Morning Blueprint"].map((quick, qI) => (
-                <button
-                  key={qI}
-                  onClick={() => handleGetAdvice(quick)}
-                  disabled={aiLoading}
-                  className="btn-secondary cursor-pointer"
-                  style={{ padding: "6px 12px", borderRadius: "8px", fontSize: "11px", fontWeight: "600" }}
-                >
-                  {quick}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {aiAdvice && (
-            <div
-              className="fade-in"
-              style={{
-                marginTop: "20px",
-                padding: "18px",
-                backgroundColor: "var(--accent-light)",
-                borderRadius: "14px",
-                borderLeft: "4px solid var(--accent)",
-                fontSize: "14px",
-                fontWeight: "500",
-                color: "var(--text-primary)",
-                lineHeight: "1.6",
-                boxShadow: "0 4px 12px var(--shadow)",
-              }}
-            >
-              <div style={{ fontWeight: "700", color: "var(--accent)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <img src="/logo.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
-                <span>Trac AI Recommendation:</span>
-              </div>
-              <FormattedAiText text={aiAdvice} />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Cybernetic Command Grid - Apps Shortcut Matrix AT VERY BOTTOM AS REQUESTED */}
-      <div className="card fade-in" style={{ padding: "24px", border: "1px solid var(--border)", background: "var(--bg-card)", boxShadow: "0 8px 32px var(--shadow)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: "800", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            <LayoutGrid size={18} className="text-accent" />
-            <span>App Shortcuts</span>
-          </div>
-          <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--accent)" }}>Quick Grid</span>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-          {[
-            { id: "ai-hub", label: "Trac AI", icon: <img src="/logo.png" alt="Trac AI" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover" }} />, color: "#0D9488", bg: "#CCFBF1" },
-            { id: "sleep", label: "Sleep", icon: <Moon size={22} />, color: "#4F46E5", bg: "#E0E7FF" },
-            { id: "music", label: "Music", icon: <Music size={22} />, color: "#EC4899", bg: "#FCE7F3" },
-            { id: "pomodoro", label: "Focus Timer", icon: <Timer size={22} />, color: "#F59E0B", bg: "#FEF3C7" },
-            { id: "timebox", label: "TimeBox", icon: <Calendar size={22} />, color: "#8B5CF6", bg: "#EDE9FE" },
-            { id: "habits", label: "Habits", icon: <CheckSquare size={22} />, color: "#10B981", bg: "#D1FAE5" },
-            { id: "todo", label: "Tasks", icon: <Clock size={22} />, color: "#3B82F6", bg: "#DBEAFE" },
-            { id: "mood", label: "Mood Log", icon: <Smile size={22} />, color: "#F97316", bg: "#FFEDD5" },
-            { id: "analytics", label: "Stats", icon: <BarChart2 size={22} />, color: "#6366F1", bg: "#E0E7FF" },
-          ].map((app) => (
-            <button
-              key={app.id}
-              onClick={() => onNavigate(app.id)}
-              className="card card-interactive cursor-pointer"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                padding: "16px 8px",
-                borderRadius: "16px",
-                backgroundColor: "var(--bg-secondary)",
-                border: "1px solid transparent",
-                boxShadow: "none",
-              }}
-            >
-              <div style={{ padding: "12px", borderRadius: "14px", backgroundColor: app.bg, color: app.color, boxShadow: `0 4px 14px ${app.color}25`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {app.icon}
-              </div>
-              <span style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
-                {app.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
