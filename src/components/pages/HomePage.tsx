@@ -204,38 +204,49 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
             {format(new Date(), "EEEE, MMMM d, yyyy")} &bull; <span style={{ color: "var(--accent)", fontWeight: "600" }}>In Flow State</span>
           </p>
         </div>
-        <div style={{ position: "relative" }}>
+        <div>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="btn-secondary cursor-pointer"
-            style={{ padding: "10px", borderRadius: "12px", border: menuOpen ? "1px solid var(--accent)" : "1px solid var(--border)" }}
-            title="Shortcuts Menu"
+            style={{ padding: "10px 12px", borderRadius: "12px", border: menuOpen ? "1.5px solid var(--accent)" : "1px solid var(--border)" }}
+            title="All Shortcuts Menu"
           >
             <Menu size={22} color="var(--text-primary)" />
           </button>
 
           {menuOpen && (
             <>
+              {/* Fixed Transparent Backdrop */}
               <div
-                style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }}
+                style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9990 }}
                 onClick={() => setMenuOpen(false)}
               />
 
+              {/* Floating Animated Popover Sheet */}
               <div
-                className="card fade-in"
                 style={{
-                  position: "absolute",
-                  right: 0,
-                  top: "calc(100% + 8px)",
-                  width: "210px",
+                  position: "fixed",
+                  right: "24px",
+                  top: "76px",
+                  width: "220px",
+                  maxHeight: "80vh",
+                  overflowY: "auto",
                   padding: "8px",
-                  zIndex: 100,
-                  boxShadow: "0 12px 32px var(--shadow-hover), 0 4px 12px var(--shadow)",
+                  zIndex: 9999,
+                  borderRadius: "16px",
+                  backgroundColor: "var(--bg-card)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "0 20px 40px -10px var(--shadow-hover), 0 8px 16px -8px var(--shadow)",
+                  animation: "menuDropSpring 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "4px",
+                  gap: "2px",
                 }}
               >
+                <div style={{ padding: "6px 12px 8px", borderBottom: "1px solid var(--border)", marginBottom: "4px", fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                  All Shortcuts
+                </div>
+
                 {[
                   { id: "ai-hub", label: "Trac AI", icon: <img src="/logo.png" alt="" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} /> },
                   { id: "habits", label: "Habits", icon: <CheckSquare size={16} color="#10B981" /> },
@@ -268,6 +279,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
                       fontWeight: "600",
                       textAlign: "left",
                       width: "100%",
+                      transition: "background-color 0.15s",
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-secondary)")}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
