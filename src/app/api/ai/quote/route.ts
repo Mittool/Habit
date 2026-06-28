@@ -1,47 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { callGrok } from "@/lib/grok";
 
 export const dynamic = "force-dynamic";
-
-const API_KEY = process.env.GEMINI_API_KEY || "";
-const MODEL = "gemini-2.5-flash";
-const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
-
-async function callGemini(prompt: string, retries = 2): Promise<string> {
-  const url = `${BASE_URL}/${MODEL}:generateContent?key=${API_KEY}`;
-
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 2048, temperature: 0.9 },
-        }),
-      });
-
-      if (res.status === 429 && attempt < retries) {
-        await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
-        continue;
-      }
-
-      if (!res.ok) {
-        const err = await res.text();
-        console.error("Gemini API error:", res.status, err);
-        throw new Error(`Gemini API ${res.status}`);
-      }
-
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw new Error("Empty response from Gemini");
-      return text;
-    } catch (err) {
-      if (attempt === retries) throw err;
-      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
-    }
-  }
-  throw new Error("Max retries exceeded");
-}
 
 const FALLBACK_QUOTES = [
   { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Aristotle" },
@@ -52,50 +12,56 @@ const FALLBACK_QUOTES = [
   { text: "You do not rise to the level of your goals. You fall to the level of your systems.", author: "James Clear" },
   { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
   { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+  { text: "Action is the foundational key to all success.", author: "Pablo Picasso" },
+  { text: "Amateurs sit and wait for inspiration, the rest of us just get up and go to work.", author: "Stephen King" },
+  { text: "Focus is a matter of deciding what things you are not going to do.", author: "John Carmack" },
+  { text: "Simplicity is the ultimate sophistication.", author: "Leonardo da Vinci" },
+  { text: "Do not wait to strike till the iron is hot; but make it hot by striking.", author: "William Butler Yeats" },
+  { text: "Energy flows where attention goes.", author: "Tony Robbins" }
 ];
 
-export async function GET() {
+let seqCounter = 0;
+
+export async function GET(req: NextRequest) {
   try {
-    if (!API_KEY || API_KEY === "placeholder") {
-      const q = FALLBACK_QUOTES[Math.floor(Math.random() * FALLBACK_QUOTES.length)];
-      return NextResponse.json(q);
-    }
+    const prevText = req.nextUrl.searchParams.get("prev") || "";
 
-    const prompt = `Give a famous inspirational quote about productivity or habits along with its author. Reply with just the quote and author, nothing else.`;
+    try {
+      const topics = ["deep focus", "habit formation", "overcoming procrastination", "resilience", "momentum", "daily discipline", "mindfulness", "mastery", "time management"];
+      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+      const randomSeed = Math.floor(Math.random() * 10000);
 
-    const raw = await callGemini(prompt);
+      const prompt = `[Seed ${randomSeed}] Give a powerful, famous inspirational quote about ${randomTopic} or personal growth along with its exact author. Reply with ONLY the quote on line 1 and the author on line 2. No quotation marks, no commentary. Do NOT repeat this quote: "${prevText}"`;
 
-    // Try to extract quote and author from various formats
-    // Format 1: "Quote" — Author
-    const dashMatch = raw.match(/["\u201C]([^"\u201D]+)["\u201D]\s*[—\-–]\s*([A-Z][^\n]+)/);
-    if (dashMatch) {
-      return NextResponse.json({ text: dashMatch[1].trim(), author: dashMatch[2].trim() });
-    }
+      const raw = await callGrok(prompt, 0.95);
+      const lines = raw.trim().split("\n").filter(l => l.trim().length > 0);
 
-    // Format 2: Bold **"Quote"** then — Author
-    const boldMatch = raw.match(/\*\*["\u201C]?(.+?)["\u201D]?\*\*[^\w]*\n?\s*[—\-–]?\s*([A-Z][^\n]+)/);
-    if (boldMatch) {
-      return NextResponse.json({ text: boldMatch[1].trim(), author: boldMatch[2].trim() });
-    }
+      if (lines.length >= 1) {
+        let quoteText = lines[0].replace(/^["'\u201C]+|["'\u201D]+$/g, "").trim();
+        let authorText = lines.length > 1 ? lines[1].replace(/^[—\-–\s]+/, "").trim() : "Unknown";
 
-    // Format 3: Lines — quote on first line, author on last
-    const lines = raw.trim().split("\n").filter((l: string) => l.trim().replace(/[*\-\s]/g, ""));
-    if (lines.length >= 1) {
-      const quoteText = lines[0].replace(/^\*\*["\u201C]?/, "").replace(/["\u201D]?\*\*$/, "").replace(/^["\u201C]|["\u201D]$/g, "").trim();
-      const authorText = lines.length > 1
-        ? lines[lines.length - 1].replace(/^[—\-\s*]+/, "").trim()
-        : "Unknown";
-      if (quoteText.length > 10 && authorText.length > 0) {
-        return NextResponse.json({ text: quoteText, author: authorText });
+        if (lines.length === 1 && quoteText.includes("—")) {
+          const parts = quoteText.split("—");
+          quoteText = parts[0].replace(/^["'\u201C]+|["'\u201D]+$/g, "").trim();
+          authorText = parts[1].trim();
+        }
+
+        if (quoteText.length > 5 && quoteText !== prevText) {
+          return NextResponse.json({ text: quoteText, author: authorText });
+        }
       }
-    }
+    } catch {}
 
-    // Fallback
-    const q = FALLBACK_QUOTES[Math.floor(Math.random() * FALLBACK_QUOTES.length)];
-    return NextResponse.json(q);
+    // Fallback guaranteed rotation
+    seqCounter = (seqCounter + 1) % FALLBACK_QUOTES.length;
+    let nextQ = FALLBACK_QUOTES[seqCounter];
+    if (nextQ.text === prevText) {
+      seqCounter = (seqCounter + 1) % FALLBACK_QUOTES.length;
+      nextQ = FALLBACK_QUOTES[seqCounter];
+    }
+    return NextResponse.json(nextQ);
   } catch (error) {
-    console.error("Quote error:", error);
-    const q = FALLBACK_QUOTES[Math.floor(Math.random() * FALLBACK_QUOTES.length)];
+    const q = FALLBACK_QUOTES[0];
     return NextResponse.json(q);
   }
 }

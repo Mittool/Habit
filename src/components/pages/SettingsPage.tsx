@@ -17,12 +17,15 @@ import {
   Database,
   Trash2,
   Clock,
+  Cloud,
+  Bot,
+  RefreshCw,
 } from "lucide-react";
 
 const THEMES: { id: Theme; name: string; desc: string; icon: React.ReactNode }[] = [
-  { id: "white-paper", name: "White Paper", desc: "Clean and minimal", icon: <Sun size={16} /> },
-  { id: "dark-paper", name: "Dark Paper", desc: "Easy on eyes at night", icon: <Moon size={16} /> },
-  { id: "zen", name: "Zen", desc: "Warm earth tones", icon: <Leaf size={16} /> },
+  { id: "white-paper", name: "White Paper", desc: "Clean and minimal light mode", icon: <Sun size={18} /> },
+  { id: "dark-paper", name: "Dark Paper", desc: "Easy on eyes midnight dark mode", icon: <Moon size={18} /> },
+  { id: "zen", name: "Zen", desc: "Calming warm sand earth tones", icon: <Leaf size={18} /> },
 ];
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
@@ -30,29 +33,29 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
     <button
       onClick={onChange}
       style={{
-        width: "42px",
-        height: "24px",
-        borderRadius: "12px",
+        width: "48px",
+        height: "26px",
+        borderRadius: "9999px",
         border: "none",
         backgroundColor: checked ? "var(--accent)" : "var(--border)",
         cursor: "pointer",
         position: "relative",
-        transition: "background-color 0.2s",
+        transition: "background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         flexShrink: 0,
       }}
       aria-pressed={checked}
     >
       <div
         style={{
-          width: "18px",
-          height: "18px",
+          width: "20px",
+          height: "20px",
           borderRadius: "50%",
-          backgroundColor: "white",
+          backgroundColor: "#FFFFFF",
           position: "absolute",
           top: "3px",
-          left: checked ? "21px" : "3px",
-          transition: "left 0.2s",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          left: checked ? "25px" : "3px",
+          transition: "left 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
         }}
       />
     </button>
@@ -76,6 +79,8 @@ export default function SettingsPage() {
     setAiEnabled,
     notificationsEnabled,
     setNotificationsEnabled,
+    cloudSyncEnabled,
+    setCloudSyncEnabled,
   } = useAppStore();
   const router = useRouter();
   const [editName, setEditName] = useState(false);
@@ -87,7 +92,7 @@ export default function SettingsPage() {
       navigator.storage.estimate().then((estimate) => {
         const used = estimate.usage ? (estimate.usage / 1024).toFixed(1) : "0";
         const quota = estimate.quota ? (estimate.quota / 1024 / 1024).toFixed(0) : "available";
-        setStorageText(`${used} KB used of ${quota} MB browser quota`);
+        setStorageText(`${used} KB used of ${quota} MB browser storage`);
       }).catch(() => {});
     }
   }, []);
@@ -96,9 +101,7 @@ export default function SettingsPage() {
     if (supabase) {
       try {
         await supabase.auth.signOut();
-      } catch {
-        // ignore if supabase not configured
-      }
+      } catch {}
     }
     setAuthenticated(false);
     setUser(null);
@@ -130,86 +133,109 @@ export default function SettingsPage() {
   };
 
   return (
-    <div style={{ padding: "24px", maxWidth: "640px" }}>
-      <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 8px" }}>
-        Settings
-      </h2>
-      <p style={{ margin: "0 0 24px", fontSize: "13px", color: "var(--text-muted)" }}>
-        Manage account, storage, AI features, notifications, and themes.
-      </p>
+    <div style={{ padding: "32px 24px", maxWidth: "720px", margin: "0 auto" }}>
+      <div className="fade-in" style={{ marginBottom: "28px" }}>
+        <h2 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+          Settings Architecture
+        </h2>
+        <p style={{ margin: 0, fontSize: "14px", fontWeight: "500", color: "var(--text-muted)" }}>
+          Manage account identity, cloud sync preferences, Trac AI features, and aesthetics.
+        </p>
+      </div>
 
       {/* Account */}
-      <div className="card" style={{ padding: "20px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-          <User size={16} color="var(--accent)" />
-          <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Account</h3>
+      <div className="card fade-in stagger-1" style={{ padding: "24px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <User size={18} color="var(--accent)" />
+          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Identity & Account</h3>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px", backgroundColor: "var(--bg-secondary)", borderRadius: "8px" }}>
-          <div style={{ width: "44px", height: "44px", borderRadius: "50%", backgroundColor: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "18px", fontWeight: "600", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px" }}>
+          <div style={{ width: "48px", height: "48px", borderRadius: "9999px", backgroundColor: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "20px", fontWeight: "700", flexShrink: 0, boxShadow: "0 4px 12px var(--shadow-hover)" }}>
             {(user?.name || "U")[0].toUpperCase()}
           </div>
           <div style={{ flex: 1 }}>
             {editName ? (
               <div style={{ display: "flex", gap: "8px" }}>
-                <input value={newName} onChange={(e) => setNewName(e.target.value)} style={{ flex: 1, fontSize: "14px" }} autoFocus onKeyDown={(e) => e.key === "Enter" && handleSaveName()} />
-                <button onClick={handleSaveName} className="btn-primary" style={{ padding: "6px 10px" }}><Check size={14} /></button>
+                <input value={newName} onChange={(e) => setNewName(e.target.value)} style={{ flex: 1, fontSize: "14px", fontWeight: "600" }} autoFocus onKeyDown={(e) => e.key === "Enter" && handleSaveName()} />
+                <button onClick={handleSaveName} className="btn-primary cursor-pointer" style={{ padding: "8px 14px" }}><Check size={16} /></button>
               </div>
             ) : (
               <>
-                <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)" }}>{user?.name || "User"}</div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{user?.email}</div>
+                <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)" }}>{user?.name || "User"}</div>
+                <div style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)" }}>{user?.email || "Local On-Device Account"}</div>
               </>
             )}
           </div>
           {!editName && (
-            <button onClick={() => setEditName(true)} style={{ fontSize: "12px", color: "var(--accent)", background: "none", border: "none", cursor: "pointer" }}>
-              Edit
+            <button onClick={() => setEditName(true)} className="cursor-pointer" style={{ fontSize: "13px", fontWeight: "600", color: "var(--accent)", background: "var(--bg-card)", border: "1px solid var(--border)", padding: "6px 12px", borderRadius: "8px" }}>
+              Edit Name
             </button>
           )}
         </div>
       </div>
 
+      {/* Cloud Sync Settings - User Requested */}
+      <div className="card fade-in stagger-2" style={{ padding: "24px", marginBottom: "20px", border: cloudSyncEnabled ? "1px solid var(--accent)" : "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <Cloud size={18} color="var(--accent)" />
+          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Cloud Sync Architecture</h3>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px", marginBottom: "12px" }}>
+          <div>
+            <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>Save all data in Cloud</div>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)", lineHeight: "1.5", marginTop: "4px" }}>
+              When enabled, your habits, focus minutes, and task logs sync securely to cloud storage. Default is OFF (local-first privacy).
+            </div>
+          </div>
+          <Toggle checked={cloudSyncEnabled} onChange={() => setCloudSyncEnabled(!cloudSyncEnabled)} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", fontWeight: "600", color: cloudSyncEnabled ? "var(--accent)" : "var(--text-muted)", padding: "10px 14px", borderRadius: "8px", backgroundColor: cloudSyncEnabled ? "var(--accent-light)" : "var(--bg-secondary)" }}>
+          <Shield size={14} color={cloudSyncEnabled ? "var(--accent)" : "var(--text-muted)"} />
+          {cloudSyncEnabled ? "Cloud sync is active. Your data is backed up securely." : "Cloud sync is currently OFF. All records remain purely on your device."}
+        </div>
+      </div>
+
       {/* Storage */}
-      <div className="card" style={{ padding: "20px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-          <Database size={16} color="var(--accent)" />
-          <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Storage</h3>
+      <div className="card fade-in stagger-2" style={{ padding: "24px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <Database size={18} color="var(--accent)" />
+          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Local Storage Management</h3>
         </div>
-        <div style={{ padding: "12px 14px", backgroundColor: "var(--bg-secondary)", borderRadius: "8px", marginBottom: "12px" }}>
-          <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "4px" }}>Local-first data</div>
-          <div style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: "1.5" }}>{storageText}</div>
+        <div style={{ padding: "14px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px", marginBottom: "14px" }}>
+          <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "4px" }}>On-Device Cache Status</div>
+          <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)" }}>{storageText}</div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "16px" }}>
           {[
             { label: "Habits", value: stats.habits },
             { label: "Tasks", value: stats.todos },
-            { label: "Blocks", value: stats.timeBlocks },
-            { label: "Mood logs", value: stats.moodEntries },
-            { label: "Focus days", value: stats.focusDays },
-            { label: "Alerts", value: stats.notifications },
+            { label: "Time Blocks", value: stats.timeBlocks },
+            { label: "Mood Logs", value: stats.moodEntries },
+            { label: "Focus Sessions", value: stats.focusDays },
+            { label: "AI Alerts", value: stats.notifications },
           ].map((s) => (
-            <div key={s.label} style={{ padding: "10px", backgroundColor: "var(--bg-secondary)", borderRadius: "6px", textAlign: "center" }}>
-              <div style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-primary)" }}>{s.value}</div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>{s.label}</div>
+            <div key={s.label} style={{ padding: "12px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px", textAlign: "center" }}>
+              <div style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)" }}>{s.value}</div>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", marginTop: "2px" }}>{s.label}</div>
             </div>
           ))}
         </div>
-        <button onClick={clearLocalAppData} className="btn-secondary" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "#ef4444", borderColor: "#fecaca" }}>
-          <Trash2 size={14} /> Clear local data
+        <button onClick={clearLocalAppData} className="btn-secondary cursor-pointer" style={{ width: "100%", padding: "12px", color: "#EF4444", borderColor: "#FECACA" }}>
+          <Trash2 size={16} /> Erase All Local Device Data
         </button>
       </div>
 
-      {/* AI Features */}
-      <div className="card" style={{ padding: "20px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-          <Brain size={16} color="var(--accent)" />
-          <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>AI Features</h3>
+      {/* Trac AI Features */}
+      <div className="card fade-in stagger-3" style={{ padding: "24px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <img src="/logo.png" alt="Trac AI" style={{ width: "20px", height: "20px", objectFit: "contain" }} />
+          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Trac AI Engine</h3>
         </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", padding: "12px 14px", backgroundColor: "var(--bg-secondary)", borderRadius: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px" }}>
           <div>
-            <div style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-primary)" }}>AI Coach and AI Tips</div>
-            <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: "1.5" }}>
-              Turn off to remove AI coach, AI advice, AI habit tips, and smart AI reminders.
+            <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>Trac AI Productivity Intelligence</div>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)", lineHeight: "1.5", marginTop: "4px" }}>
+              Enable Trac AI productivity coaching, personalized habit recovery tips, and dynamic daily wisdom.
             </div>
           </div>
           <Toggle checked={aiEnabled} onChange={() => setAiEnabled(!aiEnabled)} />
@@ -217,59 +243,62 @@ export default function SettingsPage() {
       </div>
 
       {/* Notifications */}
-      <div className="card" style={{ padding: "20px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-          <Bell size={16} color="var(--accent)" />
-          <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Notifications</h3>
+      <div className="card fade-in stagger-3" style={{ padding: "24px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <Bell size={18} color="var(--accent)" />
+          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Smart Notifications</h3>
         </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", padding: "12px 14px", backgroundColor: "var(--bg-secondary)", borderRadius: "8px", marginBottom: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px", marginBottom: "12px" }}>
           <div>
-            <div style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-primary)" }}>Timeboxed task reminders</div>
-            <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: "1.5" }}>
-              Shows normal reminders for scheduled time blocks with a motivation quote.
+            <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>Timeboxed Schedule Alerts</div>
+            <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)", lineHeight: "1.5", marginTop: "4px" }}>
+              Receive scheduled notifications and Trac AI encouragement before time blocks begin.
             </div>
           </div>
           <Toggle checked={notificationsEnabled} onChange={() => setNotificationsEnabled(!notificationsEnabled)} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--text-muted)", padding: "10px 12px", borderRadius: "8px", backgroundColor: "var(--accent-light)" }}>
-          <Clock size={14} color="var(--accent)" />
-          Reminders are generated locally from your time boxes and do not require AI.
+      </div>
+
+      {/* Themes */}
+      <div className="card fade-in stagger-4" style={{ padding: "24px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <Palette size={18} color="var(--accent)" />
+          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Aesthetics & Theme</h3>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {THEMES.map((t) => {
+            const isSelected = theme === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTheme(t.id)}
+                className="cursor-pointer"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "14px",
+                  padding: "16px",
+                  borderRadius: "12px",
+                  border: `2px solid ${isSelected ? "var(--accent)" : "var(--border)"}`,
+                  backgroundColor: isSelected ? "var(--accent-light)" : "var(--bg-secondary)",
+                  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                  textAlign: "left",
+                }}
+              >
+                <div style={{ color: isSelected ? "var(--accent)" : "var(--text-muted)" }}>{t.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>{t.name}</div>
+                  <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)" }}>{t.desc}</div>
+                </div>
+                {isSelected && <Check size={20} color="var(--accent)" />}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Theme */}
-      <div className="card" style={{ padding: "20px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-          <Palette size={16} color="var(--accent)" />
-          <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Themes</h3>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {THEMES.map((t) => (
-            <button key={t.id} onClick={() => setTheme(t.id)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 14px", borderRadius: "8px", border: `2px solid ${theme === t.id ? "var(--accent)" : "var(--border)"}`, backgroundColor: theme === t.id ? "var(--accent-light)" : "var(--bg-secondary)", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
-              <div style={{ color: theme === t.id ? "var(--accent)" : "var(--text-muted)" }}>{t.icon}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)" }}>{t.name}</div>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{t.desc}</div>
-              </div>
-              {theme === t.id && <Check size={16} color="var(--accent)" />}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Privacy */}
-      <div className="card" style={{ padding: "20px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-          <Shield size={16} color="var(--accent)" />
-          <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Privacy</h3>
-        </div>
-        <div style={{ padding: "12px 14px", backgroundColor: "var(--accent-light)", borderRadius: "8px", fontSize: "13px", color: "var(--text-secondary)", lineHeight: "1.5" }}>
-          Habit, task, mood, focus, and timebox data stays in your browser local storage. AI requests only send the context needed for the selected AI feature.
-        </div>
-      </div>
-
-      <button onClick={handleSignOut} className="btn-secondary" style={{ width: "100%", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", color: "#ef4444", borderColor: "#fecaca", fontSize: "14px" }}>
-        <LogOut size={16} /> Sign Out
+      <button onClick={handleSignOut} className="btn-secondary cursor-pointer fade-in stagger-4" style={{ width: "100%", padding: "14px", color: "#EF4444", borderColor: "#FECACA", fontSize: "15px" }}>
+        <LogOut size={18} /> Sign Out of Trac
       </button>
     </div>
   );

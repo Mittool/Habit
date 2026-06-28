@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAppStore, getTodayStr, getHabitStreak, getHabitBestStreak } from "@/lib/store";
 import { getDailyQuote, getAIAdvice } from "@/lib/gemini";
 import { format, subDays, startOfWeek, addDays } from "date-fns";
@@ -10,24 +10,56 @@ import {
   Quote,
   MessageSquare,
   Loader,
-  CheckCircle,
+  CheckCircle2,
   Circle,
   Flame,
-  Brain,
   ChevronRight,
   Settings,
   BarChart2,
   TrendingUp,
   CalendarDays,
+  Sparkles,
+  RefreshCw,
+  Timer,
+  Music,
+  Calendar,
+  CheckSquare,
+  Clock,
+  Smile,
+  LayoutGrid,
+  Moon,
 } from "lucide-react";
 
 const MOODS = [
-  { value: "great", label: "Great", color: "#22c55e" },
-  { value: "good", label: "Good", color: "#84cc16" },
-  { value: "neutral", label: "Neutral", color: "#f59e0b" },
-  { value: "bad", label: "Bad", color: "#ef4444" },
-  { value: "awful", label: "Awful", color: "#7c3aed" },
+  { value: "great", label: "Great", color: "#10B981" },
+  { value: "good", label: "Good", color: "#84CC16" },
+  { value: "neutral", label: "Neutral", color: "#F59E0B" },
+  { value: "bad", label: "Bad", color: "#EF4444" },
+  { value: "awful", label: "Awful", color: "#8B5CF6" },
 ];
+
+function FormattedAiText({ text }: { text: string }) {
+  if (!text) return null;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      {text.split("\n").map((line, idx) => {
+        if (!line.trim()) return <div key={idx} style={{ height: "4px" }} />;
+        const cleanLine = line.replace(/^[⚡🔥🚀🧘🌅🔋🛡️💬🔮🧠💡]+\s*/g, "");
+        const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
+        return (
+          <div key={idx} style={{ lineHeight: "1.6" }}>
+            {parts.map((part, pI) => {
+              if (part.startsWith("**") && part.endsWith("**")) {
+                return <strong key={pI} style={{ color: "var(--text-primary)", fontWeight: 800 }}>{part.slice(2, -2)}</strong>;
+              }
+              return part;
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function HomePage({ onNavigate }: { onNavigate: (p: string) => void }) {
   const {
@@ -35,7 +67,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
     habits,
     todos,
     focusSessions,
-    moodEntries,
     timeBlocks,
     dailyQuote,
     setDailyQuote,
@@ -71,7 +102,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
       )
     : 0;
   const totalFocusTime = focusSessions.reduce((sum, s) => sum + s.minutes, 0);
-  const completedTodos = todos.filter((t) => t.completed).length;
 
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [aiMood, setAiMood] = useState("");
@@ -79,24 +109,22 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const [aiAdvice, setAiAdvice] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
 
+  const fetchFreshQuote = useCallback(() => {
+    setQuoteLoading(true);
+    const prevParam = dailyQuote?.text ? encodeURIComponent(dailyQuote.text) : "";
+    fetch(`/api/ai/quote?t=${Date.now()}&prev=${prevParam}`, {
+      cache: "no-store",
+      headers: { Pragma: "no-cache", "Cache-Control": "no-cache" }
+    })
+      .then((r) => r.json())
+      .then((q) => setDailyQuote({ ...q, date: format(new Date(), "yyyy-MM-dd") }))
+      .catch(() => {})
+      .finally(() => setQuoteLoading(false));
+  }, [dailyQuote?.text, setDailyQuote]);
+
   useEffect(() => {
-    const today = format(new Date(), "yyyy-MM-dd");
-    if (!dailyQuote || dailyQuote.date !== today) {
-      if (!aiEnabled) {
-        setDailyQuote({
-          text: "Small daily improvements over time lead to stunning results.",
-          author: "Robin Sharma",
-          date: today,
-        });
-        return;
-      }
-      setQuoteLoading(true);
-      getDailyQuote()
-        .then((q) => setDailyQuote({ ...q, date: today }))
-        .catch(() => {})
-        .finally(() => setQuoteLoading(false));
-    }
-  }, [aiEnabled, dailyQuote, setDailyQuote]);
+    fetchFreshQuote();
+  }, []);
 
   useEffect(() => {
     if (!notificationsEnabled) return;
@@ -139,16 +167,18 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         })
         .catch(() => {});
     }
-  }, []);
+  }, [aiEnabled, notificationsEnabled, habits, addAiNotification]);
 
-  async function handleGetAdvice() {
-    if (!aiMood || !aiNeed) return;
+  async function handleGetAdvice(customNeed?: string) {
+    const mood = aiMood || "great";
+    const need = customNeed || aiNeed || "maintaining high cognitive velocity";
+    if (customNeed) setAiNeed(customNeed);
     setAiLoading(true);
     try {
-      const advice = await getAIAdvice(aiMood, aiNeed);
+      const advice = await getAIAdvice(mood, need);
       setAiAdvice(advice);
     } catch {
-      setAiAdvice("Focus on what you can control today. Start small, stay consistent.");
+      setAiAdvice(`**Trac AI Directive:** Channel your feeling of being "${mood}" into immediate execution on "${need}". Close irrelevant background tabs, initiate a 25-minute focus block, and maintain absolute discipline.`);
     } finally {
       setAiLoading(false);
     }
@@ -158,278 +188,306 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
-    <div style={{ padding: "24px", maxWidth: "720px" }}>
+    <div style={{ padding: "32px 24px", maxWidth: "800px", margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ marginBottom: "24px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+      <div className="fade-in" style={{ marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
-            <Sun size={20} color="var(--accent)" />
-            <h1 style={{ fontSize: "22px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
-              {greeting}, {user?.name || "there"}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+            <img src="/logo.png" alt="Trac" className="animate-float" style={{ width: "42px", height: "42px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 4px 12px rgba(13,148,136,0.2)" }} />
+            <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
+              {greeting}, {user?.name || "there"}!
             </h1>
           </div>
-          <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: 0 }}>
-            {format(new Date(), "EEEE, MMMM d, yyyy")}
+          <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0, fontWeight: "500" }}>
+            {format(new Date(), "EEEE, MMMM d, yyyy")} &bull; <span style={{ color: "var(--accent)", fontWeight: "600" }}>In Flow State</span>
           </p>
         </div>
         <button
           onClick={() => onNavigate("settings")}
-          className="btn-secondary"
-          style={{ padding: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}
+          className="btn-secondary cursor-pointer"
+          style={{ padding: "12px", borderRadius: "14px" }}
           title="Settings"
         >
-          <Settings size={18} />
+          <Settings size={20} />
         </button>
       </div>
 
-      {/* Stats row */}
-      <div
-        style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "20px" }}
-      >
+      {/* Quick Stats Row */}
+      <div className="fade-in stagger-1" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "24px" }}>
         {[
           {
             label: "Habits Done",
             value: `${completedToday}/${habits.length}`,
-            icon: <CheckCircle size={18} color="var(--accent)" />,
+            icon: <CheckCircle2 size={20} color="var(--accent)" />,
+            bg: "var(--accent-light)",
             onClick: () => onNavigate("habits"),
           },
           {
-            label: "Focus (min)",
-            value: todayFocus,
-            icon: <Zap size={18} color="#f59e0b" />,
+            label: "Focus Time",
+            value: `${todayFocus}m`,
+            icon: <Zap size={20} color="#D97706" />,
+            bg: "#FEF3C7",
             onClick: () => onNavigate("pomodoro"),
           },
           {
             label: "Tasks Left",
             value: pendingTodos,
-            icon: <Target size={18} color="#6366f1" />,
+            icon: <Target size={20} color="#6366F1" />,
+            bg: "#E0E7FF",
             onClick: () => onNavigate("todo"),
           },
         ].map((stat) => (
           <button
             key={stat.label}
             onClick={stat.onClick}
-            className="card"
+            className="card card-interactive cursor-pointer"
             style={{
-              padding: "16px",
+              padding: "18px",
               textAlign: "left",
-              cursor: "pointer",
               border: "1px solid var(--border)",
               background: "var(--bg-card)",
               width: "100%",
-              transition: "all 0.2s",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <div style={{ fontSize: "22px", fontWeight: "700", color: "var(--text-primary)", lineHeight: 1 }}>
-                  {stat.value}
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>
-                  {stat.label}
-                </div>
+            <div>
+              <div style={{ fontSize: "24px", fontWeight: "800", color: "var(--text-primary)", lineHeight: 1.1 }}>
+                {stat.value}
               </div>
+              <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginTop: "6px" }}>
+                {stat.label}
+              </div>
+            </div>
+            <div style={{ padding: "10px", borderRadius: "12px", backgroundColor: stat.bg }}>
               {stat.icon}
             </div>
           </button>
         ))}
       </div>
 
-      {/* Stats summary box */}
+      {/* Stats Summary Box */}
       <button
         onClick={() => onNavigate("analytics")}
-        className="card"
+        className="card card-interactive cursor-pointer fade-in stagger-2"
         style={{
           width: "100%",
-          padding: "20px",
-          marginBottom: "20px",
-          cursor: "pointer",
+          padding: "24px",
+          marginBottom: "24px",
           textAlign: "left",
           border: "1px solid var(--border)",
           background: "var(--bg-card)",
-          transition: "all 0.2s",
+          display: "block",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <BarChart2 size={16} color="var(--accent)" />
-            <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
-              Your Stats
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ padding: "6px", borderRadius: "8px", backgroundColor: "var(--accent-light)" }}>
+              <BarChart2 size={18} color="var(--accent)" />
+            </div>
+            <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>
+              Performance Overview
             </h3>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "var(--accent)" }}>
-            View all <ChevronRight size={12} />
+          <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "13px", fontWeight: "600", color: "var(--accent)" }}>
+            Deep Analytics <ChevronRight size={16} />
           </div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", padding: "12px 0", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
-              <Flame size={12} color="#f59e0b" />
-              <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>Best Streak</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+              <Flame size={14} color="#D97706" />
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)" }}>Best Streak</span>
             </div>
-            <div style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-primary)" }}>{bestStreak}d</div>
+            <div style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)" }}>{bestStreak}d</div>
           </div>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
-              <CalendarDays size={12} color="var(--accent)" />
-              <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>Weekly</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+              <CalendarDays size={14} color="var(--accent)" />
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)" }}>Weekly Avg</span>
             </div>
-            <div style={{ fontSize: "18px", fontWeight: "700", color: weeklyAverage >= 70 ? "var(--accent)" : weeklyAverage >= 40 ? "#f59e0b" : "#ef4444" }}>{weeklyAverage}%</div>
+            <div style={{ fontSize: "20px", fontWeight: "800", color: weeklyAverage >= 70 ? "var(--accent)" : weeklyAverage >= 40 ? "#D97706" : "#EF4444" }}>{weeklyAverage}%</div>
           </div>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
-              <TrendingUp size={12} color="#6366f1" />
-              <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>Monthly</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+              <TrendingUp size={14} color="#6366F1" />
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)" }}>30-Day Avg</span>
             </div>
-            <div style={{ fontSize: "18px", fontWeight: "700", color: monthlyHabitAverage >= 70 ? "var(--accent)" : monthlyHabitAverage >= 40 ? "#f59e0b" : "#ef4444" }}>{monthlyHabitAverage}%</div>
+            <div style={{ fontSize: "20px", fontWeight: "800", color: monthlyHabitAverage >= 70 ? "var(--accent)" : monthlyHabitAverage >= 40 ? "#D97706" : "#EF4444" }}>{monthlyHabitAverage}%</div>
           </div>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
-              <Zap size={12} color="#f59e0b" />
-              <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>Focus</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+              <Zap size={14} color="#D97706" />
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)" }}>Total Focus</span>
             </div>
-            <div style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-primary)" }}>
-              {totalFocusTime >= 60 ? `${Math.floor(totalFocusTime / 60)}h` : `${totalFocusTime}m`}
+            <div style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)" }}>
+              {totalFocusTime >= 60 ? `${Math.floor(totalFocusTime / 60)}h ${totalFocusTime % 60}m` : `${totalFocusTime}m`}
             </div>
           </div>
         </div>
-        {/* Mini weekly bar preview */}
-        <div style={{ display: "flex", alignItems: "flex-end", gap: "4px", marginTop: "14px", height: "32px" }}>
-          {weekData.map((pct, i) => (
-            <div
-              key={i}
-              style={{
-                flex: 1,
-                height: `${Math.max(pct, 4)}%`,
-                minHeight: "3px",
-                borderRadius: "2px",
-                backgroundColor: pct >= 70 ? "var(--accent)" : pct >= 40 ? "#f59e0b" : pct > 0 ? "#ef4444" : "var(--border)",
-                transition: "height 0.3s",
-              }}
-            />
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
-          {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-            <span key={i} style={{ flex: 1, textAlign: "center", fontSize: "9px", color: "var(--text-muted)" }}>
-              {d}
-            </span>
-          ))}
+
+        {/* Mini weekly chart preview */}
+        <div style={{ marginTop: "18px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", marginBottom: "8px" }}>
+            <span>Last 7 Days Consistency</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: "44px" }}>
+            {weekData.map((pct, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: 1,
+                  height: `${Math.max(pct, 12)}%`,
+                  borderRadius: "6px",
+                  backgroundColor: pct >= 70 ? "var(--accent)" : pct >= 40 ? "#F59E0B" : pct > 0 ? "#EF4444" : "var(--border)",
+                  transition: "height 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => (
+              <span key={i} style={{ flex: 1, textAlign: "center", fontSize: "10px", fontWeight: "600", color: "var(--text-muted)" }}>
+                {d}
+              </span>
+            ))}
+          </div>
         </div>
       </button>
 
-      {/* Daily Quote */}
+      {/* Daily Inspiration Quote Card */}
       <div
-        className="card"
-        style={{ padding: "20px", marginBottom: "20px", borderLeft: "3px solid var(--accent)" }}
+        className="card fade-in stagger-3"
+        style={{
+          padding: "24px",
+          marginBottom: "24px",
+          backgroundColor: "var(--bg-card)",
+          position: "relative",
+          overflow: "hidden",
+        }}
       >
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "8px",
-            marginBottom: "12px",
-            color: "var(--text-muted)",
-            fontSize: "11px",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
+            justifyContent: "space-between",
+            marginBottom: "14px",
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          <Quote size={14} />
-          Daily Inspiration
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+            <span>Daily Inspiration</span>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              fetchFreshQuote();
+            }}
+            disabled={quoteLoading}
+            className="btn-secondary cursor-pointer"
+            style={{ padding: "6px 12px", borderRadius: "8px", fontSize: "12px", gap: "6px", backgroundColor: "var(--bg-card)" }}
+            title="Get new quote"
+          >
+            <RefreshCw size={13} className={quoteLoading ? "spin" : ""} />
+            <span>New Quote</span>
+          </button>
         </div>
+
         {quoteLoading ? (
-          <div style={{ color: "var(--text-muted)", fontSize: "14px" }}>Loading quote...</div>
+          <div style={{ padding: "12px 0", color: "var(--text-muted)", fontSize: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <Loader size={16} className="spin text-accent" /> Synthesizing fresh wisdom...
+          </div>
         ) : dailyQuote ? (
           <>
             <p
               style={{
-                fontSize: "15px",
+                fontSize: "17px",
+                fontWeight: "600",
                 color: "var(--text-primary)",
                 lineHeight: "1.6",
-                fontStyle: "italic",
-                margin: "0 0 8px",
+                margin: "0 0 10px",
+                position: "relative",
+                zIndex: 1,
               }}
             >
               &ldquo;{dailyQuote.text}&rdquo;
             </p>
-            <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: 0 }}>
+            <p style={{ fontSize: "13px", fontWeight: "700", color: "var(--accent)", margin: 0, position: "relative", zIndex: 1 }}>
               &mdash; {dailyQuote.author}
             </p>
           </>
-        ) : (
-          <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: 0 }}>
-            &ldquo;Small daily improvements over time lead to stunning results.&rdquo;
-          </p>
-        )}
+        ) : null}
       </div>
 
-      {/* Today's habits quick-check */}
+      {/* Today's habits quick check */}
       {habits.length > 0 && (
-        <div className="card" style={{ padding: "20px", marginBottom: "20px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "14px",
-            }}
-          >
-            <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
-              {"Today\u2019s Habits"}
-            </h3>
+        <div className="card fade-in stagger-4" style={{ padding: "24px", marginBottom: "24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <CheckCircle2 size={18} color="var(--accent)" />
+              <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>
+                Today&rsquo;s Priority Habits
+              </h3>
+            </div>
             <button
               onClick={() => onNavigate("habits")}
+              className="cursor-pointer"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
-                fontSize: "12px",
+                fontSize: "13px",
+                fontWeight: "600",
                 color: "var(--accent)",
                 background: "none",
                 border: "none",
-                cursor: "pointer",
                 padding: "4px",
               }}
             >
-              View all <ChevronRight size={12} />
+              Manage Habits <ChevronRight size={16} />
             </button>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {habits.slice(0, 4).map((h) => {
               const done = h.completions[today];
               const streak = getHabitStreak(h);
               return (
                 <div
                   key={h.id}
+                  className="cursor-pointer"
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "12px",
-                    padding: "10px 12px",
-                    borderRadius: "8px",
+                    gap: "14px",
+                    padding: "14px 16px",
+                    borderRadius: "12px",
                     backgroundColor: done ? "var(--accent-light)" : "var(--bg-secondary)",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
+                    border: `1px solid ${done ? "var(--accent)" : "transparent"}`,
+                    transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                   }}
                   onClick={() => toggleHabitCompletion(h.id, today)}
                 >
                   <div
                     style={{
-                      width: "12px",
-                      height: "12px",
-                      borderRadius: "50%",
+                      width: "14px",
+                      height: "14px",
+                      borderRadius: "9999px",
                       backgroundColor: h.color,
                       flexShrink: 0,
+                      boxShadow: `0 0 8px ${h.color}80`,
                     }}
                   />
                   <span
                     style={{
                       flex: 1,
-                      fontSize: "14px",
+                      fontSize: "15px",
                       color: done ? "var(--accent)" : "var(--text-primary)",
                       textDecoration: done ? "line-through" : "none",
-                      fontWeight: done ? "400" : "500",
+                      fontWeight: done ? "500" : "600",
                     }}
                   >
                     {h.name}
@@ -439,20 +497,26 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "3px",
-                        fontSize: "11px",
-                        color: "#f59e0b",
+                        gap: "4px",
+                        padding: "4px 8px",
+                        borderRadius: "8px",
+                        backgroundColor: "#FEF3C7",
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        color: "#D97706",
                       }}
                     >
-                      <Flame size={11} />
+                      <Flame size={14} />
                       {streak}
                     </div>
                   )}
-                  {done ? (
-                    <CheckCircle size={18} color="var(--accent)" />
-                  ) : (
-                    <Circle size={18} color="var(--border)" />
-                  )}
+                  <div style={{ transition: "transform 0.2s" }}>
+                    {done ? (
+                      <CheckCircle2 size={22} color="var(--accent)" />
+                    ) : (
+                      <Circle size={22} color="var(--border)" />
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -460,92 +524,161 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         </div>
       )}
 
-      {/* AI Advice panel */}
+      {/* Trac AI Coach Panel */}
       {aiEnabled && (
-      <div className="card" style={{ padding: "20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-          <MessageSquare size={16} color="var(--accent)" />
-          <h3 style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
-            AI Productivity Coach
-          </h3>
-        </div>
+        <div className="card fade-in stagger-4" style={{ padding: "26px", marginBottom: "28px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+            <img src="/logo.png" alt="Trac AI" style={{ width: "36px", height: "36px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 2px 6px rgba(0,0,0,0.06)" }} />
+            <div>
+              <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+                Trac AI
+              </h3>
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                Smart Daily Assistant
+              </span>
+            </div>
+          </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <div>
-            <label
-              style={{ fontSize: "12px", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div>
+              <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
+                How are you feeling right now?
+              </label>
+              <select
+                value={aiMood}
+                onChange={(e) => setAiMood(e.target.value)}
+                style={{ width: "100%", fontWeight: "500" }}
+                className="cursor-pointer"
+              >
+                <option value="">Select current mental state...</option>
+                {MOODS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
+                What goal or challenge are you tackling?
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., beating procrastination, starting deep focus, habit consistency..."
+                value={aiNeed}
+                onChange={(e) => setAiNeed(e.target.value)}
+                style={{ width: "100%", fontWeight: "500" }}
+                onKeyDown={(e) => e.key === "Enter" && handleGetAdvice()}
+              />
+            </div>
+            <button
+              className="btn-primary cursor-pointer"
+              onClick={() => handleGetAdvice()}
+              disabled={aiLoading}
+              style={{ width: "100%", padding: "12px", marginTop: "4px", fontSize: "15px" }}
             >
-              Current mood
-            </label>
-            <select
-              value={aiMood}
-              onChange={(e) => setAiMood(e.target.value)}
-              style={{ width: "100%" }}
-            >
-              <option value="">Select mood...</option>
-              {MOODS.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
+              {aiLoading ? (
+                <>
+                  <Loader size={18} className="spin" /> Trac AI is Synthesizing Coaching...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={18} /> Ask Trac AI Coach
+                </>
+              )}
+            </button>
+
+            {/* Quick One-Click Prompt Protocols - Clean Text No Emojis */}
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "6px" }}>
+              {["Initiate Flow State", "Overcome Inertia", "Mindfulness Reset", "Morning Blueprint"].map((quick, qI) => (
+                <button
+                  key={qI}
+                  onClick={() => handleGetAdvice(quick)}
+                  disabled={aiLoading}
+                  className="btn-secondary cursor-pointer"
+                  style={{ padding: "6px 12px", borderRadius: "8px", fontSize: "11px", fontWeight: "600" }}
+                >
+                  {quick}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
-          <div>
-            <label
-              style={{ fontSize: "12px", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}
+
+          {aiAdvice && (
+            <div
+              className="fade-in"
+              style={{
+                marginTop: "20px",
+                padding: "18px",
+                backgroundColor: "var(--accent-light)",
+                borderRadius: "14px",
+                borderLeft: "4px solid var(--accent)",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "var(--text-primary)",
+                lineHeight: "1.6",
+                boxShadow: "0 4px 12px var(--shadow)",
+              }}
             >
-              What do you need help with?
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. staying focused, managing stress, building habits..."
-              value={aiNeed}
-              onChange={(e) => setAiNeed(e.target.value)}
-              style={{ width: "100%" }}
-              onKeyDown={(e) => e.key === "Enter" && handleGetAdvice()}
-            />
+              <div style={{ fontWeight: "700", color: "var(--accent)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <img src="/logo.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
+                <span>Trac AI Recommendation:</span>
+              </div>
+              <FormattedAiText text={aiAdvice} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Cybernetic Command Grid - Apps Shortcut Matrix AT VERY BOTTOM AS REQUESTED */}
+      <div className="card fade-in" style={{ padding: "24px", border: "1px solid var(--border)", background: "var(--bg-card)", boxShadow: "0 8px 32px var(--shadow)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: "800", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <LayoutGrid size={18} className="text-accent" />
+            <span>App Shortcuts</span>
           </div>
-          <button
-            className="btn-primary"
-            onClick={handleGetAdvice}
-            disabled={aiLoading || !aiMood || !aiNeed}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              padding: "10px",
-              opacity: !aiMood || !aiNeed ? 0.5 : 1,
-            }}
-          >
-            {aiLoading ? (
-              <>
-                <Loader size={14} className="spin" /> Getting advice...
-              </>
-            ) : (
-              "Get AI Advice"
-            )}
-          </button>
+          <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--accent)" }}>Quick Grid</span>
         </div>
 
-        {aiAdvice && (
-          <div
-            style={{
-              marginTop: "14px",
-              padding: "14px",
-              backgroundColor: "var(--accent-light)",
-              borderRadius: "8px",
-              borderLeft: "3px solid var(--accent)",
-              fontSize: "14px",
-              color: "var(--text-primary)",
-              lineHeight: "1.6",
-            }}
-          >
-            {aiAdvice}
-          </div>
-        )}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+          {[
+            { id: "ai-hub", label: "Trac AI", icon: <img src="/logo.png" alt="Trac AI" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover" }} />, color: "#0D9488", bg: "#CCFBF1" },
+            { id: "sleep", label: "Sleep", icon: <Moon size={22} />, color: "#4F46E5", bg: "#E0E7FF" },
+            { id: "music", label: "Music", icon: <Music size={22} />, color: "#EC4899", bg: "#FCE7F3" },
+            { id: "pomodoro", label: "Focus Timer", icon: <Timer size={22} />, color: "#F59E0B", bg: "#FEF3C7" },
+            { id: "timebox", label: "TimeBox", icon: <Calendar size={22} />, color: "#8B5CF6", bg: "#EDE9FE" },
+            { id: "habits", label: "Habits", icon: <CheckSquare size={22} />, color: "#10B981", bg: "#D1FAE5" },
+            { id: "todo", label: "Tasks", icon: <Clock size={22} />, color: "#3B82F6", bg: "#DBEAFE" },
+            { id: "mood", label: "Mood Log", icon: <Smile size={22} />, color: "#F97316", bg: "#FFEDD5" },
+            { id: "analytics", label: "Stats", icon: <BarChart2 size={22} />, color: "#6366F1", bg: "#E0E7FF" },
+          ].map((app) => (
+            <button
+              key={app.id}
+              onClick={() => onNavigate(app.id)}
+              className="card card-interactive cursor-pointer"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "16px 8px",
+                borderRadius: "16px",
+                backgroundColor: "var(--bg-secondary)",
+                border: "1px solid transparent",
+                boxShadow: "none",
+              }}
+            >
+              <div style={{ padding: "12px", borderRadius: "14px", backgroundColor: app.bg, color: app.color, boxShadow: `0 4px 14px ${app.color}25`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {app.icon}
+              </div>
+              <span style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
+                {app.label}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
-      )}
     </div>
   );
 }

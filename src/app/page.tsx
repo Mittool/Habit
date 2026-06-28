@@ -4,17 +4,20 @@ import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import Navigation, { NavPage } from "@/components/Navigation";
 import HomePage from "@/components/pages/HomePage";
+import AiHubPage from "@/components/pages/AiHubPage";
 import HabitsPage from "@/components/pages/HabitsPage";
 import TodoPage from "@/components/pages/TodoPage";
 import PomodoroPage from "@/components/pages/PomodoroPage";
 import TimeBoxPage from "@/components/pages/TimeBoxPage";
 import AnalyticsPage from "@/components/pages/AnalyticsPage";
 import MoodPage from "@/components/pages/MoodPage";
+import SleepPage from "@/components/pages/SleepPage";
 import MusicPage from "@/components/pages/MusicPage";
 import SettingsPage from "@/components/pages/SettingsPage";
+import { initMobilePushScheduler } from "@/lib/pwa";
 
 export default function MainApp() {
-  const { isAuthenticated, onboardingDone } = useAppStore();
+  const { isAuthenticated, onboardingDone, habits, todos } = useAppStore();
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState<NavPage>("home");
   const [hydrated, setHydrated] = useState(false);
@@ -43,6 +46,13 @@ export default function MainApp() {
       router.replace("/onboarding");
     }
   }, [hydrated, isAuthenticated, onboardingDone, router]);
+
+  // Mobile push scheduler listener
+  useEffect(() => {
+    if (!hydrated) return;
+    const cleanup = initMobilePushScheduler(habits, todos);
+    return cleanup;
+  }, [hydrated, habits, todos]);
 
   // Show nothing while hydrating to prevent flash/redirect
   if (!hydrated) {
@@ -81,6 +91,8 @@ export default function MainApp() {
     switch (currentPage) {
       case "home":
         return <HomePage onNavigate={(p) => setCurrentPage(p as NavPage)} />;
+      case "ai-hub":
+        return <AiHubPage />;
       case "habits":
         return <HabitsPage />;
       case "todo":
@@ -93,6 +105,8 @@ export default function MainApp() {
         return <AnalyticsPage />;
       case "mood":
         return <MoodPage />;
+      case "sleep":
+        return <SleepPage />;
       case "music":
         return <MusicPage />;
       case "settings":

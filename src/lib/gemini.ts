@@ -22,7 +22,10 @@ export async function getHabitTip(missedHabit: string): Promise<string> {
 }
 
 export async function getDailyQuote(): Promise<{ text: string; author: string }> {
-  const response = await fetch("/api/ai/quote");
+  const response = await fetch(`/api/ai/quote?t=${Date.now()}`, {
+    cache: "no-store",
+    headers: { Pragma: "no-cache", "Cache-Control": "no-cache" }
+  });
   if (!response.ok) throw new Error("Failed to get quote");
   const data = await response.json();
   return data;

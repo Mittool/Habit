@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { User, Mail, Lock, Eye, EyeOff, ChevronRight } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
+import { restoreFromCloudDatabase } from "@/lib/cloud";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -52,24 +53,13 @@ export default function AuthPage() {
     );
   }
 
-  function doLocalAuth() {
-    setUser({
-      id: crypto.randomUUID(),
-      email: email,
-      name: name || email.split("@")[0],
-    });
-    setAuthenticated(true);
-    router.push(onboardingDone ? "/" : "/onboarding");
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    // If Supabase is not configured, go straight to local auth
-    if (!isSupabaseConfigured || !supabase) {
-      doLocalAuth();
+    if (!supabase || !isSupabaseConfigured) {
+      setError("Cloud database connection unreachable. Please verify network or Supabase credentials.");
       setLoading(false);
       return;
     }
@@ -79,9 +69,15 @@ export default function AuthPage() {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { name } },
+          options: { data: { name: name || email.split("@")[0] } },
         });
-        if (signUpError) throw signUpError;
+
+        if (signUpError) {
+          setError(signUpError.message || "Failed to create Supabase account.");
+          setLoading(false);
+          return;
+        }
+
         if (data.user) {
           setUser({
             id: data.user.id,
@@ -91,15 +87,21 @@ export default function AuthPage() {
           setAuthenticated(true);
           router.push("/onboarding");
         } else {
-          // signUp succeeded but no user returned (email confirmation needed)
-          doLocalAuth();
+          setError("Account created! Please check your email inbox to confirm registration.");
+          setLoading(false);
         }
       } else {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (signInError) throw signInError;
+
+        if (signInError) {
+          setError(signInError.message || "Invalid login credentials. Please verify your email and password.");
+          setLoading(false);
+          return;
+        }
+
         if (data.user) {
           setUser({
             id: data.user.id,
@@ -107,15 +109,15 @@ export default function AuthPage() {
             name: data.user.user_metadata?.name || email.split("@")[0],
           });
           setAuthenticated(true);
+          await restoreFromCloudDatabase();
           router.push(onboardingDone ? "/" : "/onboarding");
         } else {
-          doLocalAuth();
+          setError("Authentication rejected. No valid Supabase user session returned.");
+          setLoading(false);
         }
       }
-    } catch {
-      // Any Supabase error → fall back to local auth
-      doLocalAuth();
-    } finally {
+    } catch (err: any) {
+      setError(err?.message || "Authentication failed. Please verify your Supabase credentials.");
       setLoading(false);
     }
   }
@@ -138,12 +140,14 @@ export default function AuthPage() {
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <img
-            src="/icons/icon-192x192.png"
+            src="/logo.png"
             alt="Trac"
             style={{
-              width: "72px",
-              height: "72px",
-              borderRadius: "16px",
+              width: "76px",
+              height: "76px",
+              borderRadius: "22%",
+              objectFit: "cover",
+              boxShadow: "0 8px 24px rgba(13,148,136,0.25)",
               margin: "0 auto 16px",
               display: "block",
             }}
@@ -157,10 +161,10 @@ export default function AuthPage() {
               letterSpacing: "-0.5px",
             }}
           >
-            Trac
+            Trac App
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: 0 }}>
-            {mode === "signin" ? "Welcome back" : "Begin your journey"}
+            {mode === "signin" ? "Cloud Account Sign In" : "Create Cloud Account"}
           </p>
         </div>
 
@@ -271,12 +275,16 @@ export default function AuthPage() {
 
           {error && (
             <div
+              className="fade-in"
               style={{
                 backgroundColor: "#fee2e2",
                 color: "#b91c1c",
-                padding: "10px 12px",
-                borderRadius: "6px",
+                padding: "12px 14px",
+                borderRadius: "8px",
                 fontSize: "13px",
+                fontWeight: "600",
+                lineHeight: "1.5",
+                border: "1px solid #f87171"
               }}
             >
               {error}
@@ -286,18 +294,19 @@ export default function AuthPage() {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary"
+            className="btn-primary cursor-pointer"
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: "8px",
-              padding: "12px",
+              padding: "14px",
               marginTop: "4px",
-              opacity: loading ? 0.7 : 1,
+              fontSize: "14px",
+              fontWeight: "700"
             }}
           >
-            {loading ? "Please wait..." : mode === "signin" ? "Sign In" : "Create Account"}
+            {loading ? "Signing in..." : mode === "signin" ? "Sign In" : "Sign Up"}
             {!loading && <ChevronRight size={16} />}
           </button>
         </form>
@@ -311,9 +320,9 @@ export default function AuthPage() {
             lineHeight: "1.5",
           }}
         >
-          Your data is stored locally on your device.
+          Cloud account sync active.
           <br />
-          Privacy-first by design.
+          Secure storage enabled.
         </p>
       </div>
     </div>

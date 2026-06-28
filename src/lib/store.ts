@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { format } from "date-fns";
+import { triggerCloudSync } from "./cloud";
 
 export type Theme = "white-paper" | "dark-paper" | "zen";
 export type MoodType = "great" | "good" | "neutral" | "bad" | "awful";
@@ -12,6 +13,7 @@ export interface Habit {
   createdAt: string;
   completions: Record<string, boolean>; // date string -> completed
   goal?: string;
+  notificationTime?: string; // e.g. "14:30" (locked in on first completion)
 }
 
 export interface TodoItem {
@@ -37,6 +39,16 @@ export interface TimeBlock {
 export interface MoodEntry {
   date: string;
   mood: MoodType;
+  note?: string;
+}
+
+export interface SleepEntry {
+  id: string;
+  date: string; // "yyyy-MM-dd"
+  bedtime: string; // e.g. "23:30"
+  waketime: string; // e.g. "07:00"
+  durationHours: number; // e.g. 7.5
+  quality: "excellent" | "good" | "fair" | "poor";
   note?: string;
 }
 
@@ -66,6 +78,7 @@ interface AppState {
   onboardingDone: boolean;
   aiEnabled: boolean;
   notificationsEnabled: boolean;
+  cloudSyncEnabled: boolean;
 
   // Habits
   habits: Habit[];
@@ -78,6 +91,9 @@ interface AppState {
 
   // Mood
   moodEntries: MoodEntry[];
+
+  // Sleep
+  sleepEntries: SleepEntry[];
 
   // Focus
   focusSessions: FocusSession[];
@@ -96,6 +112,7 @@ interface AppState {
   setOnboardingDone: (val: boolean) => void;
   setAiEnabled: (val: boolean) => void;
   setNotificationsEnabled: (val: boolean) => void;
+  setCloudSyncEnabled: (val: boolean) => void;
 
   addHabit: (habit: Omit<Habit, "id" | "createdAt" | "completions">) => void;
   updateHabit: (id: string, updates: Partial<Habit>) => void;
@@ -112,6 +129,8 @@ interface AppState {
   deleteTimeBlock: (id: string) => void;
 
   addMoodEntry: (entry: MoodEntry) => void;
+  addSleepEntry: (entry: SleepEntry) => void;
+  deleteSleepEntry: (id: string) => void;
 
   addFocusSession: (minutes: number) => void;
   setPomodoroSettings: (settings: PomodoroSettings) => void;
@@ -132,11 +151,13 @@ export const useAppStore = create<AppState>()(
       onboardingDone: false,
       aiEnabled: true,
       notificationsEnabled: true,
+      cloudSyncEnabled: false,
 
       habits: [],
       todos: [],
       timeBlocks: [],
       moodEntries: [],
+      sleepEntries: [],
       focusSessions: [],
       pomodoroSettings: {
         focusMinutes: 25,
@@ -153,6 +174,10 @@ export const useAppStore = create<AppState>()(
       setOnboardingDone: (val) => set({ onboardingDone: val }),
       setAiEnabled: (val) => set({ aiEnabled: val }),
       setNotificationsEnabled: (val) => set({ notificationsEnabled: val }),
+      setCloudSyncEnabled: (val) => {
+        set({ cloudSyncEnabled: val });
+        if (val) triggerCloudSync();
+      },
 
       addHabit: (habit) =>
         set((state) => ({
@@ -177,15 +202,26 @@ export const useAppStore = create<AppState>()(
           habits: state.habits.filter((h) => h.id !== id),
         })),
 
-      toggleHabitCompletion: (habitId, date) =>
-        set((state) => ({
-          habits: state.habits.map((h) => {
+      toggleHabitCompletion: (habitId, date) => {
+        set((state) => {
+          const nowHHMM = format(new Date(), "HH:mm");
+          const nextHabits = state.habits.map((h) => {
             if (h.id !== habitId) return h;
             const completions = { ...h.completions };
-            completions[date] = !completions[date];
-            return { ...h, completions };
-          }),
-        })),
+            const wasDone = completions[date];
+            completions[date] = !wasDone;
+
+            // Dynamically shift notificationTime EVERY day to match when it was completed!
+            let notificationTime = h.notificationTime;
+            if (!wasDone) {
+              notificationTime = nowHHMM;
+            }
+
+            return { ...h, completions, notificationTime };
+          });
+          return { habits: nextHabits };
+        });
+      },
 
       addTodo: (todo) =>
         set((state) => ({
@@ -247,6 +283,22 @@ export const useAppStore = create<AppState>()(
           }
           return { moodEntries: [...state.moodEntries, entry] };
         }),
+
+      addSleepEntry: (entry) =>
+        set((state) => {
+          const existing = state.sleepEntries.findIndex((s) => s.date === entry.date);
+          if (existing >= 0) {
+            const updated = [...state.sleepEntries];
+            updated[existing] = entry;
+            return { sleepEntries: updated };
+          }
+          return { sleepEntries: [entry, ...state.sleepEntries] };
+        }),
+
+      deleteSleepEntry: (id) =>
+        set((state) => ({
+          sleepEntries: state.sleepEntries.filter((s) => s.id !== id),
+        })),
 
       addFocusSession: (minutes) =>
         set((state) => {
@@ -345,4 +397,11 @@ export function getHabitCompletionRate(habit: Habit, days = 30): number {
     if (habit.completions[key]) completed++;
   }
   return Math.round((completed / days) * 100);
+}
+
+// Auto-sync workspace state to Supabase Cloud Database upon any data update
+if (typeof window !== "undefined") {
+  useAppStore.subscribe(() => {
+    triggerCloudSync();
+  });
 }
