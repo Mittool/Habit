@@ -190,19 +190,14 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
 
   return (
     <div style={{ padding: "32px 24px", maxWidth: "800px", margin: "0 auto" }}>
-      {/* Header */}
-      <div className="fade-in" style={{ marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-            <img src="/logo-inside.png" alt="Trac" className="animate-float" style={{ width: "42px", height: "42px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 4px 12px rgba(13,148,136,0.2)" }} />
-            <h1 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
-              {greeting}, {user?.name || "there"}!
-            </h1>
-          </div>
-          <p style={{ color: "var(--text-muted)", fontSize: "14px", margin: 0, fontWeight: "500" }}>
-            {format(new Date(), "EEEE, MMMM d, yyyy")} &bull; <span style={{ color: "var(--accent)", fontWeight: "600" }}>In Flow State</span>
-          </p>
-        </div>
+      {/* Clean Studio Header */}
+      <div className="fade-in" style={{ marginBottom: "28px" }}>
+        <h1 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 4px", letterSpacing: "-0.02em" }}>
+          {greeting}, {user?.name || "there"}
+        </h1>
+        <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0 }}>
+          {format(new Date(), "EEEE, MMMM d")}
+        </p>
       </div>
 
       {/* Quick Stats Row */}
