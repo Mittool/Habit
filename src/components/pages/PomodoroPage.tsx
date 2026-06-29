@@ -334,10 +334,10 @@ export default function PomodoroPage() {
                     {field.label}
                   </label>
                   <input
-                    type="number"
-                    min={1}
-                    max={field.key === "sessionsBeforeLongBreak" ? 12 : 120}
-                    value={tempSettings[field.key as keyof typeof tempSettings]}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={tempSettings[field.key as keyof typeof tempSettings] ?? ""}
                     onChange={(e) =>
                       setTempSettings((s: any) => ({
                         ...s,
