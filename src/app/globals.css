@@ -61,10 +61,29 @@ html, body {
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro', Roboto, system-ui, sans-serif;
   overscroll-behavior: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
   letter-spacing: -0.015em;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Median.co WebView Native Application Optimization Rules */
+div, span, p, h1, h2, h3, h4, h5, h6, button, a, img, svg, aside, nav, header, footer, section, table, td, tr, li, ul {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Keep text selection and long-press context menu active ONLY on editable form inputs */
+input, textarea, [contenteditable="true"] {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-tap-highlight-color: rgba(13, 148, 136, 0.1) !important;
 }
 
 /* Safe area padding for standalone app mode */

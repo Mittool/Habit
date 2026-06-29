@@ -10,6 +10,7 @@ import FocusPage from "@/components/pages/FocusPage";
 import InsightsPage from "@/components/pages/InsightsPage";
 import SettingsPage from "@/components/pages/SettingsPage";
 import { initMobilePushScheduler } from "@/lib/pwa";
+import { setupWebViewNavigationBridge } from "@/lib/median-webview";
 
 export default function MainApp() {
   const { isAuthenticated, onboardingDone, habits, todos } = useAppStore();
@@ -41,6 +42,16 @@ export default function MainApp() {
     const cleanup = initMobilePushScheduler(habits, todos);
     return cleanup;
   }, [hydrated, habits, todos]);
+
+  // Median WebView Hardware Back Button & Context Menu Bridge
+  useEffect(() => {
+    if (!hydrated) return;
+    const cleanup = setupWebViewNavigationBridge(
+      () => currentPage,
+      (targetTab) => setCurrentPage(targetTab as NavPage)
+    );
+    return cleanup;
+  }, [hydrated, currentPage]);
 
   if (!hydrated) {
     return (
