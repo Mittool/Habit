@@ -34,6 +34,7 @@ export default function HabitsPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<HabitFormData>({ name: "", color: COLORS[0], goal: "" });
   const [loadingTip, setLoadingTip] = useState<string | null>(null);
+  const [completedToastId, setCompletedToastId] = useState<string | null>(null);
 
   // Last 7 days for mini calendar
   const last7 = Array.from({ length: 7 }, (_, i) => {
@@ -236,11 +237,22 @@ export default function HabitsPage() {
             const missedYesterday = !h.completions[format(subDays(new Date(), 1), "yyyy-MM-dd")];
 
             return (
-              <div key={h.id} className="card fade-in" style={{ padding: "20px 24px" }}>
+              <div key={h.id} className={`card fade-in relative ${completedToastId === h.id ? "card-highlight-bloom" : ""}`} style={{ padding: "20px 24px" }}>
+                {completedToastId === h.id && (
+                  <div className="badge-float-up" style={{ padding: "4px 10px", borderRadius: "9999px", backgroundColor: "var(--text-primary)", color: "var(--bg-card)", fontSize: "11px", fontWeight: "600" }}>
+                    +1 Completed
+                  </div>
+                )}
                 <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
                   {/* Completion toggle */}
                   <button
-                    onClick={() => toggleHabitCompletion(h.id, today)}
+                    onClick={() => {
+                      if (!done) {
+                        setCompletedToastId(h.id);
+                        setTimeout(() => setCompletedToastId(null), 950);
+                      }
+                      toggleHabitCompletion(h.id, today);
+                    }}
                     className={`cursor-pointer ${done ? "animate-check" : ""}`}
                     style={{ background: "none", border: "none", padding: 0, transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }}
                   >

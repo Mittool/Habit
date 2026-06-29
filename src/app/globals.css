@@ -257,6 +257,29 @@ input:focus, textarea:focus, select:focus {
   100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
 }
 
+@keyframes cardHighlightBloom {
+  0% { border-color: var(--accent); box-shadow: 0 0 24px rgba(13, 148, 136, 0.2); background-color: var(--accent-light); }
+  100% { border-color: var(--border); box-shadow: 0 1px 3px var(--shadow); background-color: var(--bg-card); }
+}
+
+.card-highlight-bloom {
+  animation: cardHighlightBloom 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes floatBadgeUp {
+  0% { opacity: 1; transform: translateY(0px) scale(0.92); }
+  100% { opacity: 0; transform: translateY(-30px) scale(1.08); }
+}
+
+.badge-float-up {
+  position: absolute;
+  right: 48px;
+  top: 10px;
+  animation: floatBadgeUp 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+  z-index: 30;
+}
+
 .nav-item.active {
   color: var(--text-primary);
   background-color: var(--bg-secondary);
