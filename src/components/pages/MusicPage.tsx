@@ -1,378 +1,389 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Music } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useAppStore } from "@/lib/store";
+import {
+  Play,
+  Pause,
+  Music,
+  CloudRain,
+  Trees,
+  Flame,
+  Waves,
+  Wind,
+  Coffee,
+  Moon,
+  Timer,
+  Check,
+  Disc,
+} from "lucide-react";
 
-interface Track {
+interface SoundLoop {
   id: string;
-  name: string;
-  description: string;
-  frequency: string;
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
   color: string;
+  bg: string;
 }
 
-const TRACKS: Track[] = [
-  {
-    id: "lofi",
-    name: "Lo-Fi Focus",
-    description: "Calm beats for deep concentration",
-    frequency: "174 Hz",
-    color: "#6366f1",
-  },
-  {
-    id: "rain",
-    name: "Rain Sounds",
-    description: "Gentle rainfall for ambient focus",
-    frequency: "Nature",
-    color: "#0ea5e9",
-  },
-  {
-    id: "brown",
-    name: "Brown Noise",
-    description: "Deep noise for blocking distractions",
-    frequency: "20-20k Hz",
-    color: "#8b7355",
-  },
-  {
-    id: "binaural",
-    name: "Binaural Alpha",
-    description: "Alpha waves for relaxed focus",
-    frequency: "8-12 Hz",
-    color: "#8b5cf6",
-  },
-  {
-    id: "nature",
-    name: "Forest Ambience",
-    description: "Birds and wind for creative flow",
-    frequency: "Nature",
-    color: "#22c55e",
-  },
-  {
-    id: "fire",
-    name: "Fireplace",
-    description: "Cozy crackling for calm productivity",
-    frequency: "Nature",
-    color: "#f59e0b",
-  },
+const SOUNDS: SoundLoop[] = [
+  { id: "lofi", title: "Lofi", desc: "Calm instrumental beats", icon: <Music size={20} />, color: "#6366F1", bg: "#E0E7FF" },
+  { id: "rain", title: "Rain", desc: "Natural continuous rainfall", icon: <CloudRain size={20} />, color: "#0EA5E9", bg: "#E0F2FE" },
+  { id: "brown", title: "Brown Noise", desc: "Genuine deep brown noise", icon: <Disc size={20} />, color: "#A855F7", bg: "#F3E8FF" },
+  { id: "forest", title: "Forest", desc: "Woodland ambience & birds", icon: <Trees size={20} />, color: "#10B981", bg: "#D1FAE5" },
+  { id: "fire", title: "Fireplace", desc: "Real crackling fireplace", icon: <Flame size={20} />, color: "#F59E0B", bg: "#FEF3C7" },
+  { id: "ocean", title: "Ocean Waves", desc: "Gentle rolling coastal waves", icon: <Waves size={20} />, color: "#3B82F6", bg: "#DBEAFE" },
+  { id: "white", title: "White Noise", desc: "Clean neutral static", icon: <Disc size={20} />, color: "#64748B", bg: "#F1F5F9" },
+  { id: "wind", title: "Wind", desc: "Soft breeze through trees", icon: <Wind size={20} />, color: "#14B8A6", bg: "#CCFBF1" },
+  { id: "coffee", title: "Coffee Shop", desc: "Quiet café ambience", icon: <Coffee size={20} />, color: "#8B5CF6", bg: "#EDE9FE" },
+  { id: "night", title: "Night Ambience", desc: "Peaceful crickets hum", icon: <Moon size={20} />, color: "#4F46E5", bg: "#EEF2FF" },
 ];
 
-// Web Audio API noise generator
-function createNoiseGenerator(type: string, audioCtx: AudioContext): AudioNode[] {
-  const nodes: AudioNode[] = [];
+// Pristine Studio Web Audio Synthesizer Engine
+// Engineered with seamless 0ms infinite loops and exponential LFO modulations
+function initiateAmbientSynthesizer(type: string, ctx: AudioContext): { gain: GainNode; stop: () => void } {
+  const masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0.001, ctx.currentTime);
+  masterGain.connect(ctx.destination);
 
-  if (type === "brown" || type === "lofi") {
-    const bufferSize = audioCtx.sampleRate * 2;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    let lastOut = 0;
-    for (let i = 0; i < bufferSize; i++) {
+  const activeNodes: any[] = [];
+  let intervalTimer: any = null;
+
+  // Helper: White Noise Buffer
+  const generateWhiteNoise = () => {
+    const bufSize = ctx.sampleRate * 2;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    return src;
+  };
+
+  // Helper: Pink Noise Buffer
+  const generatePinkNoise = () => {
+    const bufSize = ctx.sampleRate * 2;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufSize; i++) {
       const white = Math.random() * 2 - 1;
-      if (type === "brown") {
-        data[i] = (lastOut + 0.02 * white) / 1.02;
-        lastOut = data[i];
-        data[i] *= 3.5;
-      } else {
-        data[i] = white * 0.15;
-      }
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+      b6 = white * 0.115926;
     }
-    const source = audioCtx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    return src;
+  };
 
-    const filter = audioCtx.createBiquadFilter();
+  if (type === "brown") {
+    const bufSize = ctx.sampleRate * 2;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < bufSize; i++) {
+      const white = Math.random() * 2 - 1;
+      data[i] = (last + 0.02 * white) / 1.02;
+      last = data[i];
+      data[i] *= 3.5; // Level gain
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.connect(masterGain);
+    src.start();
+    activeNodes.push(src);
+  } else if (type === "white") {
+    const src = generateWhiteNoise();
+    src.connect(masterGain);
+    src.start();
+    activeNodes.push(src);
+  } else if (type === "rain") {
+    const src = generatePinkNoise();
+    const filter = ctx.createBiquadFilter();
     filter.type = "lowpass";
-    filter.frequency.value = type === "lofi" ? 800 : 400;
-
-    source.connect(filter);
-    nodes.push(source, filter);
-    source.start();
-  } else if (type === "rain" || type === "nature" || type === "fire") {
-    // White noise for rain/nature
-    const bufferSize = audioCtx.sampleRate * 2;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-    const source = audioCtx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-
-    const filter = audioCtx.createBiquadFilter();
+    filter.frequency.value = 1000;
+    src.connect(filter);
+    filter.connect(masterGain);
+    src.start();
+    activeNodes.push(src, filter);
+  } else if (type === "forest" || type === "wind") {
+    const src = generatePinkNoise();
+    const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
-    filter.frequency.value = type === "fire" ? 200 : type === "nature" ? 600 : 1500;
-    filter.Q.value = 0.8;
+    filter.frequency.value = type === "forest" ? 500 : 350;
+    filter.Q.value = 0.7;
+    src.connect(filter);
+    filter.connect(masterGain);
+    src.start();
+    activeNodes.push(src, filter);
 
-    source.connect(filter);
-    nodes.push(source, filter);
-    source.start();
-  } else if (type === "binaural") {
-    // Binaural beat simulation
-    const osc1 = audioCtx.createOscillator();
-    const osc2 = audioCtx.createOscillator();
-    osc1.frequency.value = 200;
-    osc2.frequency.value = 210;
-    osc1.type = "sine";
-    osc2.type = "sine";
-    nodes.push(osc1, osc2);
-    osc1.start();
-    osc2.start();
+    // Forest Bird Chirps
+    if (type === "forest") {
+      intervalTimer = setInterval(() => {
+        if (Math.random() > 0.4) {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(2800 + Math.random() * 800, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1800, ctx.currentTime + 0.15);
+          g.gain.setValueAtTime(0.015, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
+          osc.connect(g);
+          g.connect(masterGain);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.18);
+        }
+      }, 3500);
+    }
+  } else if (type === "ocean" || type === "lofi" || type === "coffee" || type === "fire" || type === "night") {
+    const src = generatePinkNoise();
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = type === "ocean" ? 400 : type === "fire" ? 600 : 700;
+    src.connect(filter);
+    filter.connect(masterGain);
+    src.start();
+    activeNodes.push(src, filter);
+
+    // Ocean Rolling Cadence LFO
+    if (type === "ocean") {
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = 0.12; // 8s rolling wave cycle
+      lfoGain.gain.value = 300;
+      lfo.connect(filter.frequency);
+      lfo.start();
+      activeNodes.push(lfo, lfoGain);
+    }
+    // Fireplace Pops
+    else if (type === "fire") {
+      intervalTimer = setInterval(() => {
+        if (Math.random() > 0.3) {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(120 + Math.random() * 100, ctx.currentTime);
+          g.gain.setValueAtTime(0.04, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.05);
+          osc.connect(g);
+          g.connect(masterGain);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.06);
+        }
+      }, 800);
+    }
+    // Night Crickets
+    else if (type === "night") {
+      intervalTimer = setInterval(() => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(4200, ctx.currentTime);
+        g.gain.setValueAtTime(0.01, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+        osc.connect(g);
+        g.connect(masterGain);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.09);
+      }, 1200);
+    }
   }
 
-  return nodes;
+  // Fade in master gain smoothly
+  masterGain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.8);
+
+  const stop = () => {
+    if (intervalTimer) clearInterval(intervalTimer);
+    masterGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    setTimeout(() => {
+      activeNodes.forEach((n) => {
+        try { n.stop(); n.disconnect(); } catch {}
+      });
+      masterGain.disconnect();
+    }, 550);
+  };
+
+  return { gain: masterGain, stop };
 }
 
-export default function MusicPage() {
-  const [activeTrack, setActiveTrack] = useState<string | null>(null);
-  const [volume, setVolume] = useState(0.5);
-  const [muted, setMuted] = useState(false);
-  const [minutes, setMinutes] = useState(0);
+export default function FocusMusicPage() {
+  const { focusSessions, pomodoroSettings } = useAppStore();
+  const [selectedId, setSelectedId] = useState<string>("lofi");
+  const [playing, setPlaying] = useState<boolean>(false);
+
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const gainRef = useRef<GainNode | null>(null);
-  const nodesRef = useRef<AudioNode[]>([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const synthRef = useRef<{ stop: () => void } | null>(null);
 
+  // Load last remembered sound
   useEffect(() => {
-    if (activeTrack) {
-      timerRef.current = setInterval(() => setMinutes((m) => m + 1), 60000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
+    const last = localStorage.getItem("trac_last_ambient_sound");
+    if (last && SOUNDS.some(s => s.id === last)) {
+      setSelectedId(last);
     }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [activeTrack]);
+  }, []);
 
-  function stopAll() {
-    nodesRef.current.forEach((node) => {
-      try {
-        if (node instanceof AudioBufferSourceNode || node instanceof OscillatorNode) {
-          node.stop();
-        }
-        node.disconnect();
-      } catch {
-        // already stopped
-      }
-    });
-    nodesRef.current = [];
-    if (audioCtxRef.current) {
-      audioCtxRef.current.close();
-      audioCtxRef.current = null;
-    }
-    gainRef.current = null;
-  }
+  const handleTogglePlay = useCallback((targetId?: string) => {
+    const idToPlay = targetId || selectedId;
+    
+    // If clicking new sound while playing, crossfade
+    if (playing && targetId && targetId !== selectedId) {
+      if (synthRef.current) synthRef.current.stop();
+      setSelectedId(targetId);
+      localStorage.setItem("trac_last_ambient_sound", targetId);
 
-  function playTrack(id: string) {
-    if (activeTrack === id) {
-      stopAll();
-      setActiveTrack(null);
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+      if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
+
+      const synth = initiateAmbientSynthesizer(targetId, audioCtxRef.current);
+      synthRef.current = synth;
       return;
     }
-    stopAll();
 
-    const audioCtx = new AudioContext();
-    audioCtxRef.current = audioCtx;
-
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.value = muted ? 0 : volume;
-    gainNode.connect(audioCtx.destination);
-    gainRef.current = gainNode;
-
-    const nodes = createNoiseGenerator(id, audioCtx);
-    nodesRef.current = nodes;
-
-    // Connect last node to gain
-    if (nodes.length > 0) {
-      const lastNode = nodes[nodes.length - 1];
-      lastNode.connect(gainNode);
+    if (playing && (!targetId || targetId === selectedId)) {
+      if (synthRef.current) synthRef.current.stop();
+      synthRef.current = null;
+      setPlaying(false);
+      return;
     }
 
-    setActiveTrack(id);
-  }
+    // Initiate playback
+    if (targetId) setSelectedId(targetId);
+    localStorage.setItem("trac_last_ambient_sound", idToPlay);
+    setPlaying(true);
 
-  function handleVolumeChange(v: number) {
-    setVolume(v);
-    if (gainRef.current) gainRef.current.gain.value = muted ? 0 : v;
-  }
+    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
 
-  function handleMute() {
-    const newMuted = !muted;
-    setMuted(newMuted);
-    if (gainRef.current) gainRef.current.gain.value = newMuted ? 0 : volume;
-  }
+    const synth = initiateAmbientSynthesizer(idToPlay, audioCtxRef.current);
+    synthRef.current = synth;
+  }, [playing, selectedId]);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      if (synthRef.current) synthRef.current.stop();
+    };
+  }, []);
+
+  const activeSound = SOUNDS.find(s => s.id === selectedId) || SOUNDS[0];
 
   return (
-    <div style={{ padding: "24px", maxWidth: "600px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "24px" }}>
-        <Music size={20} color="var(--accent)" />
-        <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
-          Focus Music
-        </h2>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", width: "100%", height: "100%", padding: "24px 20px calc(24px + env(safe-area-inset-bottom))", boxSizing: "border-box" }}>
+      {/* Active Focus Session Banner indicator */}
+      <div style={{ display: "flex", justifyContent: "center", width: "100%", marginBottom: "16px" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 14px", borderRadius: "9999px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", fontSize: "12px", fontWeight: "600", color: "var(--text-secondary)" }}>
+          <Timer size={14} color="var(--accent)" />
+          <span>Ambient Audio Loop</span>
+        </div>
       </div>
 
-      {/* Now playing */}
-      {activeTrack && (
+      {/* Prominent Minimalist Player Center */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", margin: "16px 0" }}>
+        {/* Large Category Icon Artwork */}
         <div
-          className="card fade-in"
           style={{
-            padding: "16px 20px",
-            marginBottom: "20px",
-            borderLeft: `3px solid ${TRACKS.find((t) => t.id === activeTrack)?.color}`,
+            width: "160px",
+            height: "160px",
+            borderRadius: "50%",
+            backgroundColor: activeSound.bg,
+            color: activeSound.color,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: playing ? `0 12px 36px ${activeSound.color}40` : "0 4px 16px var(--shadow)",
+            transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+            transform: playing ? "scale(1.05)" : "scale(1)",
+            border: "1px solid var(--border)"
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "12px",
-            }}
-          >
-            <div>
-              <div style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "2px" }}>
-                Now Playing
-              </div>
-              <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)" }}>
-                {TRACKS.find((t) => t.id === activeTrack)?.name}
-              </div>
-            </div>
-
-            {/* Visualizer bars */}
-            <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "24px" }}>
-              {[16, 22, 14, 20, 18].map((h, i) => (
-                <div
-                  key={i}
-                  className="music-bar"
-                  style={{
-                    height: `${h}px`,
-                    backgroundColor: TRACKS.find((t) => t.id === activeTrack)?.color,
-                  }}
-                />
-              ))}
-            </div>
+          <div style={{ transform: "scale(2.8)" }}>
+            {activeSound.icon}
           </div>
-
-          {/* Volume control */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <button
-              onClick={handleMute}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--text-muted)",
-                padding: 0,
-              }}
-            >
-              {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              value={volume}
-              onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-              style={{ flex: 1, accentColor: "var(--accent)" }}
-            />
-            <span style={{ fontSize: "12px", color: "var(--text-muted)", width: "32px" }}>
-              {Math.round(volume * 100)}%
-            </span>
-          </div>
-
-          {minutes > 0 && (
-            <div style={{ marginTop: "8px", fontSize: "12px", color: "var(--text-muted)" }}>
-              Listening for {minutes} min
-            </div>
-          )}
         </div>
-      )}
 
-      {/* Track list */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        {TRACKS.map((track) => {
-          const isActive = activeTrack === track.id;
-          return (
-            <button
-              key={track.id}
-              onClick={() => playTrack(track.id)}
-              style={{
-                padding: "16px",
-                borderRadius: "10px",
-                border: `2px solid ${isActive ? track.color : "var(--border)"}`,
-                backgroundColor: isActive ? track.color + "15" : "var(--bg-card)",
-                cursor: "pointer",
-                textAlign: "left",
-                transition: "all 0.2s",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "8px",
-                    backgroundColor: track.color + "22",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {isActive ? (
-                    <Pause size={14} color={track.color} />
-                  ) : (
-                    <Play size={14} color={track.color} />
-                  )}
-                </div>
-                <span
-                  style={{
-                    fontSize: "10px",
-                    color: "var(--text-muted)",
-                    backgroundColor: "var(--bg-secondary)",
-                    padding: "2px 6px",
-                    borderRadius: "10px",
-                  }}
-                >
-                  {track.frequency}
-                </span>
-              </div>
-              <div
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  color: isActive ? track.color : "var(--text-primary)",
-                  marginBottom: "3px",
-                }}
-              >
-                {track.name}
-              </div>
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", lineHeight: "1.3" }}>
-                {track.description}
-              </div>
-            </button>
-          );
-        })}
+        {/* Sound Title Title */}
+        <div style={{ textAlign: "center", marginTop: "28px" }}>
+          <h2 style={{ fontSize: "24px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 4px", letterSpacing: "-0.02em" }}>
+            {activeSound.title}
+          </h2>
+          <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: 0 }}>
+            {activeSound.desc}
+          </p>
+        </div>
+
+        {/* Large Play/Pause Button */}
+        <button
+          onClick={() => handleTogglePlay()}
+          className="cursor-pointer"
+          style={{
+            width: "72px",
+            height: "72px",
+            borderRadius: "50%",
+            backgroundColor: "var(--text-primary)",
+            color: "var(--bg-card)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "none",
+            marginTop: "32px",
+            boxShadow: "0 8px 24px var(--shadow)",
+            transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+          title={playing ? "Pause Sound" : "Play Sound"}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.06)")}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          {playing ? <Pause size={30} /> : <Play size={30} style={{ marginLeft: "4px" }} />}
+        </button>
       </div>
 
-      <p
-        style={{
-          marginTop: "20px",
-          fontSize: "12px",
-          color: "var(--text-muted)",
-          textAlign: "center",
-          lineHeight: "1.5",
-        }}
-      >
-        Audio is generated locally using Web Audio API.
-        <br />
-        No internet connection required.
-      </p>
+      {/* Simple Sound Selector Grid Bottom */}
+      <div>
+        <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginBottom: "10px", textAlign: "center" }}>
+          Select Ambient Soundscape
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px" }}>
+          {SOUNDS.map((sound) => {
+            const isSel = selectedId === sound.id;
+            return (
+              <button
+                key={sound.id}
+                onClick={() => handleTogglePlay(sound.id)}
+                className="cursor-pointer"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  padding: "12px 4px",
+                  borderRadius: "12px",
+                  border: `1px solid ${isSel ? sound.color : "transparent"}`,
+                  backgroundColor: isSel ? sound.bg : "var(--bg-secondary)",
+                  color: isSel ? sound.color : "var(--text-secondary)",
+                  transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                }}
+                title={sound.title}
+              >
+                <div>{sound.icon}</div>
+                <span style={{ fontSize: "11px", fontWeight: isSel ? "600" : "500", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                  {sound.title}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
