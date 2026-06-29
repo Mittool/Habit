@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAppStore, getTodayStr, getHabitStreak, getHabitBestStreak, getHabitCompletionRate } from "@/lib/store";
 import { format, subDays } from "date-fns";
 import { HABIT_ICON_LIBRARY, renderHabitIcon } from "@/lib/icons";

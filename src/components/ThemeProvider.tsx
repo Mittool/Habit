@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {

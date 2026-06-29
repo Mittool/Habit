@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Palette, CheckCircle2, ChevronRight, Sun, Moon, Leaf, Target, Loader, Plus, X } from "lucide-react";
 import { useAppStore, Theme } from "@/lib/store";

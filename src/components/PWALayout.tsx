@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { registerServiceWorker } from "@/lib/pwa";
 import { initOneSignal } from "@/lib/onesignal";
 import { restoreFromCloudDatabase } from "@/lib/cloud";
