@@ -86,13 +86,19 @@ export default function PomodoroPage() {
   }
 
   function saveSettings() {
-    setPomodoroSettings(tempSettings);
+    const cleanSettings = {
+      focusMinutes: Math.max(1, Math.min(120, parseInt(String(tempSettings.focusMinutes)) || 25)),
+      breakMinutes: Math.max(1, Math.min(60, parseInt(String(tempSettings.breakMinutes)) || 5)),
+      longBreakMinutes: Math.max(1, Math.min(60, parseInt(String(tempSettings.longBreakMinutes)) || 15)),
+      sessionsBeforeLongBreak: Math.max(1, Math.min(12, parseInt(String(tempSettings.sessionsBeforeLongBreak)) || 4)),
+    };
+    setPomodoroSettings(cleanSettings);
     setSecondsLeft(
       phase === "focus"
-        ? tempSettings.focusMinutes * 60
+        ? cleanSettings.focusMinutes * 60
         : phase === "break"
-        ? tempSettings.breakMinutes * 60
-        : tempSettings.longBreakMinutes * 60
+        ? cleanSettings.breakMinutes * 60
+        : cleanSettings.longBreakMinutes * 60
     );
     setShowSettings(false);
   }
@@ -333,9 +339,9 @@ export default function PomodoroPage() {
                     max={field.key === "sessionsBeforeLongBreak" ? 12 : 120}
                     value={tempSettings[field.key as keyof typeof tempSettings]}
                     onChange={(e) =>
-                      setTempSettings((s) => ({
+                      setTempSettings((s: any) => ({
                         ...s,
-                        [field.key]: parseInt(e.target.value) || 1,
+                        [field.key]: e.target.value,
                       }))
                     }
                     style={{ width: "100%", fontWeight: "600" }}
