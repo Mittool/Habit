@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppStore, Theme } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { performIsolatedSignOut } from "@/lib/cloud";
+import { performIsolatedSignOut, syncUserProfileName } from "@/lib/cloud";
 import {
   Sun,
   Moon,
@@ -103,9 +103,13 @@ export default function SettingsPage() {
     router.push("/auth");
   }
 
-  function handleSaveName() {
+  async function handleSaveName() {
     if (user && newName.trim()) {
-      useAppStore.getState().setUser({ ...user, name: newName.trim() });
+      const cleanName = newName.trim();
+      const res = await syncUserProfileName(cleanName);
+      if (!res.success && !res.offline) {
+        alert("Warning: Name updated locally, but cloud profile sync failed. Will retry automatically.");
+      }
     }
     setEditName(false);
   }

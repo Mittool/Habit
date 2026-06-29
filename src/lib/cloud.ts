@@ -5,13 +5,44 @@ import { useAppStore } from "./store";
 
 let syncTimeout: NodeJS.Timeout | null = null;
 
+// Save display name locally & transmit to Supabase cloud profile (UID scoped)
+export async function syncUserProfileName(cleanName: string): Promise<{ success: boolean; offline: boolean }> {
+  if (typeof window === "undefined") return { success: false, offline: true };
+  const state = useAppStore.getState();
+  const now = Date.now();
+
+  // 1. Update local Zustand memory & disk cache immediately
+  if (state.user) {
+    useAppStore.setState({
+      user: { ...state.user, name: cleanName, updatedAt: now }
+    });
+  }
+
+  // 2. If offline or guest browsing, keep local change and flag for future upload
+  if (!supabase || !state.isAuthenticated || !state.user?.id || state.user.id === "local") {
+    return { success: true, offline: true };
+  }
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      data: { name: cleanName, profileUpdatedAt: now }
+    });
+    if (error) throw error;
+    console.log("[Cloud Profile] Name secured for UID:", state.user.id);
+    return { success: true, offline: false };
+  } catch (err) {
+    console.error("[Cloud Profile] Sync failure:", err);
+    return { success: false, offline: false };
+  }
+}
+
 // Auto-sync active workspace state to Supabase User Metadata (Scoped strictly to authenticated UID)
 export function triggerCloudSync() {
   if (typeof window === "undefined" || !supabase) return;
   const state = useAppStore.getState();
 
   // Only sync if user explicitly enabled Cloud Save & is signed in
-  if (!state.cloudSyncEnabled || !state.isAuthenticated || !state.user?.id) return;
+  if (!state.cloudSyncEnabled || !state.isAuthenticated || !state.user?.id || state.user.id === "local") return;
 
   if (syncTimeout) clearTimeout(syncTimeout);
 
@@ -56,9 +87,26 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error || !session?.user) return false;
 
-    const metadata = session.user.user_metadata;
+    const metadata = session.user.user_metadata || {};
     const backup = metadata?.trac_cloud_backup;
     const currentState = useAppStore.getState();
+    const localUser = currentState.user;
+
+    // Display Name Conflict Resolution (Timestamp deterministic strategy)
+    const cloudName = metadata.name || session.user.email?.split("@")[0] || "User";
+    const cloudTime = (metadata.profileUpdatedAt as number) || 0;
+    const localTime = localUser?.updatedAt || 0;
+
+    let resolvedName = cloudName;
+    let resolvedTime = cloudTime;
+
+    // If local profile name was edited more recently offline, prefer local!
+    if (localUser && localTime > cloudTime && localUser.name) {
+      resolvedName = localUser.name;
+      resolvedTime = localTime;
+      // Mirror local name up to cloud automatically
+      supabase.auth.updateUser({ data: { name: resolvedName, profileUpdatedAt: resolvedTime } });
+    }
 
     // If cloud backup exists for this account, restore it strictly
     if (backup && backup.habits) {
@@ -75,7 +123,8 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
         user: {
           id: session.user.id,
           email: session.user.email || "",
-          name: metadata.name || session.user.email?.split("@")[0] || "User",
+          name: resolvedName,
+          updatedAt: resolvedTime,
         },
       });
       console.log("[Cloud Database] Restored isolated account backup for UID:", session.user.id);
@@ -83,10 +132,8 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
     } 
     // If no cloud backup exists for this newly signed in account
     else {
-      // Check if local data belonged to a guest session ("local" or unauthenticated)
       const wasLocalGuest = !currentState.user || currentState.user.id === "local";
 
-      // If there is local guest data, upload it as this account's inaugural cloud backup
       if (wasLocalGuest && currentState.habits.length > 0) {
         useAppStore.setState({
           isAuthenticated: true,
@@ -94,12 +141,12 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
           user: {
             id: session.user.id,
             email: session.user.email || "",
-            name: metadata?.name || session.user.email?.split("@")[0] || "User",
+            name: resolvedName,
+            updatedAt: resolvedTime,
           }
         });
         triggerCloudSync();
       } else {
-        // Start fresh for this account to guarantee zero data leaks from previous sessions
         useAppStore.setState({
           habits: [],
           todos: [],
@@ -112,7 +159,8 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
           user: {
             id: session.user.id,
             email: session.user.email || "",
-            name: metadata?.name || session.user.email?.split("@")[0] || "User",
+            name: resolvedName,
+            updatedAt: resolvedTime,
           }
         });
       }
@@ -134,7 +182,6 @@ export async function performIsolatedSignOut(): Promise<void> {
     } catch {}
   }
 
-  // Purge in-memory state and reset local cache
   useAppStore.setState({
     user: null,
     isAuthenticated: false,

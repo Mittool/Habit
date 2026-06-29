@@ -68,6 +68,7 @@ export interface UserProfile {
   id: string;
   email: string;
   name: string;
+  updatedAt?: number;
 }
 
 interface AppState {
