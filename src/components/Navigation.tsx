@@ -1,21 +1,20 @@
 "use client";
-import { useAppStore } from "@/lib/store";
 import {
   Home,
-  CheckSquare,
-  Clock,
-  BarChart2,
-  Settings,
-  Timer,
-  Calendar,
-  Music,
-  Smile,
-  Bot,
-  Moon,
+  CalendarDays,
+  Sparkles,
+  Target,
+  TrendingUp,
 } from "lucide-react";
 
 export type NavPage =
   | "home"
+  | "planner"
+  | "ai-chat"
+  | "focus"
+  | "insights"
+  | "settings"
+  // Legacy aliases for internal deep linking
   | "ai-hub"
   | "habits"
   | "todo"
@@ -24,35 +23,34 @@ export type NavPage =
   | "analytics"
   | "mood"
   | "sleep"
-  | "music"
-  | "settings";
+  | "music";
 
 interface NavProps {
   current: NavPage;
   onChange: (page: NavPage) => void;
 }
 
-const NAV_ITEMS: { id: NavPage; label: string; icon: React.ReactNode }[] = [
+const NAV_ITEMS: { id: NavPage; label: string; icon: React.ReactNode; isFab?: boolean }[] = [
   { id: "home", label: "Home", icon: <Home size={20} /> },
-  { id: "ai-hub", label: "Trac AI", icon: <img src="/logo.png" alt="Trac AI" style={{ width: "20px", height: "20px", objectFit: "cover", borderRadius: "50%", boxShadow: "0 0 8px rgba(13,148,136,0.3)" }} className="animate-pulse" /> },
-  { id: "habits", label: "Habits", icon: <CheckSquare size={20} /> },
-  { id: "todo", label: "Tasks", icon: <Clock size={20} /> },
-  { id: "pomodoro", label: "Focus", icon: <Timer size={20} /> },
-  { id: "timebox", label: "TimeBox", icon: <Calendar size={20} /> },
-  { id: "analytics", label: "Stats", icon: <BarChart2 size={20} /> },
-  { id: "mood", label: "Mood", icon: <Smile size={20} /> },
-  { id: "sleep", label: "Sleep", icon: <Moon size={20} /> },
-  { id: "music", label: "Music", icon: <Music size={20} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={20} /> },
+  { id: "planner", label: "Planner", icon: <CalendarDays size={20} /> },
+  { id: "ai-chat", label: "AI Chat", icon: <img src="/logo.png" alt="AI Chat" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />, isFab: true },
+  { id: "focus", label: "Focus", icon: <Target size={20} /> },
+  { id: "insights", label: "Insights", icon: <TrendingUp size={20} /> },
 ];
 
-// Items shown in the mobile bottom nav (5 max for usability)
-const MOBILE_NAV_IDS: NavPage[] = ["home", "ai-hub", "habits", "todo", "music"];
-
 export default function Navigation({ current, onChange }: NavProps) {
+  // Map internal deep links to active parent tab
+  const activeParent = (() => {
+    if (["habits", "todo", "timebox"].includes(current)) return "planner";
+    if (["pomodoro", "music"].includes(current)) return "focus";
+    if (["analytics", "mood", "sleep"].includes(current)) return "insights";
+    if (current === "ai-hub") return "ai-chat";
+    return current;
+  })();
+
   return (
     <>
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar rail */}
       <aside
         style={{
           width: "76px",
@@ -62,7 +60,7 @@ export default function Navigation({ current, onChange }: NavProps) {
           flexDirection: "column",
           alignItems: "center",
           padding: "20px 10px",
-          gap: "8px",
+          gap: "12px",
           position: "fixed",
           left: 0,
           top: 0,
@@ -79,9 +77,9 @@ export default function Navigation({ current, onChange }: NavProps) {
             height: "44px",
             borderRadius: "12px",
             overflow: "hidden",
-            marginBottom: "20px",
+            marginBottom: "24px",
             flexShrink: 0,
-            boxShadow: "0 4px 12px var(--shadow-hover)",
+            boxShadow: "0 4px 12px var(--shadow)",
             border: "1px solid var(--border)",
           }}
         >
@@ -92,9 +90,39 @@ export default function Navigation({ current, onChange }: NavProps) {
           />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
           {NAV_ITEMS.map((item) => {
-            const isActive = current === item.id;
+            const isActive = activeParent === item.id;
+
+            if (item.isFab) {
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onChange("ai-chat")}
+                  className="cursor-pointer"
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "50%",
+                    backgroundColor: "var(--accent)",
+                    color: "#FFFFFF",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "6px auto",
+                    border: "none",
+                    boxShadow: "0 8px 20px rgba(13,148,136,0.35)",
+                    transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                  }}
+                  title="Primary AI Assistant"
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.08)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                >
+                  <Sparkles size={24} color="#FFFFFF" />
+                </button>
+              );
+            }
+
             return (
               <button
                 key={item.id}
@@ -108,7 +136,7 @@ export default function Navigation({ current, onChange }: NavProps) {
                 title={item.label}
               >
                 {item.icon}
-                <span style={{ fontSize: "9px", marginTop: "2px", opacity: isActive ? 1 : 0.8 }}>
+                <span style={{ fontSize: "10px", marginTop: "4px", fontWeight: isActive ? "800" : "600", color: isActive ? "var(--accent)" : "var(--text-secondary)" }}>
                   {item.label}
                 </span>
                 {isActive && (
@@ -116,8 +144,8 @@ export default function Navigation({ current, onChange }: NavProps) {
                     style={{
                       position: "absolute",
                       left: 0,
-                      top: "20%",
-                      bottom: "20%",
+                      top: "15%",
+                      bottom: "15%",
                       width: "3px",
                       backgroundColor: "var(--accent)",
                       borderRadius: "0 4px 4px 0",
@@ -130,7 +158,7 @@ export default function Navigation({ current, onChange }: NavProps) {
         </div>
       </aside>
 
-      {/* Mobile bottom nav */}
+      {/* Mobile fixed bottom nav (Exactly 5 items with Elevated FAB Center) */}
       <nav
         style={{
           position: "fixed",
@@ -142,24 +170,58 @@ export default function Navigation({ current, onChange }: NavProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-around",
-          padding: "10px 8px",
+          padding: "8px 4px calc(8px + env(safe-area-inset-bottom))",
           zIndex: 50,
           boxShadow: "0 -4px 20px var(--shadow)",
           backdropFilter: "blur(12px)",
         }}
         className="mobile-nav"
       >
-        {NAV_ITEMS.filter((item) => MOBILE_NAV_IDS.includes(item.id)).map((item) => {
-          const isActive = current === item.id;
+        {NAV_ITEMS.map((item) => {
+          const isActive = activeParent === item.id;
+
+          if (item.isFab) {
+            return (
+              <div key={item.id} style={{ flex: 1, display: "flex", justifyContent: "center", position: "relative" }}>
+                <button
+                  onClick={() => onChange("ai-chat")}
+                  className="cursor-pointer"
+                  style={{
+                    position: "absolute",
+                    bottom: "-10px",
+                    width: "56px",
+                    height: "56px",
+                    borderRadius: "50%",
+                    backgroundColor: "var(--accent)",
+                    color: "#FFFFFF",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "4px solid var(--bg-card)",
+                    boxShadow: "0 8px 24px rgba(13,148,136,0.45)",
+                    transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                  }}
+                  title="AI Chat Assistant"
+                >
+                  <Sparkles size={26} color="#FFFFFF" />
+                </button>
+              </div>
+            );
+          }
+
           return (
             <button
               key={item.id}
               className={`nav-item cursor-pointer${isActive ? " active" : ""}`}
               onClick={() => onChange(item.id)}
-              style={{ flex: 1, padding: "8px 4px" }}
+              style={{ flex: 1, padding: "8px 2px" }}
             >
-              {item.icon}
-              <span style={{ fontSize: "10px", marginTop: "2px" }}>{item.label}</span>
+              <div style={{ color: isActive ? "var(--accent)" : "var(--text-muted)" }}>
+                {item.icon}
+              </div>
+              <span style={{ fontSize: "10.5px", marginTop: "2px", fontWeight: isActive ? "800" : "600", color: isActive ? "var(--accent)" : "var(--text-secondary)" }}>
+                {item.label}
+              </span>
             </button>
           );
         })}
