@@ -44,8 +44,9 @@ export interface Habit {
   notificationEnabled?: boolean;
   reminderTime?: string; // manual HH:mm e.g. "09:00"
   reminderDays?: number[]; // [0,1,2,3,4,5,6]
-  completionTimestamps?: number[]; // list of exact completion timestamps in ms (last 30)
-  learnedAverageHHMM?: string; // calculated adaptive average e.g. "20:27"
+  completionTimestamps?: number[];
+  learnedAverageHHMM?: string;
+  iconKey?: string;
 }
 
 export interface TodoItem {
