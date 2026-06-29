@@ -1,19 +1,15 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAppStore, getTodayStr, getHabitStreak, getHabitBestStreak } from "@/lib/store";
 import { getDailyQuote } from "@/lib/gemini";
 import { format, subDays, startOfWeek, addDays } from "date-fns";
 import { renderHabitIcon } from "@/lib/icons";
 import {
-  Bell,
-  Settings,
   Flame,
   Zap,
   CalendarDays,
   TrendingUp,
   Clock,
-  Moon,
-  Smile,
   CheckSquare,
   RefreshCw,
   CheckCircle2,
@@ -27,11 +23,9 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
     habits,
     todos,
     focusSessions,
-    sleepEntries,
     dailyQuote,
     setDailyQuote,
     toggleHabitCompletion,
-    aiEnabled,
   } = useAppStore();
 
   const today = getTodayStr();
@@ -43,7 +37,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const bestStreak = habits.length > 0 ? Math.max(0, ...habits.map((h) => getHabitBestStreak(h))) : 0;
   const currentStreak = habits.length > 0 ? Math.max(0, ...habits.map((h) => getHabitStreak(h))) : 0;
 
-  // Overview calculations
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekData = Array.from({ length: 7 }, (_, i) => {
     const d = addDays(weekStart, i);
@@ -63,13 +56,9 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
     : 0;
 
   const totalFocusTimeMins = focusSessions.reduce((sum, s) => sum + s.minutes, 0);
-  const avgSleep = sleepEntries.length > 0
-    ? Math.round((sleepEntries.reduce((a, b) => a + b.durationHours, 0) / sleepEntries.length) * 10) / 10
-    : 7.5;
 
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [completedToastId, setCompletedToastId] = useState<string | null>(null);
-  const [insightsExpanded, setInsightsExpanded] = useState(false);
   const [heatmapTooltip, setHeatmapTooltip] = useState<string | null>(null);
 
   const fetchFreshQuote = useCallback(() => {
@@ -92,7 +81,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
-  // GitHub-style Heatmap (Last 120 Days)
   const heatmapDays = Array.from({ length: 120 }, (_, i) => {
     const d = subDays(new Date(), 119 - i);
     const key = format(d, "yyyy-MM-dd");
@@ -103,39 +91,34 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
 
   return (
     <div style={{ padding: "32px 24px", maxWidth: "800px", margin: "0 auto" }}>
-      {/* 1. Studio Header */}
-      <div className="fade-in" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" }}>
-        <div>
-          <span style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-secondary)" }}>{greeting},</span>
-          <h1 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: "2px 0 4px", letterSpacing: "-0.02em" }}>
-            {user?.name || "Mittool"}
-          </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: 0 }}>
-            {format(new Date(), "EEEE, MMMM d, yyyy")}
-          </p>
-        </div>
-
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button
-            onClick={() => onNavigate("insights")}
-            className="btn-secondary cursor-pointer"
-            style={{ padding: "10px", borderRadius: "12px" }}
-            title="Notifications & Insights"
-          >
-            <Bell size={18} color="var(--text-primary)" />
-          </button>
-          <button
-            onClick={() => onNavigate("settings")}
-            className="btn-secondary cursor-pointer"
-            style={{ padding: "10px", borderRadius: "12px" }}
-            title="Settings"
-          >
-            <Settings size={18} color="var(--text-primary)" />
-          </button>
-        </div>
+      {/* 1. Studio Header (No Top Right Buttons!) */}
+      <div className="fade-in" style={{ marginBottom: "24px" }}>
+        <span style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-secondary)", display: "block" }}>{greeting},</span>
+        <h1 className="shimmer-name" style={{ fontSize: "30px", fontWeight: "700", margin: "2px 0 4px", letterSpacing: "-0.02em" }}>
+          {user?.name || "Mittool"}
+        </h1>
+        <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: 0 }}>
+          {format(new Date(), "EEEE, MMMM d, yyyy")}
+        </p>
       </div>
 
-      {/* 2. Daily Progress Ring Banner */}
+      {/* 2. Daily Motivation Quote AT TOP AS REQUESTED */}
+      <div className="card fade-in stagger-1" style={{ padding: "20px 24px", marginBottom: "20px", borderLeft: "3px solid var(--accent)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+          <span style={{ fontSize: "11.5px", fontWeight: "600", color: "var(--text-muted)" }}>Daily Motivation</span>
+          <button onClick={fetchFreshQuote} disabled={quoteLoading} className="cursor-pointer" style={{ background: "none", border: "none", color: "var(--text-muted)", padding: 0 }}>
+            <RefreshCw size={14} className={quoteLoading ? "spin" : ""} />
+          </button>
+        </div>
+        <p style={{ fontSize: "14.5px", color: "var(--text-primary)", fontStyle: "italic", lineHeight: "1.5", margin: "0 0 6px" }}>
+          &ldquo;{dailyQuote?.text || "Excellence is not an act, but a daily habit."}&rdquo;
+        </p>
+        <span style={{ fontSize: "12.5px", color: "var(--text-secondary)", fontWeight: "500" }}>
+          &mdash; {dailyQuote?.author || "Aristotle"}
+        </span>
+      </div>
+
+      {/* 3. Daily Progress Ring Banner */}
       <div className="card fade-in stagger-1" style={{ padding: "20px 24px", marginBottom: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
         <div>
           <h2 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 4px" }}>Today&rsquo;s Progress</h2>
@@ -161,8 +144,8 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         </div>
       </div>
 
-      {/* 3. Quick Stats Grid (Four Cards) */}
-      <div className="fade-in stagger-1" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "24px" }}>
+      {/* 4. Quick Stats Grid (Four Cards) */}
+      <div className="fade-in stagger-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "24px" }}>
         <div onClick={() => onNavigate("habits")} className="card card-interactive cursor-pointer" style={{ padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>Habits Completed</div>
@@ -196,7 +179,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         </div>
       </div>
 
-      {/* 4. Performance Overview */}
+      {/* 5. Performance Overview */}
       <div className="card fade-in stagger-2" style={{ padding: "22px 24px", marginBottom: "24px" }}>
         <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 16px" }}>Performance Overview</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
@@ -219,15 +202,15 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         </div>
       </div>
 
-      {/* 5. GitHub-style Habit Heatmap */}
-      <div className="card fade-in stagger-2" style={{ padding: "22px 24px", marginBottom: "24px" }}>
+      {/* 6. Consistency Heatmap */}
+      <div className="card fade-in stagger-3" style={{ padding: "22px 24px", marginBottom: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Consistency Heatmap</h3>
           <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Last 120 Days</span>
         </div>
 
         {heatmapTooltip && (
-          <div style={{ padding: "6px 10px", borderRadius: "6px", backgroundColor: "var(--text-primary)", color: "var(--bg-card)", fontSize: "11.5px", fontWeight: "600", marginBottom: "8px", width: "fit-content", transition: "all 0.15s" }}>
+          <div style={{ padding: "6px 10px", borderRadius: "6px", backgroundColor: "var(--text-primary)", color: "var(--bg-card)", fontSize: "11.5px", fontWeight: "600", marginBottom: "8px", width: "fit-content" }}>
             {heatmapTooltip}
           </div>
         )}
@@ -248,7 +231,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
                   borderRadius: "2px",
                   backgroundColor: bgAlpha,
                   border: hd.pct === 0 ? "1px solid var(--border)" : "none",
-                  transition: "transform 0.1s"
                 }}
               />
             );
@@ -256,49 +238,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         </div>
       </div>
 
-      {/* 6. Expandable AI Insights Card */}
-      {aiEnabled && (
-        <div className="card fade-in stagger-3" style={{ padding: "22px 24px", marginBottom: "24px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <img src="/logo-inside.png" alt="AI" style={{ width: "20px", height: "20px", borderRadius: "50%", objectFit: "cover" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>AI Insights</h3>
-            </div>
-            <button onClick={() => setInsightsExpanded(!insightsExpanded)} className="cursor-pointer" style={{ background: "none", border: "none", color: "var(--accent)", fontSize: "13px", fontWeight: "600" }}>
-              {insightsExpanded ? "Collapse" : "View Insights"}
-            </button>
-          </div>
-
-          <div style={{ marginTop: "14px", fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-            <p style={{ margin: "0 0 8px" }}>&bull; You complete priority habits 86% of the time after 6 PM.</p>
-            {insightsExpanded && (
-              <>
-                <p style={{ margin: "0 0 8px" }}>&bull; Reading is your most consistent daily routine.</p>
-                <p style={{ margin: "0 0 8px" }}>&bull; Focus duration increases on days you sleep over 7.5 hours.</p>
-                <p style={{ margin: 0 }}>&bull; Overall consistency improved 14% this month.</p>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 7. Daily Motivation Quote */}
-      <div className="card fade-in stagger-3" style={{ padding: "22px 24px", marginBottom: "24px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-          <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)" }}>Daily Motivation</span>
-          <button onClick={fetchFreshQuote} disabled={quoteLoading} className="cursor-pointer" style={{ background: "none", border: "none", color: "var(--text-muted)", padding: 0 }}>
-            <RefreshCw size={14} className={quoteLoading ? "spin" : ""} />
-          </button>
-        </div>
-        <p style={{ fontSize: "15px", color: "var(--text-primary)", fontStyle: "italic", lineHeight: "1.5", margin: "0 0 8px" }}>
-          &ldquo;{dailyQuote?.text || "Excellence is not an act, but a daily habit."}&rdquo;
-        </p>
-        <span style={{ fontSize: "13px", color: "var(--text-secondary)", fontWeight: "500" }}>
-          &mdash; {dailyQuote?.author || "Aristotle"}
-        </span>
-      </div>
-
-      {/* 8. Today's Priority Habits List List */}
+      {/* 7. Today's Priority Habits List */}
       <div className="card fade-in stagger-4" style={{ padding: "24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Today&rsquo;s Priority Habits</h3>
