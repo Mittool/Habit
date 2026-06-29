@@ -210,7 +210,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "24px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           {/* Left Column: 7-Day Graph View (Old View) */}
           <div style={{ borderRight: "1px solid var(--border)", paddingRight: "12px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
