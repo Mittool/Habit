@@ -1,4 +1,4 @@
-// Supabase Cloud Storage, Rehydration & Account Isolation Engine
+// Supabase Cloud Storage, Rehydration, Profile Sync & Account Isolation Engine
 "use client";
 import { supabase } from "./supabase";
 import { useAppStore } from "./store";
@@ -18,20 +18,25 @@ export async function syncUserProfileName(cleanName: string): Promise<{ success:
     });
   }
 
-  // 2. If offline or guest browsing, keep local change and flag for future upload
-  if (!supabase || !state.isAuthenticated || !state.user?.id || state.user.id === "local") {
+  // 2. If offline or guest browsing ("local"), flag as offline local save
+  if (!supabase || !state.user?.id || state.user.id === "local") {
     return { success: true, offline: true };
   }
 
   try {
+    // 3. Save to authenticated user's cloud profile metadata immediately
     const { error } = await supabase.auth.updateUser({
       data: { name: cleanName, profileUpdatedAt: now }
     });
     if (error) throw error;
-    console.log("[Cloud Profile] Name secured for UID:", state.user.id);
+
+    // Also trigger full cloud backup sync to mirror name inside backup payload
+    triggerCloudSync();
+
+    console.log("[Cloud Profile] Successfully secured display name to cloud profile UID:", state.user.id);
     return { success: true, offline: false };
   } catch (err) {
-    console.error("[Cloud Profile] Sync failure:", err);
+    console.error("[Cloud Profile] Name sync transmission exception:", err);
     return { success: false, offline: false };
   }
 }
@@ -46,7 +51,7 @@ export function triggerCloudSync() {
 
   if (syncTimeout) clearTimeout(syncTimeout);
 
-  // Debounce sync requests by 1.5 seconds
+  // Debounce sync requests by 1.2 seconds
   syncTimeout = setTimeout(async () => {
     try {
       const { data: { session } } = await supabase!.auth.getSession();
@@ -61,22 +66,28 @@ export function triggerCloudSync() {
         sleepEntries: state.sleepEntries,
         focusSessions: state.focusSessions,
         pomodoroSettings: state.pomodoroSettings,
+        userName: state.user.name,
+        userUpdatedAt: state.user.updatedAt || Date.now(),
         cloudUpdatedAt: new Date().toISOString(),
       };
 
       const { error } = await supabase!.auth.updateUser({
-        data: { trac_cloud_backup: cloudPayload }
+        data: { 
+          trac_cloud_backup: cloudPayload,
+          name: state.user.name,
+          profileUpdatedAt: state.user.updatedAt || Date.now()
+        }
       });
 
       if (error) {
         console.error("[Cloud Database] Sync transmission failed:", error.message);
       } else {
-        console.log("[Cloud Database] State secured for UID:", session.user.id);
+        console.log("[Cloud Database] State & profile secured for UID:", session.user.id);
       }
     } catch (err) {
       console.error("[Cloud Database] Runtime sync exception:", err);
     }
-  }, 1500);
+  }, 1200);
 }
 
 // Restore saved cloud state upon sign in or app startup
@@ -92,23 +103,23 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
     const currentState = useAppStore.getState();
     const localUser = currentState.user;
 
-    // Display Name Conflict Resolution (Timestamp deterministic strategy)
-    const cloudName = metadata.name || session.user.email?.split("@")[0] || "User";
-    const cloudTime = (metadata.profileUpdatedAt as number) || 0;
+    // Display Name Conflict Resolution (Deterministic Timestamp Merge)
+    const cloudName = backup?.userName || metadata?.name || session.user.email?.split("@")[0] || "User";
+    const cloudTime = Math.max((metadata?.profileUpdatedAt as number) || 0, (backup?.userUpdatedAt as number) || 0);
     const localTime = localUser?.updatedAt || 0;
 
-    let resolvedName = cloudName;
-    let resolvedTime = cloudTime;
+    let definitiveName = cloudName;
+    let definitiveTime = cloudTime;
 
-    // If local profile name was edited more recently offline, prefer local!
-    if (localUser && localTime > cloudTime && localUser.name) {
-      resolvedName = localUser.name;
-      resolvedTime = localTime;
-      // Mirror local name up to cloud automatically
-      supabase.auth.updateUser({ data: { name: resolvedName, profileUpdatedAt: resolvedTime } });
+    // If local profile name was edited more recently offline while disconnected, prefer local!
+    if (localUser && localTime > cloudTime && localUser.name && localUser.id === session.user.id) {
+      definitiveName = localUser.name;
+      definitiveTime = localTime;
+      // Mirror newer local name back up to cloud profile automatically
+      supabase.auth.updateUser({ data: { name: definitiveName, profileUpdatedAt: definitiveTime } });
     }
 
-    // If cloud backup exists for this account, restore it strictly
+    // If cloud backup exists for this account, restore it strictly isolated
     if (backup && backup.habits) {
       useAppStore.setState({
         habits: backup.habits || [],
@@ -123,14 +134,14 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
         user: {
           id: session.user.id,
           email: session.user.email || "",
-          name: resolvedName,
-          updatedAt: resolvedTime,
+          name: definitiveName,
+          updatedAt: definitiveTime,
         },
       });
-      console.log("[Cloud Database] Restored isolated account backup for UID:", session.user.id);
+      console.log("[Cloud Database] Restored isolated account & profile backup for UID:", session.user.id);
       return true;
     } 
-    // If no cloud backup exists for this newly signed in account
+    // If no cloud backup exists for this account
     else {
       const wasLocalGuest = !currentState.user || currentState.user.id === "local";
 
@@ -141,8 +152,8 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
           user: {
             id: session.user.id,
             email: session.user.email || "",
-            name: resolvedName,
-            updatedAt: resolvedTime,
+            name: definitiveName,
+            updatedAt: definitiveTime,
           }
         });
         triggerCloudSync();
@@ -159,8 +170,8 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
           user: {
             id: session.user.id,
             email: session.user.email || "",
-            name: resolvedName,
-            updatedAt: resolvedTime,
+            name: definitiveName,
+            updatedAt: definitiveTime,
           }
         });
       }
