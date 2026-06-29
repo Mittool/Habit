@@ -46,8 +46,14 @@ export function triggerCloudSync() {
   if (typeof window === "undefined" || !supabase) return;
   const state = useAppStore.getState();
 
-  // Only sync if user explicitly enabled Cloud Save & is signed in
-  if (!state.cloudSyncEnabled || !state.isAuthenticated || !state.user?.id || state.user.id === "local") return;
+  if (!state.isAuthenticated || !state.user?.id || state.user.id === "local") return;
+
+  if (!state.cloudSyncEnabled) {
+    supabase.auth.updateUser({
+      data: { trac_cloud_backup: { cloudSyncEnabled: false, cloudUpdatedAt: new Date().toISOString() } }
+    });
+    return;
+  }
 
   if (syncTimeout) clearTimeout(syncTimeout);
 
@@ -134,7 +140,7 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
         theme: backup.theme || currentState.theme,
         notificationsEnabled: backup.notificationsEnabled !== undefined ? backup.notificationsEnabled : true,
         isAuthenticated: true,
-        cloudSyncEnabled: true,
+        cloudSyncEnabled: backup.cloudSyncEnabled !== undefined ? backup.cloudSyncEnabled : true,
         onboardingDone: true,
         user: {
           id: session.user.id,
