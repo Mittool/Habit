@@ -50,7 +50,11 @@ export function triggerCloudSync() {
 
   if (!state.cloudSyncEnabled) {
     supabase.auth.updateUser({
-      data: { trac_cloud_backup: { cloudSyncEnabled: false, cloudUpdatedAt: new Date().toISOString() } }
+      data: {
+        name: state.user.name,
+        profileUpdatedAt: state.user.updatedAt || Date.now(),
+        trac_cloud_backup: { cloudSyncEnabled: false, userName: state.user.name, cloudUpdatedAt: new Date().toISOString() }
+      }
     });
     return;
   }
@@ -140,7 +144,7 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
         theme: backup.theme || currentState.theme,
         notificationsEnabled: backup.notificationsEnabled !== undefined ? backup.notificationsEnabled : true,
         isAuthenticated: true,
-        cloudSyncEnabled: backup.cloudSyncEnabled !== undefined ? backup.cloudSyncEnabled : true,
+        cloudSyncEnabled: backup.cloudSyncEnabled === true,
         onboardingDone: true,
         user: {
           id: session.user.id,
@@ -160,7 +164,7 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
       if (wasLocalGuest && currentState.habits.length > 0) {
         useAppStore.setState({
           isAuthenticated: true,
-          cloudSyncEnabled: true,
+          cloudSyncEnabled: false,
           onboardingDone: isAlreadyOnboarded || currentState.onboardingDone,
           user: {
             id: session.user.id,
@@ -169,7 +173,6 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
             updatedAt: definitiveTime,
           }
         });
-        triggerCloudSync();
       } else {
         useAppStore.setState({
           habits: [],
@@ -179,7 +182,7 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
           sleepEntries: [],
           focusSessions: [],
           isAuthenticated: true,
-          cloudSyncEnabled: true,
+          cloudSyncEnabled: false,
           onboardingDone: isAlreadyOnboarded,
           user: {
             id: session.user.id,
