@@ -79,12 +79,15 @@ export default function AuthPage() {
         }
 
         if (data.user) {
-          setUser({
-            id: data.user.id,
-            email: data.user.email || email,
-            name: name || email.split("@")[0],
+          useAppStore.setState({
+            user: {
+              id: data.user.id,
+              email: data.user.email || email,
+              name: name || email.split("@")[0],
+            },
+            isAuthenticated: true,
+            onboardingDone: false,
           });
-          setAuthenticated(true);
           router.push("/onboarding");
         } else {
           setError("Account created! Please check your email inbox to confirm registration.");

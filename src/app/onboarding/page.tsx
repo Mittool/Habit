@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Palette, CheckCircle2, ChevronRight, Sun, Moon, Leaf, Target, Loader, Plus, X } from "lucide-react";
 import { useAppStore, Theme } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
+import { triggerCloudSync } from "@/lib/cloud";
 
 const THEMES: { id: Theme; name: string; desc: string; icon: React.ReactNode; colors: string[] }[] = [
   {
@@ -121,6 +123,20 @@ export default function OnboardingPage() {
     });
 
     setOnboardingDone(true);
+    const storeState = useAppStore.getState();
+    if (supabase && storeState.isAuthenticated && storeState.user?.id && storeState.user.id !== "local") {
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            onboarding_completed: true,
+            selected_goals: selectedGoals,
+          }
+        });
+        triggerCloudSync();
+      } catch (err) {
+        console.error("[Onboarding] Sync error:", err);
+      }
+    }
     router.replace("/");
   }
 

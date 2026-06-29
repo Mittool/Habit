@@ -131,6 +131,7 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
         pomodoroSettings: backup.pomodoroSettings || currentState.pomodoroSettings,
         isAuthenticated: true,
         cloudSyncEnabled: true,
+        onboardingDone: true,
         user: {
           id: session.user.id,
           email: session.user.email || "",
@@ -138,17 +139,19 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
           updatedAt: definitiveTime,
         },
       });
-      console.log("[Cloud Database] Restored isolated account & profile backup for UID:", session.user.id);
+      console.log("[Cloud Database] Restored account records & onboarding status for UID:", session.user.id);
       return true;
     } 
     // If no cloud backup exists for this account
     else {
       const wasLocalGuest = !currentState.user || currentState.user.id === "local";
+      const isAlreadyOnboarded = metadata?.onboarding_completed === true;
 
       if (wasLocalGuest && currentState.habits.length > 0) {
         useAppStore.setState({
           isAuthenticated: true,
           cloudSyncEnabled: true,
+          onboardingDone: isAlreadyOnboarded || currentState.onboardingDone,
           user: {
             id: session.user.id,
             email: session.user.email || "",
@@ -167,6 +170,7 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
           focusSessions: [],
           isAuthenticated: true,
           cloudSyncEnabled: true,
+          onboardingDone: isAlreadyOnboarded,
           user: {
             id: session.user.id,
             email: session.user.email || "",
@@ -196,6 +200,7 @@ export async function performIsolatedSignOut(): Promise<void> {
   useAppStore.setState({
     user: null,
     isAuthenticated: false,
+    onboardingDone: false,
     cloudSyncEnabled: false,
     habits: [],
     todos: [],
