@@ -2,7 +2,6 @@
 import {
   Home,
   CalendarDays,
-  Sparkles,
   Target,
   TrendingUp,
 } from "lucide-react";
@@ -14,7 +13,7 @@ export type NavPage =
   | "focus"
   | "insights"
   | "settings"
-  // Legacy aliases for internal deep linking
+  // Legacy aliases for deep linking
   | "ai-hub"
   | "habits"
   | "todo"
@@ -30,16 +29,15 @@ interface NavProps {
   onChange: (page: NavPage) => void;
 }
 
-const NAV_ITEMS: { id: NavPage; label: string; icon: React.ReactNode; isFab?: boolean }[] = [
+const NAV_ITEMS: { id: NavPage; label: string; icon: React.ReactNode }[] = [
   { id: "home", label: "Home", icon: <Home size={20} /> },
   { id: "planner", label: "Planner", icon: <CalendarDays size={20} /> },
-  { id: "ai-chat", label: "AI Chat", icon: <img src="/logo-inside.png" alt="AI Chat" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />, isFab: true },
+  { id: "ai-chat", label: "AI Chat", icon: <img src="/logo-inside.png" alt="AI Chat" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover" }} /> },
   { id: "focus", label: "Focus", icon: <Target size={20} /> },
   { id: "insights", label: "Insights", icon: <TrendingUp size={20} /> },
 ];
 
 export default function Navigation({ current, onChange }: NavProps) {
-  // Map internal deep links to active parent tab
   const activeParent = (() => {
     if (["habits", "todo", "timebox"].includes(current)) return "planner";
     if (["pomodoro", "music"].includes(current)) return "focus";
@@ -60,7 +58,7 @@ export default function Navigation({ current, onChange }: NavProps) {
           flexDirection: "column",
           alignItems: "center",
           padding: "20px 10px",
-          gap: "12px",
+          gap: "8px",
           position: "fixed",
           left: 0,
           top: 0,
@@ -79,50 +77,20 @@ export default function Navigation({ current, onChange }: NavProps) {
             overflow: "hidden",
             marginBottom: "24px",
             flexShrink: 0,
-            boxShadow: "0 4px 12px var(--shadow)",
+            boxShadow: "0 2px 8px var(--shadow)",
             border: "1px solid var(--border)",
           }}
         >
           <img
-            src="/logo-inside.png"
+            src="/logo.png"
             alt="Trac"
             style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
           />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%" }}>
           {NAV_ITEMS.map((item) => {
             const isActive = activeParent === item.id;
-
-            if (item.isFab) {
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onChange("ai-chat")}
-                  className="cursor-pointer"
-                  style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "50%",
-                    backgroundColor: "var(--accent)",
-                    color: "#FFFFFF",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "6px auto",
-                    border: "none",
-                    boxShadow: "0 8px 20px rgba(13,148,136,0.35)",
-                    transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-                  }}
-                  title="Primary AI Assistant"
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.08)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                >
-                  <img src="/logo-inside.png" alt="AI Chat" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-                </button>
-              );
-            }
-
             return (
               <button
                 key={item.id}
@@ -135,7 +103,9 @@ export default function Navigation({ current, onChange }: NavProps) {
                 }}
                 title={item.label}
               >
-                {item.icon}
+                <div style={{ opacity: isActive ? 1 : 0.7, transition: "opacity 0.2s" }}>
+                  {item.icon}
+                </div>
                 <span style={{ fontSize: "10px", marginTop: "4px", fontWeight: isActive ? "800" : "600", color: isActive ? "var(--accent)" : "var(--text-secondary)" }}>
                   {item.label}
                 </span>
@@ -158,7 +128,7 @@ export default function Navigation({ current, onChange }: NavProps) {
         </div>
       </aside>
 
-      {/* Mobile fixed bottom nav (Exactly 5 items with Elevated FAB Center) */}
+      {/* Mobile fixed bottom nav (In-line 5 items flat inside nav bar) */}
       <nav
         style={{
           position: "fixed",
@@ -179,44 +149,14 @@ export default function Navigation({ current, onChange }: NavProps) {
       >
         {NAV_ITEMS.map((item) => {
           const isActive = activeParent === item.id;
-
-          if (item.isFab) {
-            return (
-              <div key={item.id} style={{ flex: 1, display: "flex", justifyContent: "center", position: "relative" }}>
-                <button
-                  onClick={() => onChange("ai-chat")}
-                  className="cursor-pointer"
-                  style={{
-                    position: "absolute",
-                    bottom: "-10px",
-                    width: "56px",
-                    height: "56px",
-                    borderRadius: "50%",
-                    backgroundColor: "var(--accent)",
-                    color: "#FFFFFF",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "4px solid var(--bg-card)",
-                    boxShadow: "0 8px 24px rgba(13,148,136,0.45)",
-                    transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-                  }}
-                  title="AI Chat Assistant"
-                >
-                  <img src="/logo-inside.png" alt="AI Chat" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-                </button>
-              </div>
-            );
-          }
-
           return (
             <button
               key={item.id}
               className={`nav-item cursor-pointer${isActive ? " active" : ""}`}
               onClick={() => onChange(item.id)}
-              style={{ flex: 1, padding: "8px 2px" }}
+              style={{ flex: 1, padding: "8px 2px", position: "static" }}
             >
-              <div style={{ color: isActive ? "var(--accent)" : "var(--text-muted)" }}>
+              <div style={{ color: isActive ? "var(--accent)" : "var(--text-muted)", opacity: isActive ? 1 : 0.75, transition: "opacity 0.2s", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {item.icon}
               </div>
               <span style={{ fontSize: "10.5px", marginTop: "2px", fontWeight: isActive ? "800" : "600", color: isActive ? "var(--accent)" : "var(--text-secondary)" }}>
