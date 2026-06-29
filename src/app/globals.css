@@ -242,6 +242,21 @@ input:focus, textarea:focus, select:focus {
   background-color: var(--bg-secondary);
 }
 
+@keyframes checkScaleFill {
+  0% { transform: scale(0.82); opacity: 0.6; }
+  50% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-check {
+  animation: checkScaleFill 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes confettiRain {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+}
+
 .nav-item.active {
   color: var(--text-primary);
   background-color: var(--bg-secondary);

@@ -498,7 +498,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
                       {streak}
                     </div>
                   )}
-                  <div style={{ transition: "transform 0.2s" }}>
+                  <div className={done ? "animate-check" : ""} style={{ transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }}>
                     {done ? (
                       <CheckCircle2 size={22} color="var(--accent)" />
                     ) : (

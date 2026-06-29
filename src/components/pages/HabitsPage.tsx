@@ -241,8 +241,8 @@ export default function HabitsPage() {
                   {/* Completion toggle */}
                   <button
                     onClick={() => toggleHabitCompletion(h.id, today)}
-                    className="cursor-pointer"
-                    style={{ background: "none", border: "none", padding: 0, transition: "transform 0.2s" }}
+                    className={`cursor-pointer ${done ? "animate-check" : ""}`}
+                    style={{ background: "none", border: "none", padding: 0, transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }}
                   >
                     {done ? (
                       <CheckCircle2 size={28} color={h.color} />

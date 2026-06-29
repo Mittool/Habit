@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { format } from "date-fns";
 import { triggerCloudSync } from "./cloud";
+import { playHabitDoneSound, playMilestoneSound, triggerHapticLight, triggerHapticSuccess } from "./audio";
 
 export type Theme = "white-paper" | "dark-paper" | "zen";
 export type MoodType = "great" | "good" | "neutral" | "bad" | "awful";
@@ -206,20 +207,43 @@ export const useAppStore = create<AppState>()(
       toggleHabitCompletion: (habitId, date) => {
         set((state) => {
           const nowHHMM = format(new Date(), "HH:mm");
+          let soundTriggered = false;
+          let milestoneReached = false;
+
           const nextHabits = state.habits.map((h) => {
             if (h.id !== habitId) return h;
             const completions = { ...h.completions };
             const wasDone = completions[date];
             completions[date] = !wasDone;
 
-            // Dynamically shift notificationTime EVERY day to match when it was completed!
             let notificationTime = h.notificationTime;
             if (!wasDone) {
               notificationTime = nowHHMM;
+              soundTriggered = true;
+
+              const completionsCount = Object.keys(completions).filter((k) => completions[k]).length;
+              if (completionsCount === 1 || completionsCount === 7 || completionsCount === 30 || completionsCount === 100) {
+                milestoneReached = true;
+              }
             }
 
             return { ...h, completions, notificationTime };
           });
+
+          if (soundTriggered) {
+            const perfectDay = nextHabits.every((h) => h.completions && h.completions[date]);
+            if (perfectDay && nextHabits.length >= 2) milestoneReached = true;
+
+            if (milestoneReached) {
+              playMilestoneSound();
+              triggerHapticSuccess();
+              if (typeof window !== "undefined") window.dispatchEvent(new Event("trac_confetti_rain"));
+            } else {
+              playHabitDoneSound();
+              triggerHapticLight();
+            }
+          }
+
           return { habits: nextHabits };
         });
       },
