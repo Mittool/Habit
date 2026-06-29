@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAppStore, getTodayStr, getHabitStreak, getHabitBestStreak } from "@/lib/store";
 import { getDailyQuote } from "@/lib/gemini";
-import { format, subDays, startOfWeek, addDays } from "date-fns";
+import { format, subDays, startOfWeek, addDays, getDaysInMonth, setDate } from "date-fns";
 import { renderHabitIcon } from "@/lib/icons";
 import {
   Flame,
@@ -81,8 +81,9 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
-  const heatmapDays30 = Array.from({ length: 30 }, (_, i) => {
-    const d = subDays(new Date(), 29 - i);
+  const daysInCurrentMonth = getDaysInMonth(new Date());
+  const currentMonthHeatmap = Array.from({ length: daysInCurrentMonth }, (_, i) => {
+    const d = setDate(new Date(), i + 1);
     const key = format(d, "yyyy-MM-dd");
     const count = habits.filter((h) => h.completions && h.completions[key]).length;
     const pct = habits.length > 0 ? (count / habits.length) : 0;
@@ -245,23 +246,19 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
             </div>
           </div>
 
-          {/* Right Column: 30-Day Heatmap */}
+          {/* Right Column: Current Month Heatmap */}
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-              <h3 style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>30-Day Heatmap</h3>
-              <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Last 30 Days</span>
+              <h3 style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>{format(new Date(), "MMMM")} Heatmap</h3>
+              <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Current Month</span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "6px" }}>
-              {heatmapDays30.map((hd, idx) => {
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}>
+              {currentMonthHeatmap.map((hd, idx) => {
                 const bgAlpha = hd.pct === 0 ? "var(--bg-secondary)" : hd.pct < 0.4 ? "rgba(13, 148, 136, 0.3)" : hd.pct < 0.8 ? "rgba(13, 148, 136, 0.65)" : "var(--accent)";
                 return (
                   <div
                     key={idx}
-                    onMouseEnter={() => setHeatmapTooltip(`${hd.date}: ${hd.count} routines done`)}
-                    onMouseLeave={() => setHeatmapTooltip(null)}
-                    onClick={() => setHeatmapTooltip(`${hd.date}: ${hd.count} routines done`)}
-                    className="cursor-pointer"
                     style={{
                       width: "100%",
                       aspectRatio: "1/1",

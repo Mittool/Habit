@@ -243,107 +243,17 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Comprehensive Intelligent Habit Notifications Architecture */}
+      {/* Smart Notifications Switch */}
       <div className="card fade-in stagger-3" style={{ padding: "24px", marginBottom: "20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-          <Bell size={18} color="var(--accent)" />
-          <h3 style={{ fontSize: "17px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Smart Notifications</h3>
-        </div>
-
-        {/* 1. General Toggles */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginBottom: "10px" }}>General Controls</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {[
-              { key: "enabled", label: "Enable Notifications", desc: "Master switch for all system reminders" },
-              { key: "habitReminders", label: "Habit Reminders", desc: "Daily alerts at configured or adaptive times" },
-              { key: "taskReminders", label: "Task Reminders", desc: "Alerts for scheduled tasks and deadlines" },
-              { key: "aiSmartReminders", label: "AI Smart Reminders", desc: "Intelligent coaching check-ins" },
-              { key: "dailySummary", label: "Daily Summary", desc: "Evening progress report (8:00 PM)" },
-              { key: "weeklyReview", label: "Weekly Review", desc: "Sunday weekly consistency report (7:00 PM)" },
-            ].map((g) => (
-              <div key={g.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
-                <div>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)" }}>{g.label}</div>
-                  <div style={{ fontSize: "11.5px", color: "var(--text-muted)", marginTop: "2px" }}>{g.desc}</div>
-                </div>
-                <Toggle
-                  checked={notificationConfig?.general?.[g.key as keyof typeof notificationConfig.general] ?? true}
-                  onChange={() => setNotificationConfig({ general: { [g.key]: !notificationConfig.general[g.key as keyof typeof notificationConfig.general] } })}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 2. Timing Controls */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginBottom: "10px" }}>Timing & Quiet Hours</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
-            <div style={{ padding: "10px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
-              <label style={{ fontSize: "11.5px", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>Quiet Hours Start</label>
-              <input
-                type="time"
-                value={notificationConfig?.timing?.quietHoursStart ?? "22:00"}
-                onChange={(e) => setNotificationConfig({ timing: { quietHoursStart: e.target.value } })}
-                style={{ width: "100%", fontWeight: "600", fontSize: "13px" }}
-              />
-            </div>
-            <div style={{ padding: "10px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
-              <label style={{ fontSize: "11.5px", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>Quiet Hours End</label>
-              <input
-                type="time"
-                value={notificationConfig?.timing?.quietHoursEnd ?? "07:00"}
-                onChange={(e) => setNotificationConfig({ timing: { quietHoursEnd: e.target.value } })}
-                style={{ width: "100%", fontWeight: "600", fontSize: "13px" }}
-              />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <Bell size={18} color="var(--accent)" />
+            <div>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Smart Notifications</h3>
+              <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "2px 0 0" }}>Timely check-ins and habit reminders</p>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
-            <span style={{ fontSize: "14px", fontWeight: "600" }}>Weekend Reminders</span>
-            <Toggle
-              checked={notificationConfig?.timing?.weekendEnabled ?? true}
-              onChange={() => setNotificationConfig({ timing: { weekendEnabled: !notificationConfig.timing.weekendEnabled } })}
-            />
-          </div>
-        </div>
-
-        {/* 3. Feedback Controls */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginBottom: "10px" }}>Feedback & Sound</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
-              <span style={{ fontSize: "13.5px", fontWeight: "600" }}>Alert Sounds</span>
-              <Toggle checked={notificationConfig?.feedback?.sound ?? true} onChange={() => setNotificationConfig({ feedback: { sound: !notificationConfig.feedback.sound } })} />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
-              <span style={{ fontSize: "13.5px", fontWeight: "600" }}>Haptic Vibration</span>
-              <Toggle checked={notificationConfig?.feedback?.vibration ?? true} onChange={() => setNotificationConfig({ feedback: { vibration: !notificationConfig.feedback.vibration } })} />
-            </div>
-          </div>
-        </div>
-
-        {/* 4. Smart AI Features */}
-        <div>
-          <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginBottom: "10px" }}>Intelligent AI Features</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {[
-              { key: "adaptiveTime", label: "Adaptive Reminder Time", desc: "Learns moving average completion and reminds 15m before" },
-              { key: "motivationalMessages", label: "Varied Motivation", desc: "Rotates fresh inspiring quotes per habit category" },
-              { key: "missedFollowUp", label: "Missed Habit Follow-up", desc: "Gentle nudge 1 hour later if still uncompleted" },
-            ].map((sf) => (
-              <div key={sf.key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
-                <div>
-                  <div style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)" }}>{sf.label}</div>
-                  <div style={{ fontSize: "11.5px", color: "var(--text-muted)", marginTop: "2px" }}>{sf.desc}</div>
-                </div>
-                <Toggle
-                  checked={notificationConfig?.smart?.[sf.key as keyof typeof notificationConfig.smart] ?? true}
-                  onChange={() => setNotificationConfig({ smart: { [sf.key]: !notificationConfig.smart[sf.key as keyof typeof notificationConfig.smart] } })}
-                />
-              </div>
-            ))}
-          </div>
+          <Toggle checked={notificationsEnabled} onChange={() => setNotificationsEnabled(!notificationsEnabled)} />
         </div>
       </div>
 
