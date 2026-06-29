@@ -75,7 +75,7 @@ export function renderHabitIcon(iconKey: string, size = 18, color = "currentColo
   const found = HABIT_ICON_LIBRARY.find((i) => i.key === iconKey);
   if (!found) return <Target size={size} color={color} />;
 
-  return React.cloneElement(found.component as React.ReactElement, {
+  return React.cloneElement(found.component as any, {
     size,
     color,
     strokeWidth: 2,
