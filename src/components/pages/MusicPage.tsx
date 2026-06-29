@@ -215,19 +215,22 @@ function initiateAmbientSynthesizer(type: string, ctx: AudioContext): { gain: Ga
   return { gain: masterGain, stop };
 }
 
+// Global Singletons for continuous background playback across page navigation
+let globalAudioCtx: AudioContext | null = null;
+let globalSynth: { stop: () => void } | null = null;
+let globalPlayingId: string | null = null;
+
 export default function FocusMusicPage() {
-  const { focusSessions, pomodoroSettings } = useAppStore();
-  const [selectedId, setSelectedId] = useState<string>("lofi");
-  const [playing, setPlaying] = useState<boolean>(false);
+  const [selectedId, setSelectedId] = useState<string>(globalPlayingId || "lofi");
+  const [playing, setPlaying] = useState<boolean>(!!globalPlayingId);
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const synthRef = useRef<{ stop: () => void } | null>(null);
-
-  // Load last remembered sound
   useEffect(() => {
-    const last = localStorage.getItem("trac_last_ambient_sound");
-    if (last && SOUNDS.some(s => s.id === last)) {
-      setSelectedId(last);
+    if (globalPlayingId && SOUNDS.some(s => s.id === globalPlayingId)) {
+      setSelectedId(globalPlayingId);
+      setPlaying(true);
+    } else {
+      const last = localStorage.getItem("trac_last_ambient_sound");
+      if (last && SOUNDS.some(s => s.id === last)) setSelectedId(last);
     }
   }, []);
 
@@ -236,21 +239,23 @@ export default function FocusMusicPage() {
     
     // If clicking new sound while playing, crossfade
     if (playing && targetId && targetId !== selectedId) {
-      if (synthRef.current) synthRef.current.stop();
+      if (globalSynth) globalSynth.stop();
       setSelectedId(targetId);
       localStorage.setItem("trac_last_ambient_sound", targetId);
+      globalPlayingId = targetId;
 
-      if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
-      if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
+      if (!globalAudioCtx) globalAudioCtx = new AudioContext();
+      if (globalAudioCtx.state === "suspended") globalAudioCtx.resume();
 
-      const synth = initiateAmbientSynthesizer(targetId, audioCtxRef.current);
-      synthRef.current = synth;
+      globalSynth = initiateAmbientSynthesizer(targetId, globalAudioCtx);
       return;
     }
 
+    // Stop playback
     if (playing && (!targetId || targetId === selectedId)) {
-      if (synthRef.current) synthRef.current.stop();
-      synthRef.current = null;
+      if (globalSynth) globalSynth.stop();
+      globalSynth = null;
+      globalPlayingId = null;
       setPlaying(false);
       return;
     }
@@ -258,21 +263,14 @@ export default function FocusMusicPage() {
     // Initiate playback
     if (targetId) setSelectedId(targetId);
     localStorage.setItem("trac_last_ambient_sound", idToPlay);
+    globalPlayingId = idToPlay;
     setPlaying(true);
 
-    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
-    if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume();
+    if (!globalAudioCtx) globalAudioCtx = new AudioContext();
+    if (globalAudioCtx.state === "suspended") globalAudioCtx.resume();
 
-    const synth = initiateAmbientSynthesizer(idToPlay, audioCtxRef.current);
-    synthRef.current = synth;
+    globalSynth = initiateAmbientSynthesizer(idToPlay, globalAudioCtx);
   }, [playing, selectedId]);
-
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      if (synthRef.current) synthRef.current.stop();
-    };
-  }, []);
 
   const activeSound = SOUNDS.find(s => s.id === selectedId) || SOUNDS[0];
 

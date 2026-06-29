@@ -1,22 +1,36 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import { Play, Pause, RotateCcw, Settings, X, Check, Timer } from "lucide-react";
 
 type Phase = "focus" | "break" | "longBreak";
 
+// Global Runtime Singleton for continuous background timer ticking across page navigation
+let gTimer = {
+  inited: false,
+  secondsLeft: 25 * 60,
+  running: false,
+  phase: "focus" as Phase,
+  sessionCount: 0,
+  interval: null as any
+};
+
 export default function PomodoroPage() {
   const { pomodoroSettings, setPomodoroSettings, addFocusSession, todos, incrementPomodoro } =
     useAppStore();
 
-  const [phase, setPhase] = useState<Phase>("focus");
-  const [secondsLeft, setSecondsLeft] = useState(pomodoroSettings.focusMinutes * 60);
-  const [running, setRunning] = useState(false);
-  const [sessionCount, setSessionCount] = useState(0);
+  if (!gTimer.inited) {
+    gTimer.secondsLeft = pomodoroSettings.focusMinutes * 60;
+    gTimer.inited = true;
+  }
+
+  const [phase, setPhase] = useState<Phase>(gTimer.phase);
+  const [secondsLeft, setSecondsLeft] = useState(gTimer.secondsLeft);
+  const [running, setRunning] = useState(gTimer.running);
+  const [sessionCount, setSessionCount] = useState(gTimer.sessionCount);
   const [selectedTodo, setSelectedTodo] = useState("");
   const [showSettings, setShowSettings] = useState(false);
-  const [tempSettings, setTempSettings] = useState(pomodoroSettings);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [tempSettings, setTempSettings] = useState<any>(pomodoroSettings);
 
   const totalSeconds =
     phase === "focus"
@@ -30,51 +44,73 @@ export default function PomodoroPage() {
   const circumference = 2 * Math.PI * radius;
 
   const handleComplete = useCallback(() => {
+    gTimer.running = false;
     setRunning(false);
     if (phase === "focus") {
       const newCount = sessionCount + 1;
+      gTimer.sessionCount = newCount;
       setSessionCount(newCount);
       addFocusSession(pomodoroSettings.focusMinutes);
       if (selectedTodo) incrementPomodoro(selectedTodo);
       if (newCount % pomodoroSettings.sessionsBeforeLongBreak === 0) {
+        gTimer.phase = "longBreak";
+        gTimer.secondsLeft = pomodoroSettings.longBreakMinutes * 60;
         setPhase("longBreak");
         setSecondsLeft(pomodoroSettings.longBreakMinutes * 60);
       } else {
+        gTimer.phase = "break";
+        gTimer.secondsLeft = pomodoroSettings.breakMinutes * 60;
         setPhase("break");
         setSecondsLeft(pomodoroSettings.breakMinutes * 60);
       }
     } else {
+      gTimer.phase = "focus";
+      gTimer.secondsLeft = pomodoroSettings.focusMinutes * 60;
       setPhase("focus");
       setSecondsLeft(pomodoroSettings.focusMinutes * 60);
     }
   }, [phase, sessionCount, pomodoroSettings, selectedTodo, addFocusSession, incrementPomodoro]);
 
+  // Global background interval ticking
   useEffect(() => {
     if (running) {
-      intervalRef.current = setInterval(() => {
-        setSecondsLeft((s) => {
-          if (s <= 1) {
-            handleComplete();
-            return 0;
-          }
-          return s - 1;
-        });
+      gTimer.running = true;
+      if (gTimer.interval) clearInterval(gTimer.interval);
+      gTimer.interval = setInterval(() => {
+        gTimer.secondsLeft--;
+        setSecondsLeft(gTimer.secondsLeft);
+        if (gTimer.secondsLeft <= 0) {
+          handleComplete();
+        }
       }, 1000);
     } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      gTimer.running = false;
+      if (gTimer.interval) clearInterval(gTimer.interval);
     }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    // DO NOT clear gTimer.interval on unmount! Keep ticking in background!
   }, [running, handleComplete]);
 
+  // Sync state back from gTimer on mount
+  useEffect(() => {
+    const check = setInterval(() => {
+      if (gTimer.running) setSecondsLeft(gTimer.secondsLeft);
+    }, 1000);
+    return () => clearInterval(check);
+  }, []);
+
   function reset() {
+    gTimer.running = false;
+    if (gTimer.interval) clearInterval(gTimer.interval);
     setRunning(false);
+    gTimer.secondsLeft = totalSeconds;
     setSecondsLeft(totalSeconds);
   }
 
   function switchPhase(p: Phase) {
+    gTimer.running = false;
+    if (gTimer.interval) clearInterval(gTimer.interval);
     setRunning(false);
+    gTimer.phase = p;
     setPhase(p);
     const secs =
       p === "focus"
@@ -82,6 +118,7 @@ export default function PomodoroPage() {
         : p === "break"
         ? pomodoroSettings.breakMinutes * 60
         : pomodoroSettings.longBreakMinutes * 60;
+    gTimer.secondsLeft = secs;
     setSecondsLeft(secs);
   }
 
@@ -93,20 +130,20 @@ export default function PomodoroPage() {
       sessionsBeforeLongBreak: Math.max(1, Math.min(12, parseInt(String(tempSettings.sessionsBeforeLongBreak)) || 4)),
     };
     setPomodoroSettings(cleanSettings);
-    setSecondsLeft(
-      phase === "focus"
-        ? cleanSettings.focusMinutes * 60
-        : phase === "break"
-        ? cleanSettings.breakMinutes * 60
-        : cleanSettings.longBreakMinutes * 60
-    );
+    const targetSecs = phase === "focus"
+      ? cleanSettings.focusMinutes * 60
+      : phase === "break"
+      ? cleanSettings.breakMinutes * 60
+      : cleanSettings.longBreakMinutes * 60;
+    gTimer.secondsLeft = targetSecs;
+    setSecondsLeft(targetSecs);
     setShowSettings(false);
   }
 
-  const mins = Math.floor(secondsLeft / 60)
+  const mins = Math.floor(Math.max(0, secondsLeft) / 60)
     .toString()
     .padStart(2, "0");
-  const secs = (secondsLeft % 60).toString().padStart(2, "0");
+  const secs = (Math.max(0, secondsLeft) % 60).toString().padStart(2, "0");
 
   const phaseColor =
     phase === "focus" ? "var(--accent)" : phase === "break" ? "#3B82F6" : "#F59E0B";
@@ -150,7 +187,7 @@ export default function PomodoroPage() {
                 fontFamily: "inherit",
                 backgroundColor: phase === p.id ? "var(--bg-card)" : "transparent",
                 color: phase === p.id ? phaseColor : "var(--text-secondary)",
-                fontWeight: phase === p.id ? "800" : "600",
+                fontWeight: phase === p.id ? "600" : "500",
                 boxShadow: phase === p.id ? "0 2px 8px var(--shadow)" : "none",
                 transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
               }}
@@ -193,7 +230,7 @@ export default function PomodoroPage() {
             <div style={{ fontSize: "64px", fontWeight: "300", color: "var(--text-primary)", letterSpacing: "-3px", lineHeight: 1 }}>
               {mins}:{secs}
             </div>
-            <span style={{ fontSize: "12px", fontWeight: "600", color: phaseColor, textTransform: "none", letterSpacing: "0.15em", marginTop: "8px" }}>
+            <span style={{ fontSize: "12px", fontWeight: "600", color: phaseColor, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: "8px" }}>
               {phaseLabel}
             </span>
           </div>
@@ -296,7 +333,7 @@ export default function PomodoroPage() {
             <select
               value={selectedTodo}
               onChange={(e) => setSelectedTodo(e.target.value)}
-              style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", backgroundColor: "var(--bg-card)", fontWeight: "600", fontSize: "13px", color: "var(--text-primary)" }}
+              style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", backgroundColor: "var(--bg-card)", fontWeight: "500", fontSize: "13px", color: "var(--text-primary)" }}
               className="cursor-pointer"
             >
               <option value="">None (Free Focus)</option>
@@ -344,7 +381,7 @@ export default function PomodoroPage() {
                         [field.key]: e.target.value,
                       }))
                     }
-                    style={{ width: "100%", fontWeight: "600" }}
+                    style={{ width: "100%", fontWeight: "500" }}
                   />
                 </div>
               ))}

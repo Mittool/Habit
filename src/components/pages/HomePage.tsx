@@ -180,29 +180,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         </div>
       </div>
 
-      {/* 5. Performance Overview */}
-      <div className="card fade-in stagger-2" style={{ padding: "22px 24px", marginBottom: "24px" }}>
-        <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 16px" }}>Performance Overview</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}><Flame size={14} color="#F59E0B" /><span>Best Streak</span></div>
-            <div style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)" }}>{bestStreak}d</div>
-          </div>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}><Zap size={14} color="var(--accent)" /><span>Weekly Avg</span></div>
-            <div style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)" }}>{weeklyAveragePct}%</div>
-          </div>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}><TrendingUp size={14} color="#6366F1" /><span>30-Day Avg</span></div>
-            <div style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)" }}>{monthlyHabitAveragePct}%</div>
-          </div>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}><Clock size={14} color="#3B82F6" /><span>Total Focus</span></div>
-            <div style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)" }}>{Math.floor(totalFocusTimeMins / 60)}h {totalFocusTimeMins % 60}m</div>
-          </div>
-        </div>
-      </div>
-
       {/* 6. Split Consistency Card (Half 7-Day Old View & Half 30-Day Heatmap) */}
       <div className="card fade-in stagger-3" style={{ padding: "24px", marginBottom: "24px" }}>
         {heatmapTooltip && (
