@@ -26,7 +26,7 @@ export default function PomodoroPage() {
       : pomodoroSettings.longBreakMinutes * 60;
 
   const progress = 1 - secondsLeft / totalSeconds;
-  const radius = 90;
+  const radius = 110;
   const circumference = 2 * Math.PI * radius;
 
   const handleComplete = useCallback(() => {
@@ -103,318 +103,234 @@ export default function PomodoroPage() {
   const secs = (secondsLeft % 60).toString().padStart(2, "0");
 
   const phaseColor =
-    phase === "focus" ? "var(--accent)" : phase === "break" ? "#6366f1" : "#f59e0b";
-  const phaseLabel = phase === "focus" ? "Focus" : phase === "break" ? "Short Break" : "Long Break";
+    phase === "focus" ? "var(--accent)" : phase === "break" ? "#3B82F6" : "#F59E0B";
+  const phaseLabel = phase === "focus" ? "Deep Work Focus" : phase === "break" ? "Short Rest Break" : "Long Rest Break";
 
   const activeTodos = todos.filter((t) => !t.completed);
 
   return (
-    <div style={{ padding: "24px", maxWidth: "480px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "24px",
-        }}
-      >
-        <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
-          Pomodoro Timer
-        </h2>
-        <button
-          onClick={() => setShowSettings(true)}
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", width: "100%", height: "100%", padding: "24px 20px calc(24px + env(safe-area-inset-bottom))", boxSizing: "border-box", maxWidth: "none" }}>
+      {/* Top Bar: Phase Selectors Center */}
+      <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        <div
           style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "var(--text-muted)",
-            padding: "6px",
+            display: "flex",
+            gap: "6px",
+            backgroundColor: "var(--bg-secondary)",
+            borderRadius: "14px",
+            padding: "5px",
+            border: "1px solid var(--border)",
+            maxWidth: "380px",
+            width: "100%"
           }}
         >
-          <Settings size={18} />
-        </button>
+          {(
+            [
+              { id: "focus", label: "Focus Block" },
+              { id: "break", label: "Short Rest" },
+              { id: "longBreak", label: "Long Rest" },
+            ] as { id: Phase; label: string }[]
+          ).map((p) => (
+            <button
+              key={p.id}
+              onClick={() => switchPhase(p.id)}
+              className="cursor-pointer"
+              style={{
+                flex: 1,
+                padding: "10px",
+                borderRadius: "10px",
+                border: "none",
+                fontSize: "13px",
+                fontFamily: "inherit",
+                backgroundColor: phase === p.id ? "var(--bg-card)" : "transparent",
+                color: phase === p.id ? phaseColor : "var(--text-secondary)",
+                fontWeight: phase === p.id ? "800" : "600",
+                boxShadow: phase === p.id ? "0 2px 8px var(--shadow)" : "none",
+                transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Phase selector */}
-      <div
-        style={{
-          display: "flex",
-          gap: "4px",
-          backgroundColor: "var(--bg-secondary)",
-          borderRadius: "8px",
-          padding: "4px",
-          marginBottom: "32px",
-        }}
-      >
-        {(
-          [
-            { id: "focus", label: "Focus" },
-            { id: "break", label: "Break" },
-            { id: "longBreak", label: "Long Break" },
-          ] as { id: Phase; label: string }[]
-        ).map((p) => (
-          <button
-            key={p.id}
-            onClick={() => switchPhase(p.id)}
-            style={{
-              flex: 1,
-              padding: "8px",
-              borderRadius: "6px",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "12px",
-              fontFamily: "inherit",
-              backgroundColor: phase === p.id ? "var(--bg-card)" : "transparent",
-              color: phase === p.id ? "var(--text-primary)" : "var(--text-muted)",
-              fontWeight: phase === p.id ? "600" : "400",
-              boxShadow: phase === p.id ? "0 1px 3px var(--shadow)" : "none",
-              transition: "all 0.2s",
-            }}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Timer ring */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          marginBottom: "32px",
-        }}
-      >
-        <div style={{ position: "relative", width: "220px", height: "220px" }}>
-          <svg width="220" height="220" viewBox="0 0 220 220">
-            {/* Background ring */}
+      {/* Prominent Full-Screen Center Timer Ring */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", margin: "24px 0" }}>
+        <div style={{ position: "relative", width: "260px", height: "260px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="260" height="260" viewBox="0 0 260 260">
             <circle
-              cx="110"
-              cy="110"
+              cx="130"
+              cy="130"
               r={radius}
               fill="none"
               stroke="var(--border)"
-              strokeWidth="8"
+              strokeWidth="10"
             />
-            {/* Progress ring */}
             <circle
-              cx="110"
-              cy="110"
+              cx="130"
+              cy="130"
               r={radius}
               fill="none"
               stroke={phaseColor}
-              strokeWidth="8"
+              strokeWidth="10"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={circumference * (1 - progress)}
               className="pomodoro-ring"
-              style={{ transition: "stroke-dashoffset 0.5s ease" }}
+              style={{ transition: "stroke-dashoffset 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }}
             />
           </svg>
+
           {/* Time display */}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "48px",
-                fontWeight: "300",
-                color: "var(--text-primary)",
-                letterSpacing: "-2px",
-                fontFamily: "Georgia, serif",
-              }}
-            >
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ fontSize: "64px", fontWeight: "300", color: "var(--text-primary)", letterSpacing: "-3px", lineHeight: 1 }}>
               {mins}:{secs}
             </div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "1px" }}>
+            <span style={{ fontSize: "12px", fontWeight: "800", color: phaseColor, textTransform: "uppercase", letterSpacing: "0.15em", marginTop: "8px" }}>
               {phaseLabel}
-            </div>
+            </span>
           </div>
         </div>
 
-        {/* Session dots */}
-        <div style={{ display: "flex", gap: "6px", marginTop: "16px" }}>
+        {/* Session dots indicator */}
+        <div style={{ display: "flex", gap: "8px", marginTop: "24px", alignItems: "center" }}>
           {Array.from({ length: pomodoroSettings.sessionsBeforeLongBreak }).map((_, i) => (
             <div
               key={i}
               style={{
-                width: "8px",
-                height: "8px",
+                width: "10px",
+                height: "10px",
                 borderRadius: "50%",
-                backgroundColor:
-                  i < sessionCount % pomodoroSettings.sessionsBeforeLongBreak
-                    ? "var(--accent)"
-                    : "var(--border)",
+                backgroundColor: i < sessionCount % pomodoroSettings.sessionsBeforeLongBreak ? phaseColor : "var(--border)",
+                transition: "background-color 0.3s"
               }}
             />
           ))}
-        </div>
-        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "8px" }}>
-          Session {sessionCount + 1} of {pomodoroSettings.sessionsBeforeLongBreak}
+          <span style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", marginLeft: "4px" }}>
+            Block {sessionCount + 1} of {pomodoroSettings.sessionsBeforeLongBreak}
+          </span>
         </div>
       </div>
 
-      {/* Controls */}
-      <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "24px" }}>
-        <button
-          onClick={reset}
-          style={{
-            width: "48px",
-            height: "48px",
-            borderRadius: "50%",
-            border: "1px solid var(--border)",
-            backgroundColor: "var(--bg-secondary)",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "var(--text-muted)",
-          }}
-        >
-          <RotateCcw size={18} />
-        </button>
-        <button
-          onClick={() => setRunning(!running)}
-          style={{
-            width: "72px",
-            height: "72px",
-            borderRadius: "50%",
-            border: "none",
-            backgroundColor: phaseColor,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            boxShadow: `0 4px 16px ${phaseColor}44`,
-            transition: "transform 0.1s, box-shadow 0.2s",
-          }}
-        >
-          {running ? <Pause size={28} /> : <Play size={28} />}
-        </button>
-      </div>
-
-      {/* Link to task */}
-      {activeTodos.length > 0 && (
-        <div className="card" style={{ padding: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-            <Timer size={14} color="var(--accent)" />
-            <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)" }}>
-              Focusing on
-            </span>
-          </div>
-          <select
-            value={selectedTodo}
-            onChange={(e) => setSelectedTodo(e.target.value)}
-            style={{ width: "100%", fontSize: "13px" }}
+      {/* Controls & Task Link Bottom Section */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px", width: "100%", maxWidth: "520px", margin: "0 auto" }}>
+        <div style={{ display: "flex", gap: "20px", justifyContent: "center", alignItems: "center" }}>
+          <button
+            onClick={reset}
+            className="cursor-pointer"
+            style={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "50%",
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--bg-secondary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--text-secondary)",
+              transition: "all 0.15s",
+            }}
+            title="Reset Timer"
           >
-            <option value="">None selected</option>
-            {activeTodos.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.text}
-              </option>
-            ))}
-          </select>
-          {selectedTodo && (
-            <div
-              style={{
-                marginTop: "10px",
-                fontSize: "12px",
-                color: "var(--text-muted)",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              <Timer size={12} />
-              {todos.find((t) => t.id === selectedTodo)?.pomodoroCount || 0} pomodoros done
-            </div>
-          )}
-        </div>
-      )}
+            <RotateCcw size={20} />
+          </button>
 
-      {/* Total focus today */}
-      <div
-        style={{
-          marginTop: "16px",
-          padding: "14px 16px",
-          backgroundColor: "var(--bg-secondary)",
-          borderRadius: "8px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontSize: "13px",
-          color: "var(--text-muted)",
-        }}
-      >
-        <span>Total focus today</span>
-        <span style={{ fontWeight: "600", color: "var(--accent)" }}>
-          {sessionCount * pomodoroSettings.focusMinutes} min
-        </span>
+          <button
+            onClick={() => setRunning(!running)}
+            className="cursor-pointer"
+            style={{
+              width: "80px",
+              height: "80px",
+              borderRadius: "50%",
+              border: "none",
+              backgroundColor: phaseColor,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#FFFFFF",
+              boxShadow: `0 8px 28px ${phaseColor}55`,
+              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
+            title={running ? "Pause Focus" : "Start Focus"}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            {running ? <Pause size={34} /> : <Play size={34} style={{ marginLeft: "4px" }} />}
+          </button>
+
+          <button
+            onClick={() => setShowSettings(true)}
+            className="cursor-pointer"
+            style={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "50%",
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--bg-secondary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--text-secondary)",
+              transition: "all 0.15s",
+            }}
+            title="Timer Settings"
+          >
+            <Settings size={20} />
+          </button>
+        </div>
+
+        {/* Link to active task */}
+        {activeTodos.length > 0 && (
+          <div style={{ padding: "14px 18px", backgroundColor: "var(--bg-secondary)", borderRadius: "14px", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-primary)", fontWeight: "700", fontSize: "13px", flexShrink: 0 }}>
+              <Timer size={16} color="var(--accent)" />
+              <span>Target Task:</span>
+            </div>
+            <select
+              value={selectedTodo}
+              onChange={(e) => setSelectedTodo(e.target.value)}
+              style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid var(--border)", backgroundColor: "var(--bg-card)", fontWeight: "600", fontSize: "13px", color: "var(--text-primary)" }}
+              className="cursor-pointer"
+            >
+              <option value="">None (Free Focus)</option>
+              {activeTodos.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.text}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
-      {/* Settings modal */}
+      {/* Timer Settings Modal */}
       {showSettings && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 100,
-            padding: "24px",
-          }}
-        >
-          <div className="card fade-in" style={{ width: "100%", maxWidth: "380px", padding: "24px" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "20px",
-              }}
-            >
-              <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0, color: "var(--text-primary)" }}>
-                Timer Settings
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "24px" }}>
+          <div className="card fade-in" style={{ width: "100%", maxWidth: "400px", padding: "28px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "800", margin: 0, color: "var(--text-primary)" }}>
+                Focus Timer Settings
               </h3>
-              <button
-                onClick={() => setShowSettings(false)}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
-              >
-                <X size={18} />
+              <button onClick={() => setShowSettings(false)} className="cursor-pointer" style={{ background: "none", border: "none", color: "var(--text-muted)" }}>
+                <X size={20} />
               </button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {[
-                { key: "focusMinutes", label: "Focus duration (min)" },
-                { key: "breakMinutes", label: "Short break (min)" },
-                { key: "longBreakMinutes", label: "Long break (min)" },
-                { key: "sessionsBeforeLongBreak", label: "Sessions before long break" },
+                { key: "focusMinutes", label: "Focus Duration (Minutes)" },
+                { key: "breakMinutes", label: "Short Rest Break (Minutes)" },
+                { key: "longBreakMinutes", label: "Long Rest Break (Minutes)" },
+                { key: "sessionsBeforeLongBreak", label: "Focus Blocks Before Long Rest" },
               ].map((field) => (
                 <div key={field.key}>
-                  <label
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--text-muted)",
-                      display: "block",
-                      marginBottom: "4px",
-                    }}
-                  >
+                  <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
                     {field.label}
                   </label>
                   <input
                     type="number"
                     min={1}
-                    max={field.key === "sessionsBeforeLongBreak" ? 10 : 60}
+                    max={field.key === "sessionsBeforeLongBreak" ? 12 : 120}
                     value={tempSettings[field.key as keyof typeof tempSettings]}
                     onChange={(e) =>
                       setTempSettings((s) => ({
@@ -422,30 +338,16 @@ export default function PomodoroPage() {
                         [field.key]: parseInt(e.target.value) || 1,
                       }))
                     }
-                    style={{ width: "100%" }}
+                    style={{ width: "100%", fontWeight: "700" }}
                   />
                 </div>
               ))}
-              <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
-                <button
-                  className="btn-secondary"
-                  onClick={() => setShowSettings(false)}
-                  style={{ flex: 1 }}
-                >
+              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                <button className="btn-secondary cursor-pointer" onClick={() => setShowSettings(false)} style={{ flex: 1, padding: "12px" }}>
                   Cancel
                 </button>
-                <button
-                  className="btn-primary"
-                  onClick={saveSettings}
-                  style={{
-                    flex: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px",
-                  }}
-                >
-                  <Check size={16} /> Save
+                <button className="btn-primary cursor-pointer" onClick={saveSettings} style={{ flex: 2, padding: "12px" }}>
+                  <Check size={18} /> Save Settings
                 </button>
               </div>
             </div>

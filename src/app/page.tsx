@@ -90,17 +90,20 @@ export default function MainApp() {
     <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "var(--bg-primary)" }}>
       <Navigation current={currentPage} onChange={setCurrentPage} />
 
-      {/* Main content */}
+      {/* Main content - Full Screen Flex Container */}
       <main
         style={{
           flex: 1,
           marginLeft: "76px",
-          paddingBottom: "80px",
+          paddingBottom: "68px",
           minHeight: "100vh",
-          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
-        <div className="fade-in" key={currentPage}>
+        <div className="fade-in" style={{ flex: 1, display: "flex", flexDirection: "column", width: "100%" }} key={currentPage}>
           {renderPage()}
         </div>
       </main>

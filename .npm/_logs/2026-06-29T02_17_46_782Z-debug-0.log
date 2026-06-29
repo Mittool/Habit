@@ -6,6 +6,6 @@
 5 silly config load:file:/usr/etc/npmrc
 6 verbose title npm run sync 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
 7 verbose argv "run" "sync" "--" "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"
-8 verbose logfile logs-max:10 dir:/home/user/.npm/_logs/2026-06-29T02_01_35_807Z-
-9 verbose logfile /home/user/.npm/_logs/2026-06-29T02_01_35_807Z-debug-0.log
+8 verbose logfile logs-max:10 dir:/home/user/.npm/_logs/2026-06-29T02_17_46_782Z-
+9 verbose logfile /home/user/.npm/_logs/2026-06-29T02_17_46_782Z-debug-0.log
 10 silly logfile done cleaning log files

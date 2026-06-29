@@ -121,8 +121,8 @@ export default function AiChatPage() {
 
   if (!aiEnabled) {
     return (
-      <div style={{ padding: "40px 24px", maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
-        <div className="card fade-in" style={{ padding: "48px 24px" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", textAlign: "center" }}>
+        <div style={{ maxWidth: "400px" }}>
           <img src="/logo.png" alt="Trac AI" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 16px", opacity: 0.5 }} />
           <h2 style={{ fontSize: "22px", fontWeight: "800", color: "var(--text-primary)" }}>AI Assistant Disabled</h2>
           <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "8px 0 24px" }}>Enable AI features in Settings to unlock your productivity companion.</p>
@@ -132,68 +132,67 @@ export default function AiChatPage() {
   }
 
   return (
-    <div style={{ padding: "32px 24px", maxWidth: "800px", margin: "0 auto" }}>
-      {/* Header */}
-      <div className="fade-in" style={{ marginBottom: "24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-          <div style={{ padding: "8px", borderRadius: "16px", backgroundColor: "var(--accent-light)", border: "1px solid var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img src="/logo.png" alt="AI Chat" style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover" }} />
-          </div>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "calc(100vh - 68px)", boxSizing: "border-box" }}>
+      {/* Sleek Minimalist App Bar Header */}
+      <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "var(--bg-card)", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <img src="/logo.png" alt="Trac AI" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", boxShadow: "0 2px 6px rgba(0,0,0,0.06)" }} />
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <h1 style={{ fontSize: "28px", fontWeight: "900", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.03em" }}>
+              <h1 style={{ fontSize: "18px", fontWeight: "900", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
                 AI Chat
               </h1>
-              <span style={{ padding: "3px 8px", borderRadius: "9999px", backgroundColor: "var(--accent-light)", color: "var(--accent)", fontSize: "10px", fontWeight: "800", textTransform: "uppercase" }}>
+              <span style={{ padding: "2px 8px", borderRadius: "9999px", backgroundColor: "var(--accent-light)", color: "var(--accent)", fontSize: "10px", fontWeight: "800", textTransform: "uppercase" }}>
                 Active
               </span>
             </div>
-            <p style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-muted)", margin: "2px 0 0" }}>
-              Your central productivity companion
+            <p style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)", margin: "2px 0 0" }}>
+              Primary Productivity Companion
             </p>
           </div>
         </div>
+
+        {/* Minimal Segment Tabs */}
+        <div style={{ display: "flex", gap: "4px", backgroundColor: "var(--bg-secondary)", padding: "4px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+          {[
+            { id: "chat", label: "Chat", icon: <Terminal size={14} /> },
+            { id: "generator", label: "Tips", icon: <Zap size={14} /> },
+            { id: "oracle", label: "Habits", icon: <Brain size={14} /> },
+          ].map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className="cursor-pointer"
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  backgroundColor: isActive ? "var(--bg-card)" : "transparent",
+                  color: isActive ? "var(--accent)" : "var(--text-secondary)",
+                  fontWeight: isActive ? "800" : "600",
+                  fontSize: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  boxShadow: isActive ? "0 1px 3px var(--shadow)" : "none",
+                  transition: "all 0.15s",
+                }}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="fade-in stagger-1" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "20px" }}>
-        {[
-          { id: "chat", label: "Assistant Chat", icon: <Terminal size={16} /> },
-          { id: "generator", label: "Quick Tips", icon: <Zap size={16} /> },
-          { id: "oracle", label: "Habit Help", icon: <Brain size={16} /> },
-        ].map(tab => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className="cursor-pointer"
-              style={{
-                padding: "12px 8px",
-                borderRadius: "12px",
-                border: `1px solid ${isActive ? "var(--accent)" : "var(--border)"}`,
-                backgroundColor: isActive ? "var(--accent-light)" : "var(--bg-card)",
-                color: isActive ? "var(--accent)" : "var(--text-secondary)",
-                fontWeight: isActive ? "800" : "600",
-                fontSize: "13px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-              }}
-            >
-              {tab.icon}
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* TAB 1: Chat Stream */}
+      {/* TAB 1: Immersive Full Screen Chat Stream */}
       {activeTab === "chat" && (
-        <div className="card fade-in stagger-2" style={{ display: "flex", flexDirection: "column", height: "520px", overflow: "hidden" }}>
-          <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "14px", backgroundColor: "var(--bg-secondary)" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", backgroundColor: "var(--bg-secondary)", position: "relative" }}>
+          {/* Conversation Stream expanding to fill space */}
+          <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
             {messages.map((m, i) => {
               const isAi = m.role === "ai";
               return (
@@ -202,9 +201,9 @@ export default function AiChatPage() {
                   className="fade-in"
                   style={{
                     alignSelf: isAi ? "flex-start" : "flex-end",
-                    maxWidth: "82%",
+                    maxWidth: "85%",
                     padding: "14px 18px",
-                    borderRadius: isAi ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
+                    borderRadius: isAi ? "4px 18px 18px 18px" : "18px 4px 18px 18px",
                     backgroundColor: isAi ? "var(--bg-card)" : "var(--text-primary)",
                     color: isAi ? "var(--text-primary)" : "var(--bg-card)",
                     border: isAi ? "1px solid var(--border)" : "none",
@@ -230,7 +229,8 @@ export default function AiChatPage() {
             )}
           </div>
 
-          <div style={{ padding: "10px 16px", backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border)", display: "flex", gap: "8px", overflowX: "auto" }}>
+          {/* Quick Prompt Chips Bar right above input */}
+          <div style={{ padding: "10px 16px", backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border)", display: "flex", gap: "8px", overflowX: "auto", flexShrink: 0 }}>
             {["Max Focus Tips", "Reduce Burnout", "Morning Plan", "Time Strategy"].map((chip, idx) => (
               <button
                 key={idx}
@@ -244,7 +244,8 @@ export default function AiChatPage() {
             ))}
           </div>
 
-          <div style={{ padding: "14px 16px", backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border)", display: "flex", gap: "10px" }}>
+          {/* Message Input pinned to bottom */}
+          <div style={{ padding: "14px 16px calc(14px + env(safe-area-inset-bottom))", backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border)", display: "flex", gap: "10px", flexShrink: 0 }}>
             <input
               type="text"
               placeholder="Ask AI anything..."
@@ -258,7 +259,7 @@ export default function AiChatPage() {
               onClick={() => handleSendMessage()}
               disabled={!inputVal.trim() || chatLoading}
               className="btn-primary cursor-pointer"
-              style={{ padding: "12px 18px" }}
+              style={{ padding: "12px 20px" }}
             >
               <Send size={16} />
             </button>
@@ -266,88 +267,92 @@ export default function AiChatPage() {
         </div>
       )}
 
-      {/* TAB 2: Quick Tips */}
+      {/* TAB 2: Quick Tips Full View */}
       {activeTab === "generator" && (
-        <div className="fade-in stagger-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px" }}>
-          {INSTANT_FLOWS.map((flow) => (
-            <div
-              key={flow.id}
-              className="card card-interactive cursor-pointer fade-in"
-              style={{ padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "14px" }}
-              onClick={() => triggerInstantFlow(flow)}
-            >
-              <div>
-                <div style={{ padding: "8px", width: "fit-content", borderRadius: "10px", backgroundColor: "var(--accent-light)", color: "var(--accent)", marginBottom: "12px" }}>
-                  <Zap size={20} />
+        <div style={{ flex: 1, padding: "24px", overflowY: "auto" }}>
+          <div className="fade-in stagger-1" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+            {INSTANT_FLOWS.map((flow) => (
+              <div
+                key={flow.id}
+                className="card card-interactive cursor-pointer fade-in"
+                style={{ padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "16px" }}
+                onClick={() => triggerInstantFlow(flow)}
+              >
+                <div>
+                  <div style={{ padding: "10px", width: "fit-content", borderRadius: "12px", backgroundColor: "var(--accent-light)", color: "var(--accent)", marginBottom: "14px" }}>
+                    <Zap size={22} />
+                  </div>
+                  <h3 style={{ fontSize: "18px", fontWeight: "800", color: "var(--text-primary)", margin: "0 0 8px" }}>
+                    {flow.title}
+                  </h3>
+                  <p style={{ fontSize: "14px", color: "var(--text-secondary)", margin: 0, lineHeight: "1.5" }}>
+                    Get instant AI coaching and smart habit advice.
+                  </p>
                 </div>
-                <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: "0 0 6px" }}>
-                  {flow.title}
-                </h3>
-                <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0, lineHeight: "1.5" }}>
-                  Get instant AI coaching and smart habit advice.
-                </p>
-              </div>
 
-              <button disabled={genLoading === flow.id} className="btn-primary cursor-pointer" style={{ width: "100%", padding: "10px", fontSize: "13px" }}>
-                {genLoading === flow.id ? <><Loader size={16} className="spin" /> Getting Advice...</> : <><Sparkles size={16} /> Get Advice</>}
-              </button>
-            </div>
-          ))}
+                <button disabled={genLoading === flow.id} className="btn-primary cursor-pointer" style={{ width: "100%", padding: "12px", fontSize: "13.5px" }}>
+                  {genLoading === flow.id ? <><Loader size={16} className="spin" /> Getting Advice...</> : <><Sparkles size={16} /> Get Advice</>}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* TAB 3: Habit Help */}
+      {/* TAB 3: Habit Help Full View */}
       {activeTab === "oracle" && (
-        <div className="card fade-in stagger-2" style={{ padding: "24px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "18px" }}>
-            <img src="/logo.png" alt="AI Chat" style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />
-            <div>
-              <h3 style={{ fontSize: "18px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
-                Habit Help & Recovery
-              </h3>
-              <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                Select any missed habit to get practical AI advice on getting back on track.
-              </p>
-            </div>
-          </div>
-
-          {habits.length === 0 ? (
-            <div style={{ padding: "32px", textAlign: "center", color: "var(--text-muted)", backgroundColor: "var(--bg-secondary)", borderRadius: "12px" }}>
-              No active habits tracked. Add habits first.
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ flex: 1, padding: "24px", overflowY: "auto" }}>
+          <div className="card fade-in stagger-1" style={{ padding: "28px", maxWidth: "600px", margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+              <img src="/logo.png" alt="AI Chat" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
               <div>
-                <label style={{ fontSize: "13px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
-                  Select Habit:
-                </label>
-                <select
-                  value={selectedHabit}
-                  onChange={e => setSelectedHabit(e.target.value)}
-                  style={{ width: "100%" }}
-                  className="cursor-pointer"
-                >
-                  {habits.map(h => (
-                    <option key={h.id} value={h.name}>{h.name}</option>
-                  ))}
-                </select>
+                <h3 style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+                  Habit Help & Recovery
+                </h3>
+                <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "4px 0 0" }}>
+                  Select any missed habit to get practical AI advice on getting back on track.
+                </p>
               </div>
-
-              <button onClick={handleOracleConsult} disabled={oracleLoading || !selectedHabit} className="btn-primary cursor-pointer" style={{ width: "100%", padding: "12px", fontSize: "14px" }}>
-                {oracleLoading ? <><Loader size={16} className="spin" /> Getting Tips...</> : <><Sparkles size={16} /> Get AI Tip</>}
-              </button>
-
-              {oracleTip && (
-                <div className="fade-in" style={{ padding: "18px", backgroundColor: "var(--accent-light)", borderRadius: "12px", borderLeft: "4px solid var(--accent)", fontSize: "14px", fontWeight: "500", color: "var(--text-primary)", lineHeight: "1.6" }}>
-                  <div style={{ fontWeight: "800", color: "var(--accent)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <img src="/logo.png" alt="" style={{ width: "16px", height: "16px", borderRadius: "50%", objectFit: "cover" }} />
-                    <span>AI Tip:</span>
-                  </div>
-                  <FormattedAiText text={oracleTip} />
-                </div>
-              )}
             </div>
-          )}
+
+            {habits.length === 0 ? (
+              <div style={{ padding: "36px", textAlign: "center", color: "var(--text-muted)", backgroundColor: "var(--bg-secondary)", borderRadius: "14px" }}>
+                No active habits tracked. Add habits first.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+                <div>
+                  <label style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "8px" }}>
+                    Select Habit:
+                  </label>
+                  <select
+                    value={selectedHabit}
+                    onChange={e => setSelectedHabit(e.target.value)}
+                    style={{ width: "100%", padding: "12px 14px" }}
+                    className="cursor-pointer"
+                  >
+                    {habits.map(h => (
+                      <option key={h.id} value={h.name}>{h.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <button onClick={handleOracleConsult} disabled={oracleLoading || !selectedHabit} className="btn-primary cursor-pointer" style={{ width: "100%", padding: "14px", fontSize: "14.5px" }}>
+                  {oracleLoading ? <><Loader size={18} className="spin" /> Getting Tips...</> : <><Sparkles size={18} /> Get AI Tip</>}
+                </button>
+
+                {oracleTip && (
+                  <div className="fade-in" style={{ padding: "20px", backgroundColor: "var(--accent-light)", borderRadius: "14px", borderLeft: "4px solid var(--accent)", fontSize: "14.5px", fontWeight: "500", color: "var(--text-primary)", lineHeight: "1.6" }}>
+                    <div style={{ fontWeight: "800", color: "var(--accent)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <img src="/logo.png" alt="" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
+                      <span>AI Tip:</span>
+                    </div>
+                    <FormattedAiText text={oracleTip} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
