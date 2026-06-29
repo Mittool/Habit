@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppStore, Theme } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { performIsolatedSignOut } from "@/lib/cloud";
 import {
   Sun,
   Moon,
@@ -98,13 +99,7 @@ export default function SettingsPage() {
   }, []);
 
   async function handleSignOut() {
-    if (supabase) {
-      try {
-        await supabase.auth.signOut();
-      } catch {}
-    }
-    setAuthenticated(false);
-    setUser(null);
+    await performIsolatedSignOut();
     router.push("/auth");
   }
 
