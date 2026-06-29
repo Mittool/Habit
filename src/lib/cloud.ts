@@ -1,4 +1,4 @@
-// Supabase Cloud Storage, Rehydration, Profile Sync & Account Isolation Engine
+// Supabase Cloud Storage, Local Disk Partitioning, Rehydration, Profile Sync & Account Isolation Engine
 "use client";
 import { supabase } from "./supabase";
 import { useAppStore } from "./store";
@@ -30,7 +30,6 @@ export async function syncUserProfileName(cleanName: string): Promise<{ success:
     });
     if (error) throw error;
 
-    // Also trigger full cloud backup sync to mirror name inside backup payload
     triggerCloudSync();
 
     console.log("[Cloud Profile] Successfully secured display name to cloud profile UID:", state.user.id);
@@ -48,6 +47,9 @@ export function triggerCloudSync() {
 
   if (!state.isAuthenticated || !state.user?.id || state.user.id === "local") return;
 
+  // Also continuously backup current user partition locally to disk
+  saveLocalUserPartition(state);
+
   if (!state.cloudSyncEnabled) {
     supabase.auth.updateUser({
       data: {
@@ -61,11 +63,9 @@ export function triggerCloudSync() {
 
   if (syncTimeout) clearTimeout(syncTimeout);
 
-  // Debounce sync requests by 1.2 seconds
   syncTimeout = setTimeout(async () => {
     try {
       const { data: { session } } = await supabase!.auth.getSession();
-      // Enforce User Isolation: Never sync data if JWT UID doesn't match active store UID
       if (!session?.user || session.user.id !== state.user?.id) return;
 
       const cloudPayload = {
@@ -80,6 +80,8 @@ export function triggerCloudSync() {
         notificationsEnabled: state.notificationsEnabled,
         userName: state.user.name,
         userUpdatedAt: state.user.updatedAt || Date.now(),
+        cloudSyncEnabled: true,
+        onboardingDone: state.onboardingDone,
         cloudUpdatedAt: new Date().toISOString(),
       };
 
@@ -102,7 +104,29 @@ export function triggerCloudSync() {
   }, 1200);
 }
 
-// Restore saved cloud state upon sign in or app startup
+// Helper: Save local disk cache partitioned strictly by UID
+function saveLocalUserPartition(state: any) {
+  if (typeof window === "undefined" || !state.user?.id || state.user.id === "local") return;
+  const partKey = `trac_local_part_${state.user.id}`;
+  const payload = {
+    habits: state.habits,
+    todos: state.todos,
+    timeBlocks: state.timeBlocks,
+    moodEntries: state.moodEntries,
+    sleepEntries: state.sleepEntries,
+    focusSessions: state.focusSessions,
+    pomodoroSettings: state.pomodoroSettings,
+    theme: state.theme,
+    notificationsEnabled: state.notificationsEnabled,
+    cloudSyncEnabled: state.cloudSyncEnabled,
+    onboardingDone: state.onboardingDone,
+    userName: state.user.name,
+    userUpdatedAt: state.user.updatedAt || Date.now(),
+  };
+  localStorage.setItem(partKey, JSON.stringify(payload));
+}
+
+// Restore saved cloud or local partition state upon sign in or app startup
 export async function restoreFromCloudDatabase(): Promise<boolean> {
   if (typeof window === "undefined" || !supabase) return false;
 
@@ -110,29 +134,39 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
     const { data: { session }, error } = await supabase.auth.getSession();
     if (error || !session?.user) return false;
 
+    const uid = session.user.id;
     const metadata = session.user.user_metadata || {};
     const backup = metadata?.trac_cloud_backup;
     const currentState = useAppStore.getState();
     const localUser = currentState.user;
 
-    // Display Name Conflict Resolution (Deterministic Timestamp Merge)
+    // Load Local Disk Partition for this specific UID
+    let localPart: any = null;
+    if (typeof window !== "undefined") {
+      const savedPart = localStorage.getItem(`trac_local_part_${uid}`);
+      if (savedPart) {
+        try { localPart = JSON.parse(savedPart); } catch {}
+      }
+    }
+
+    // Display Name Conflict Resolution (Timestamp Deterministic Merge)
     const cloudName = backup?.userName || metadata?.name || session.user.email?.split("@")[0] || "User";
     const cloudTime = Math.max((metadata?.profileUpdatedAt as number) || 0, (backup?.userUpdatedAt as number) || 0);
-    const localTime = localUser?.updatedAt || 0;
+    const localPartTime = localPart?.userUpdatedAt || 0;
+    const storeTime = localUser?.updatedAt || 0;
+    const peakLocalTime = Math.max(localPartTime, storeTime);
 
     let definitiveName = cloudName;
     let definitiveTime = cloudTime;
 
-    // If local profile name was edited more recently offline while disconnected, prefer local!
-    if (localUser && localTime > cloudTime && localUser.name && localUser.id === session.user.id) {
-      definitiveName = localUser.name;
-      definitiveTime = localTime;
-      // Mirror newer local name back up to cloud profile automatically
+    if (peakLocalTime > cloudTime) {
+      definitiveName = localPart?.userName || localUser?.name || cloudName;
+      definitiveTime = peakLocalTime;
       supabase.auth.updateUser({ data: { name: definitiveName, profileUpdatedAt: definitiveTime } });
     }
 
-    // If cloud backup exists for this account, restore it strictly isolated
-    if (backup && backup.habits) {
+    // SCENARIO 1: Cloud Sync is active for this account on Supabase
+    if (backup && backup.cloudSyncEnabled === true && backup.habits) {
       useAppStore.setState({
         habits: backup.habits || [],
         todos: backup.todos || [],
@@ -144,19 +178,44 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
         theme: backup.theme || currentState.theme,
         notificationsEnabled: backup.notificationsEnabled !== undefined ? backup.notificationsEnabled : true,
         isAuthenticated: true,
-        cloudSyncEnabled: backup.cloudSyncEnabled === true,
-        onboardingDone: true,
+        cloudSyncEnabled: true,
+        onboardingDone: backup.onboardingDone || true,
         user: {
-          id: session.user.id,
+          id: uid,
           email: session.user.email || "",
           name: definitiveName,
           updatedAt: definitiveTime,
         },
       });
-      console.log("[Cloud Database] Restored account records & onboarding status for UID:", session.user.id);
+      console.log("[Cloud Database] Restored cloud backup for UID:", uid);
       return true;
-    } 
-    // If no cloud backup exists for this account
+    }
+    // SCENARIO 2: Cloud Sync is OFF, but local partition records exist on device for this UID!
+    else if (localPart && (localPart.habits?.length > 0 || localPart.onboardingDone)) {
+      useAppStore.setState({
+        habits: localPart.habits || [],
+        todos: localPart.todos || [],
+        timeBlocks: localPart.timeBlocks || [],
+        moodEntries: localPart.moodEntries || [],
+        sleepEntries: localPart.sleepEntries || [],
+        focusSessions: localPart.focusSessions || [],
+        pomodoroSettings: localPart.pomodoroSettings || currentState.pomodoroSettings,
+        theme: localPart.theme || currentState.theme,
+        notificationsEnabled: localPart.notificationsEnabled !== undefined ? localPart.notificationsEnabled : true,
+        isAuthenticated: true,
+        cloudSyncEnabled: false, // Remains optional OFF as user preferred
+        onboardingDone: localPart.onboardingDone || true,
+        user: {
+          id: uid,
+          email: session.user.email || "",
+          name: definitiveName,
+          updatedAt: definitiveTime,
+        },
+      });
+      console.log("[Local Partition] Restored local un-synced data partition for UID:", uid);
+      return true;
+    }
+    // SCENARIO 3: Brand new login or guest upload
     else {
       const wasLocalGuest = !currentState.user || currentState.user.id === "local";
       const isAlreadyOnboarded = metadata?.onboarding_completed === true;
@@ -167,12 +226,13 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
           cloudSyncEnabled: false,
           onboardingDone: isAlreadyOnboarded || currentState.onboardingDone,
           user: {
-            id: session.user.id,
+            id: uid,
             email: session.user.email || "",
             name: definitiveName,
             updatedAt: definitiveTime,
           }
         });
+        saveLocalUserPartition(useAppStore.getState());
       } else {
         useAppStore.setState({
           habits: [],
@@ -185,7 +245,7 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
           cloudSyncEnabled: false,
           onboardingDone: isAlreadyOnboarded,
           user: {
-            id: session.user.id,
+            id: uid,
             email: session.user.email || "",
             name: definitiveName,
             updatedAt: definitiveTime,
@@ -200,9 +260,13 @@ export async function restoreFromCloudDatabase(): Promise<boolean> {
   return false;
 }
 
-// Complete Account Sign Out & Local Session Purge
+// Complete Account Sign Out & Isolated Local Working Cache Purge
 export async function performIsolatedSignOut(): Promise<void> {
   if (syncTimeout) clearTimeout(syncTimeout);
+  const state = useAppStore.getState();
+
+  // Save current user partition to disk before logging out
+  saveLocalUserPartition(state);
 
   if (typeof window !== "undefined" && supabase) {
     try {
@@ -210,6 +274,7 @@ export async function performIsolatedSignOut(): Promise<void> {
     } catch {}
   }
 
+  // Purge active shared working memory
   useAppStore.setState({
     user: null,
     isAuthenticated: false,
