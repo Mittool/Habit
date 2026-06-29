@@ -253,7 +253,6 @@ export default function AiChatPage() {
               onChange={e => setInputVal(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSendMessage()}
               style={{ flex: 1 }}
-              autoFocus
             />
             <button
               onClick={() => handleSendMessage()}

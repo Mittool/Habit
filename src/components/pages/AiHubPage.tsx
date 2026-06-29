@@ -267,7 +267,6 @@ export default function AiHubPage() {
               onChange={e => setInputVal(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSendMessage()}
               style={{ flex: 1, backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "12px", padding: "12px 16px", fontSize: "14px", fontWeight: "500" }}
-              autoFocus
             />
             <button
               onClick={() => handleSendMessage()}
