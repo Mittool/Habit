@@ -256,7 +256,7 @@ export default function HabitsPage() {
       {/* Habits list */}
       {habits.length === 0 ? (
         <div className="card fade-in" style={{ padding: "48px 24px", textAlign: "center", color: "var(--text-muted)" }}>
-          <CheckCircle2 size={40} strokeWidth={1} style={{ marginBottom: "12px", opacity: 0.4 }} />
+          <CheckCircle2 size={40} strokeWidth={1} style={{ margin: "0 auto 12px", display: "block", opacity: 0.4 }} />
           <p style={{ fontSize: "15px", margin: "0 0 6px", color: "var(--text-primary)" }}>No habits yet</p>
           <p style={{ fontSize: "13px", margin: "0 0 16px" }}>Create your first habit to begin tracking your progress.</p>
           <button className="btn-primary cursor-pointer" onClick={() => setShowForm(true)}><Plus size={16} /> New Habit</button>
@@ -305,7 +305,7 @@ export default function HabitsPage() {
 
                   <div style={{ display: "flex", gap: "6px" }}>
                     {aiEnabled && missedYesterday && !done && (
-                      <button onClick={() => getMissedTip(h.name)} disabled={loadingTip === h.name} className="cursor-pointer" style={{ background: "var(--bg-secondary)", border: "none", color: "var(--accent)", padding: "6px", borderRadius: "8px" }} title="Get AI Tip">
+                      <button onClick={() => getMissedTip(h.name)} disabled={loadingTip === h.name} className="cursor-pointer" style={{ background: "var(--bg-secondary)", border: "none", color: "var(--accent)", padding: "6px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }} title="Get AI Tip">
                         <img src="/logo-inside.png" alt="" style={{ width: "14px", height: "14px", objectFit: "contain" }} />
                       </button>
                     )}

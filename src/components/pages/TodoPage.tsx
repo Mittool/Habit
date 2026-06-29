@@ -182,7 +182,7 @@ export default function TodoPage({ onNavigate }: { onNavigate: (p: string) => vo
           className="card"
           style={{ padding: "40px", textAlign: "center", color: "var(--text-muted)" }}
         >
-          <CheckCircle size={36} strokeWidth={1} style={{ marginBottom: "10px", opacity: 0.4 }} />
+          <CheckCircle size={36} strokeWidth={1} style={{ margin: "0 auto 10px", display: "block", opacity: 0.4 }} />
           <p style={{ fontSize: "14px", margin: 0 }}>
             {filter === "done" ? "No completed tasks" : "No tasks yet — add something to focus on!"}
           </p>
