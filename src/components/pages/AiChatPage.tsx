@@ -34,7 +34,7 @@ function FormattedAiText({ text }: { text: string }) {
           <div key={idx} style={{ lineHeight: "1.6" }}>
             {parts.map((part, pI) => {
               if (part.startsWith("**") && part.endsWith("**")) {
-                return <strong key={pI} style={{ color: "inherit", fontWeight: 800 }}>{part.slice(2, -2)}</strong>;
+                return <strong key={pI} style={{ color: "inherit", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
               }
               return part;
             })}
@@ -124,7 +124,7 @@ export default function AiChatPage() {
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", textAlign: "center" }}>
         <div style={{ maxWidth: "400px" }}>
           <img src="/logo-inside.png" alt="Trac AI" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 16px", opacity: 0.5 }} />
-          <h2 style={{ fontSize: "22px", fontWeight: "800", color: "var(--text-primary)" }}>AI Assistant Disabled</h2>
+          <h2 style={{ fontSize: "22px", fontWeight: "600", color: "var(--text-primary)" }}>AI Assistant Disabled</h2>
           <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "8px 0 24px" }}>Enable AI features in Settings to unlock your productivity companion.</p>
         </div>
       </div>
@@ -139,10 +139,10 @@ export default function AiChatPage() {
           <img src="/logo-inside.png" alt="Trac AI" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", boxShadow: "0 2px 6px rgba(0,0,0,0.06)" }} />
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <h1 style={{ fontSize: "18px", fontWeight: "900", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
+              <h1 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
                 AI Chat
               </h1>
-              <span style={{ padding: "2px 8px", borderRadius: "9999px", backgroundColor: "var(--accent-light)", color: "var(--accent)", fontSize: "10px", fontWeight: "800", textTransform: "uppercase" }}>
+              <span style={{ padding: "2px 8px", borderRadius: "9999px", backgroundColor: "var(--accent-light)", color: "var(--accent)", fontSize: "10px", fontWeight: "600", textTransform: "none" }}>
                 Active
               </span>
             </div>
@@ -212,7 +212,7 @@ export default function AiChatPage() {
                   }}
                 >
                   {isAi && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", fontWeight: "800", color: "var(--accent)", textTransform: "uppercase", marginBottom: "6px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", fontWeight: "600", color: "var(--accent)", textTransform: "none", marginBottom: "6px" }}>
                       <img src="/logo-inside.png" alt="" style={{ width: "16px", height: "16px", borderRadius: "50%", objectFit: "cover" }} />
                       <span>Trac AI</span>
                     </div>
@@ -282,7 +282,7 @@ export default function AiChatPage() {
                   <div style={{ padding: "10px", width: "fit-content", borderRadius: "12px", backgroundColor: "var(--accent-light)", color: "var(--accent)", marginBottom: "14px" }}>
                     <Zap size={22} />
                   </div>
-                  <h3 style={{ fontSize: "18px", fontWeight: "800", color: "var(--text-primary)", margin: "0 0 8px" }}>
+                  <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 8px" }}>
                     {flow.title}
                   </h3>
                   <p style={{ fontSize: "14px", color: "var(--text-secondary)", margin: 0, lineHeight: "1.5" }}>
@@ -306,7 +306,7 @@ export default function AiChatPage() {
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
               <img src="/logo-inside.png" alt="AI Chat" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
               <div>
-                <h3 style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+                <h3 style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
                   Habit Help & Recovery
                 </h3>
                 <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "4px 0 0" }}>
@@ -322,7 +322,7 @@ export default function AiChatPage() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
                 <div>
-                  <label style={{ fontSize: "13.5px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "8px" }}>
+                  <label style={{ fontSize: "13.5px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "8px" }}>
                     Select Habit:
                   </label>
                   <select
@@ -343,7 +343,7 @@ export default function AiChatPage() {
 
                 {oracleTip && (
                   <div className="fade-in" style={{ padding: "20px", backgroundColor: "var(--accent-light)", borderRadius: "14px", borderLeft: "4px solid var(--accent)", fontSize: "14.5px", fontWeight: "500", color: "var(--text-primary)", lineHeight: "1.6" }}>
-                    <div style={{ fontWeight: "800", color: "var(--accent)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ fontWeight: "600", color: "var(--accent)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
                       <img src="/logo-inside.png" alt="" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
                       <span>AI Tip:</span>
                     </div>

@@ -69,7 +69,7 @@ export default function NotificationsPage() {
   return (
     <div style={{ padding: "32px 24px", maxWidth: "760px", margin: "0 auto" }}>
       <div className="fade-in" style={{ marginBottom: "28px" }}>
-        <h2 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+        <h2 style={{ fontSize: "26px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
           Notifications Architecture
         </h2>
         <p style={{ margin: 0, fontSize: "14px", fontWeight: "500", color: "var(--text-muted)" }}>
@@ -85,16 +85,16 @@ export default function NotificationsPage() {
               <Smartphone size={20} />
             </div>
             <div>
-              <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+              <h3 style={{ fontSize: "17px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
                 Mobile Push Alerts
               </h3>
-              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "none" }}>
                 Daily Reminders
               </span>
             </div>
           </div>
 
-          <div style={{ padding: "6px 12px", borderRadius: "9999px", backgroundColor: permissionStatus === "granted" ? "#D1FAE5" : "#FEF3C7", color: permissionStatus === "granted" ? "#0D9488" : "#D97706", fontSize: "12px", fontWeight: "700", display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ padding: "6px 12px", borderRadius: "9999px", backgroundColor: permissionStatus === "granted" ? "#D1FAE5" : "#FEF3C7", color: permissionStatus === "granted" ? "#0D9488" : "#D97706", fontSize: "12px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
             <ShieldCheck size={16} />
             <span>Status: {permissionStatus.toUpperCase()}</span>
           </div>
@@ -107,7 +107,7 @@ export default function NotificationsPage() {
         <button
           onClick={requestMobilePermissions}
           className="btn-primary cursor-pointer"
-          style={{ width: "100%", padding: "14px", fontSize: "14px", fontWeight: "700" }}
+          style={{ width: "100%", padding: "14px", fontSize: "14px", fontWeight: "600" }}
         >
           <Smartphone size={18} />
           <span>{permissionStatus === "granted" ? "Mobile Push Alerts Active" : "Enable Mobile Push Notifications"}</span>
@@ -119,7 +119,7 @@ export default function NotificationsPage() {
         <div className="card fade-in stagger-2" style={{ padding: "24px", marginBottom: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
             <Clock size={18} color="var(--accent)" />
-            <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
               Dynamic Habit Daily Schedules
             </h3>
           </div>
@@ -134,14 +134,14 @@ export default function NotificationsPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                     <div style={{ width: "12px", height: "12px", borderRadius: "9999px", backgroundColor: h.color }} />
                     <div>
-                      <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>{h.name}</div>
+                      <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)" }}>{h.name}</div>
                       <div style={{ fontSize: "11px", fontWeight: "600", color: isScheduled ? "var(--accent)" : "var(--text-muted)", marginTop: "2px" }}>
                         {isScheduled ? "Targeting yesterday's completion time" : "Awaiting tick click to anchor tomorrow's time"}
                       </div>
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ padding: "6px 12px", borderRadius: "8px", backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", fontSize: "13px", fontWeight: "800", color: isScheduled ? "var(--accent)" : "var(--text-muted)" }}>
+                    <span style={{ padding: "6px 12px", borderRadius: "8px", backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", fontSize: "13px", fontWeight: "600", color: isScheduled ? "var(--accent)" : "var(--text-muted)" }}>
                       {h.notificationTime || "Pending Tick"}
                     </span>
                   </div>
@@ -162,7 +162,7 @@ export default function NotificationsPage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <h3 style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>
+          <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
             Alert History
           </h3>
           {unread > 0 && (
@@ -171,7 +171,7 @@ export default function NotificationsPage() {
                 backgroundColor: "#EF4444",
                 color: "white",
                 fontSize: "11px",
-                fontWeight: "700",
+                fontWeight: "600",
                 padding: "2px 8px",
                 borderRadius: "9999px",
               }}
@@ -210,7 +210,7 @@ export default function NotificationsPage() {
           style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-muted)", borderStyle: "dashed" }}
         >
           <BellOff size={44} style={{ margin: "0 auto 12px", opacity: 0.4 }} />
-          <p style={{ fontSize: "15px", fontWeight: "700", margin: "0 0 6px", color: "var(--text-primary)" }}>No alerts yet</p>
+          <p style={{ fontSize: "15px", fontWeight: "600", margin: "0 0 6px", color: "var(--text-primary)" }}>No alerts yet</p>
           <p style={{ fontSize: "13px", fontWeight: "500", margin: 0 }}>
             Scheduled check-ins and locked time reminders will appear here when active.
           </p>

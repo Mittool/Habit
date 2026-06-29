@@ -16,7 +16,7 @@ export default function PlannerPage({ initialTab = "habits" }: PlannerProps) {
     <div>
       {/* Planner Master Segment Header */}
       <div style={{ padding: "32px 24px 12px", maxWidth: "800px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: "900", color: "var(--text-primary)", margin: "0 0 16px", letterSpacing: "-0.03em" }}>
+        <h1 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 16px", letterSpacing: "-0.03em" }}>
           Planner
         </h1>
 

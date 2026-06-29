@@ -15,7 +15,7 @@ export default function FocusPage({ initialTab = "timer" }: FocusProps) {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", width: "100%", minHeight: "calc(100vh - 68px)", boxSizing: "border-box" }}>
       {/* Sleek Minimalist Edge-to-Edge App Bar Header */}
       <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "var(--bg-card)", flexShrink: 0 }}>
-        <h1 style={{ fontSize: "18px", fontWeight: "900", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
+        <h1 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
           Focus
         </h1>
 

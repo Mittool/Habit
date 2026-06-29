@@ -35,7 +35,7 @@ function FormattedAiText({ text }: { text: string }) {
           <div key={idx} style={{ lineHeight: "1.6" }}>
             {parts.map((part, pI) => {
               if (part.startsWith("**") && part.endsWith("**")) {
-                return <strong key={pI} style={{ color: "var(--text-primary)", fontWeight: 800 }}>{part.slice(2, -2)}</strong>;
+                return <strong key={pI} style={{ color: "var(--text-primary)", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
               }
               return part;
             })}
@@ -129,7 +129,7 @@ export default function AiHubPage() {
       <div style={{ padding: "40px 24px", maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
         <div className="card fade-in" style={{ padding: "48px 24px", border: "1px solid var(--border)" }}>
           <img src="/logo-inside.png" alt="Trac AI" style={{ width: "72px", height: "72px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 16px", opacity: 0.5 }} />
-          <h2 style={{ fontSize: "22px", fontWeight: "800", color: "var(--text-primary)" }}>Trac AI Core Offline</h2>
+          <h2 style={{ fontSize: "22px", fontWeight: "600", color: "var(--text-primary)" }}>Trac AI Core Offline</h2>
           <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "8px 0 24px" }}>Enable Trac AI in Settings to unlock advanced neural intelligence.</p>
         </div>
       </div>
@@ -146,10 +146,10 @@ export default function AiHubPage() {
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <h1 style={{ fontSize: "28px", fontWeight: "900", color: "var(--text-primary)", margin: "0", letterSpacing: "-0.03em" }}>
+              <h1 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: "0", letterSpacing: "-0.03em" }}>
                 Trac AI Hub
               </h1>
-              <span style={{ padding: "3px 8px", borderRadius: "9999px", backgroundColor: "var(--accent-light)", color: "var(--accent)", fontSize: "10px", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              <span style={{ padding: "3px 8px", borderRadius: "9999px", backgroundColor: "var(--accent-light)", color: "var(--accent)", fontSize: "10px", fontWeight: "600", textTransform: "none", letterSpacing: "0.08em" }}>
                 AI Ready
               </span>
             </div>
@@ -162,7 +162,7 @@ export default function AiHubPage() {
         {/* Live Indicator */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 14px", borderRadius: "12px", backgroundColor: "var(--bg-card)", border: "1px solid var(--accent)", boxShadow: "0 0 12px var(--shadow-hover)" }}>
           <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#10B981", boxShadow: "0 0 8px #10B981" }} />
-          <span style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-primary)" }}>Active</span>
+          <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-primary)" }}>Active</span>
         </div>
       </div>
 
@@ -226,7 +226,7 @@ export default function AiHubPage() {
                   }}
                 >
                   {isAi && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", fontWeight: "800", color: "var(--accent)", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.05em" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", fontWeight: "600", color: "var(--accent)", textTransform: "none", marginBottom: "8px", letterSpacing: "0.05em" }}>
                       <img src="/logo-inside.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
                       <span>Trac AI Intelligence</span>
                     </div>
@@ -303,7 +303,7 @@ export default function AiHubPage() {
                 <div style={{ padding: "10px", width: "fit-content", borderRadius: "12px", backgroundColor: "var(--accent-light)", color: "var(--accent)", marginBottom: "14px" }}>
                   <Zap size={22} />
                 </div>
-                <h3 style={{ fontSize: "18px", fontWeight: "800", color: "var(--text-primary)", margin: "0 0 8px" }}>
+                <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 8px" }}>
                   {flow.title}
                 </h3>
                 <p style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)", margin: 0, lineHeight: "1.5" }}>
@@ -335,7 +335,7 @@ export default function AiHubPage() {
               <img src="/logo-inside.png" alt="Trac AI" style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover" }} />
             </div>
             <div>
-              <h3 style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+              <h3 style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
                 Habit Help & Recovery
               </h3>
               <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "2px 0 0" }}>
@@ -351,7 +351,7 @@ export default function AiHubPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
               <div>
-                <label style={{ fontSize: "13px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "8px" }}>
+                <label style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "8px" }}>
                   Select Habit:
                 </label>
                 <select
@@ -381,7 +381,7 @@ export default function AiHubPage() {
 
               {oracleTip && (
                 <div className="fade-in animate-glow" style={{ padding: "20px", backgroundColor: "var(--accent-light)", borderRadius: "16px", borderLeft: "4px solid var(--accent)", fontSize: "15px", fontWeight: "500", color: "var(--text-primary)", lineHeight: "1.6" }}>
-                  <div style={{ fontWeight: "800", color: "var(--accent)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ fontWeight: "600", color: "var(--accent)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
                     <img src="/logo-inside.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
                     <span>AI Tip:</span>
                   </div>

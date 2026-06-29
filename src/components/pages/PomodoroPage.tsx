@@ -187,7 +187,7 @@ export default function PomodoroPage() {
             <div style={{ fontSize: "64px", fontWeight: "300", color: "var(--text-primary)", letterSpacing: "-3px", lineHeight: 1 }}>
               {mins}:{secs}
             </div>
-            <span style={{ fontSize: "12px", fontWeight: "800", color: phaseColor, textTransform: "uppercase", letterSpacing: "0.15em", marginTop: "8px" }}>
+            <span style={{ fontSize: "12px", fontWeight: "600", color: phaseColor, textTransform: "none", letterSpacing: "0.15em", marginTop: "8px" }}>
               {phaseLabel}
             </span>
           </div>
@@ -207,7 +207,7 @@ export default function PomodoroPage() {
               }}
             />
           ))}
-          <span style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)", marginLeft: "4px" }}>
+          <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginLeft: "4px" }}>
             Block {sessionCount + 1} of {pomodoroSettings.sessionsBeforeLongBreak}
           </span>
         </div>
@@ -283,7 +283,7 @@ export default function PomodoroPage() {
         {/* Link to active task */}
         {activeTodos.length > 0 && (
           <div style={{ padding: "14px 18px", backgroundColor: "var(--bg-secondary)", borderRadius: "14px", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-primary)", fontWeight: "700", fontSize: "13px", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-primary)", fontWeight: "600", fontSize: "13px", flexShrink: 0 }}>
               <Timer size={16} color="var(--accent)" />
               <span>Target Task:</span>
             </div>
@@ -309,7 +309,7 @@ export default function PomodoroPage() {
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "24px" }}>
           <div className="card fade-in" style={{ width: "100%", maxWidth: "400px", padding: "28px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: "800", margin: 0, color: "var(--text-primary)" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "600", margin: 0, color: "var(--text-primary)" }}>
                 Focus Timer Settings
               </h3>
               <button onClick={() => setShowSettings(false)} className="cursor-pointer" style={{ background: "none", border: "none", color: "var(--text-muted)" }}>
@@ -324,7 +324,7 @@ export default function PomodoroPage() {
                 { key: "sessionsBeforeLongBreak", label: "Focus Blocks Before Long Rest" },
               ].map((field) => (
                 <div key={field.key}>
-                  <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
+                  <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
                     {field.label}
                   </label>
                   <input
@@ -338,7 +338,7 @@ export default function PomodoroPage() {
                         [field.key]: parseInt(e.target.value) || 1,
                       }))
                     }
-                    style={{ width: "100%", fontWeight: "700" }}
+                    style={{ width: "100%", fontWeight: "600" }}
                   />
                 </div>
               ))}

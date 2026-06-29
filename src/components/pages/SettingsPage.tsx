@@ -135,7 +135,7 @@ export default function SettingsPage() {
   return (
     <div style={{ padding: "32px 24px", maxWidth: "720px", margin: "0 auto" }}>
       <div className="fade-in" style={{ marginBottom: "28px" }}>
-        <h2 style={{ fontSize: "26px", fontWeight: "800", color: "var(--text-primary)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+        <h2 style={{ fontSize: "26px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
           Settings Architecture
         </h2>
         <p style={{ margin: 0, fontSize: "14px", fontWeight: "500", color: "var(--text-muted)" }}>
@@ -147,10 +147,10 @@ export default function SettingsPage() {
       <div className="card fade-in stagger-1" style={{ padding: "24px", marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
           <User size={18} color="var(--accent)" />
-          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Identity & Account</h3>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Identity & Account</h3>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px" }}>
-          <div style={{ width: "48px", height: "48px", borderRadius: "9999px", backgroundColor: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "20px", fontWeight: "700", flexShrink: 0, boxShadow: "0 4px 12px var(--shadow-hover)" }}>
+          <div style={{ width: "48px", height: "48px", borderRadius: "9999px", backgroundColor: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "20px", fontWeight: "600", flexShrink: 0, boxShadow: "0 4px 12px var(--shadow-hover)" }}>
             {(user?.name || "U")[0].toUpperCase()}
           </div>
           <div style={{ flex: 1 }}>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
               </div>
             ) : (
               <>
-                <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)" }}>{user?.name || "User"}</div>
+                <div style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)" }}>{user?.name || "User"}</div>
                 <div style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)" }}>{user?.email || "Local On-Device Account"}</div>
               </>
             )}
@@ -178,11 +178,11 @@ export default function SettingsPage() {
       <div className="card fade-in stagger-2" style={{ padding: "24px", marginBottom: "20px", border: cloudSyncEnabled ? "1px solid var(--accent)" : "1px solid var(--border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
           <Cloud size={18} color="var(--accent)" />
-          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Cloud Sync Architecture</h3>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Cloud Sync Architecture</h3>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px", marginBottom: "12px" }}>
           <div>
-            <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>Save all data in Cloud</div>
+            <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)" }}>Save all data in Cloud</div>
             <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)", lineHeight: "1.5", marginTop: "4px" }}>
               When enabled, your habits, focus minutes, and task logs sync securely to cloud storage. Default is OFF (local-first privacy).
             </div>
@@ -199,10 +199,10 @@ export default function SettingsPage() {
       <div className="card fade-in stagger-2" style={{ padding: "24px", marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
           <Database size={18} color="var(--accent)" />
-          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Local Storage Management</h3>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Local Storage Management</h3>
         </div>
         <div style={{ padding: "14px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px", marginBottom: "14px" }}>
-          <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "4px" }}>On-Device Cache Status</div>
+          <div style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "4px" }}>On-Device Cache Status</div>
           <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)" }}>{storageText}</div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "16px" }}>
@@ -215,7 +215,7 @@ export default function SettingsPage() {
             { label: "AI Alerts", value: stats.notifications },
           ].map((s) => (
             <div key={s.label} style={{ padding: "12px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px", textAlign: "center" }}>
-              <div style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)" }}>{s.value}</div>
+              <div style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)" }}>{s.value}</div>
               <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", marginTop: "2px" }}>{s.label}</div>
             </div>
           ))}
@@ -229,11 +229,11 @@ export default function SettingsPage() {
       <div className="card fade-in stagger-3" style={{ padding: "24px", marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
           <img src="/logo-inside.png" alt="Trac AI" style={{ width: "20px", height: "20px", objectFit: "contain" }} />
-          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Trac AI Engine</h3>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Trac AI Engine</h3>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px" }}>
           <div>
-            <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>Trac AI Productivity Intelligence</div>
+            <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)" }}>Trac AI Productivity Intelligence</div>
             <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)", lineHeight: "1.5", marginTop: "4px" }}>
               Enable Trac AI productivity coaching, personalized habit recovery tips, and dynamic daily wisdom.
             </div>
@@ -246,11 +246,11 @@ export default function SettingsPage() {
       <div className="card fade-in stagger-3" style={{ padding: "24px", marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
           <Bell size={18} color="var(--accent)" />
-          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Smart Notifications</h3>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Smart Notifications</h3>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px", marginBottom: "12px" }}>
           <div>
-            <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>Timeboxed Schedule Alerts</div>
+            <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)" }}>Timeboxed Schedule Alerts</div>
             <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)", lineHeight: "1.5", marginTop: "4px" }}>
               Receive scheduled notifications and Trac AI encouragement before time blocks begin.
             </div>
@@ -263,7 +263,7 @@ export default function SettingsPage() {
       <div className="card fade-in stagger-4" style={{ padding: "24px", marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
           <Palette size={18} color="var(--accent)" />
-          <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Aesthetics & Theme</h3>
+          <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Aesthetics & Theme</h3>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {THEMES.map((t) => {
@@ -287,7 +287,7 @@ export default function SettingsPage() {
               >
                 <div style={{ color: isSelected ? "var(--accent)" : "var(--text-muted)" }}>{t.icon}</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>{t.name}</div>
+                  <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)" }}>{t.name}</div>
                   <div style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)" }}>{t.desc}</div>
                 </div>
                 {isSelected && <Check size={20} color="var(--accent)" />}

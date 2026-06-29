@@ -303,7 +303,7 @@ export default function AuthPage() {
               padding: "14px",
               marginTop: "4px",
               fontSize: "14px",
-              fontWeight: "700"
+              fontWeight: "600"
             }}
           >
             {loading ? "Signing in..." : mode === "signin" ? "Sign In" : "Sign Up"}

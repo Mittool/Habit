@@ -51,7 +51,7 @@ function FormattedAiText({ text }: { text: string }) {
           <div key={idx} style={{ lineHeight: "1.6" }}>
             {parts.map((part, pI) => {
               if (part.startsWith("**") && part.endsWith("**")) {
-                return <strong key={pI} style={{ color: "var(--text-primary)", fontWeight: 800 }}>{part.slice(2, -2)}</strong>;
+                return <strong key={pI} style={{ color: "var(--text-primary)", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
               }
               return part;
             })}
@@ -195,7 +195,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
             <img src="/logo-inside.png" alt="Trac" className="animate-float" style={{ width: "42px", height: "42px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 4px 12px rgba(13,148,136,0.2)" }} />
-            <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
+            <h1 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
               {greeting}, {user?.name || "there"}!
             </h1>
           </div>
@@ -246,7 +246,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
             }}
           >
             <div>
-              <div style={{ fontSize: "24px", fontWeight: "800", color: "var(--text-primary)", lineHeight: 1.1 }}>
+              <div style={{ fontSize: "24px", fontWeight: "600", color: "var(--text-primary)", lineHeight: 1.1 }}>
                 {stat.value}
               </div>
               <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginTop: "6px" }}>
@@ -279,7 +279,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
             <div style={{ padding: "6px", borderRadius: "8px", backgroundColor: "var(--accent-light)" }}>
               <BarChart2 size={18} color="var(--accent)" />
             </div>
-            <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
               Performance Overview
             </h3>
           </div>
@@ -294,28 +294,28 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
               <Flame size={14} color="#D97706" />
               <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)" }}>Best Streak</span>
             </div>
-            <div style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)" }}>{bestStreak}d</div>
+            <div style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)" }}>{bestStreak}d</div>
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
               <CalendarDays size={14} color="var(--accent)" />
               <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)" }}>Weekly Avg</span>
             </div>
-            <div style={{ fontSize: "20px", fontWeight: "800", color: weeklyAverage >= 70 ? "var(--accent)" : weeklyAverage >= 40 ? "#D97706" : "#EF4444" }}>{weeklyAverage}%</div>
+            <div style={{ fontSize: "20px", fontWeight: "600", color: weeklyAverage >= 70 ? "var(--accent)" : weeklyAverage >= 40 ? "#D97706" : "#EF4444" }}>{weeklyAverage}%</div>
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
               <TrendingUp size={14} color="#6366F1" />
               <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)" }}>30-Day Avg</span>
             </div>
-            <div style={{ fontSize: "20px", fontWeight: "800", color: monthlyHabitAverage >= 70 ? "var(--accent)" : monthlyHabitAverage >= 40 ? "#D97706" : "#EF4444" }}>{monthlyHabitAverage}%</div>
+            <div style={{ fontSize: "20px", fontWeight: "600", color: monthlyHabitAverage >= 70 ? "var(--accent)" : monthlyHabitAverage >= 40 ? "#D97706" : "#EF4444" }}>{monthlyHabitAverage}%</div>
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
               <Zap size={14} color="#D97706" />
               <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)" }}>Total Focus</span>
             </div>
-            <div style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)" }}>
+            <div style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)" }}>
               {totalFocusTime >= 60 ? `${Math.floor(totalFocusTime / 60)}h ${totalFocusTime % 60}m` : `${totalFocusTime}m`}
             </div>
           </div>
@@ -371,7 +371,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
             zIndex: 1,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", textTransform: "none", letterSpacing: "0.03em" }}>
             <span>Daily Inspiration</span>
           </div>
           <button
@@ -408,7 +408,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
             >
               &ldquo;{dailyQuote.text}&rdquo;
             </p>
-            <p style={{ fontSize: "13px", fontWeight: "700", color: "var(--accent)", margin: 0, position: "relative", zIndex: 1 }}>
+            <p style={{ fontSize: "13px", fontWeight: "600", color: "var(--accent)", margin: 0, position: "relative", zIndex: 1 }}>
               &mdash; {dailyQuote.author}
             </p>
           </>
@@ -421,7 +421,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <CheckCircle2 size={18} color="var(--accent)" />
-              <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>
+              <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
                 Today&rsquo;s Priority Habits
               </h3>
             </div>
@@ -495,7 +495,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
                         borderRadius: "8px",
                         backgroundColor: "#FEF3C7",
                         fontSize: "12px",
-                        fontWeight: "700",
+                        fontWeight: "600",
                         color: "#D97706",
                       }}
                     >

@@ -89,7 +89,7 @@ export default function HabitsPage() {
         }}
       >
         <div>
-          <h2 style={{ fontSize: "24px", fontWeight: "800", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
+          <h2 style={{ fontSize: "24px", fontWeight: "600", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
             Habits Architecture
           </h2>
           <p style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-muted)", margin: "4px 0 0" }}>
@@ -120,7 +120,7 @@ export default function HabitsPage() {
               marginBottom: "18px",
             }}
           >
-            <h3 style={{ fontSize: "16px", fontWeight: "700", margin: 0, color: "var(--text-primary)" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", margin: 0, color: "var(--text-primary)" }}>
               {editId ? "Edit Habit Blueprint" : "Create Habit Blueprint"}
             </h3>
             <button
@@ -217,7 +217,7 @@ export default function HabitsPage() {
           <div style={{ display: "inline-flex", padding: "16px", borderRadius: "16px", backgroundColor: "var(--bg-secondary)", marginBottom: "16px" }}>
             <CheckCircle2 size={48} color="var(--accent)" />
           </div>
-          <h3 style={{ fontSize: "18px", fontWeight: "700", color: "var(--text-primary)", margin: "0 0 6px" }}>No active habits</h3>
+          <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 6px" }}>No active habits</h3>
           <p style={{ fontSize: "14px", fontWeight: "500", margin: "0 0 20px" }}>Deploy your first habit tracker to start monitoring daily consistency.</p>
           <button
             className="btn-primary cursor-pointer"
@@ -266,7 +266,7 @@ export default function HabitsPage() {
                     <div
                       style={{
                         fontSize: "17px",
-                        fontWeight: "700",
+                        fontWeight: "600",
                         color: done ? "var(--text-muted)" : "var(--text-primary)",
                         textDecoration: done ? "line-through" : "none",
                       }}
@@ -350,14 +350,14 @@ export default function HabitsPage() {
                     <span>Best: {bestStreak}d</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ color: "var(--accent)", fontWeight: "800" }}>{rate}%</span>
+                    <span style={{ color: "var(--accent)", fontWeight: "600" }}>{rate}%</span>
                     <span>30d consistency</span>
                   </div>
                 </div>
 
                 {/* 7-day mini calendar */}
                 <div>
-                  <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "none", marginBottom: "8px" }}>
                     Last 7 Days Record
                   </div>
                   <div style={{ display: "flex", gap: "8px" }}>
@@ -375,7 +375,7 @@ export default function HabitsPage() {
                             gap: "4px",
                           }}
                         >
-                          <span style={{ fontSize: "10px", fontWeight: "700", color: isToday ? "var(--accent)" : "var(--text-muted)" }}>
+                          <span style={{ fontSize: "10px", fontWeight: "600", color: isToday ? "var(--accent)" : "var(--text-muted)" }}>
                             {d.label}
                           </span>
                           <div

@@ -107,7 +107,7 @@ export default function SleepPage() {
             <Moon size={28} />
           </div>
           <div>
-            <h2 style={{ fontSize: "26px", fontWeight: "900", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
+            <h2 style={{ fontSize: "26px", fontWeight: "600", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
               Sleep Tracker
             </h2>
             <p style={{ margin: 0, fontSize: "14px", fontWeight: "500", color: "var(--text-muted)" }}>
@@ -118,7 +118,7 @@ export default function SleepPage() {
 
         <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 14px", borderRadius: "12px", backgroundColor: "var(--bg-card)", border: "1px solid var(--border)" }}>
           <Bed size={18} color="var(--accent)" />
-          <span style={{ fontSize: "13px", fontWeight: "800", color: "var(--text-primary)" }}>Avg: {avgSleep}h</span>
+          <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)" }}>Avg: {avgSleep}h</span>
         </div>
       </div>
 
@@ -128,10 +128,10 @@ export default function SleepPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
             <img src="/logo-inside.png" alt="Trac AI" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
             <div>
-              <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+              <h3 style={{ fontSize: "17px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
                 Trac AI Sleep Review
               </h3>
-              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "none" }}>
                 Habit Analysis
               </span>
             </div>
@@ -143,16 +143,16 @@ export default function SleepPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
             <div style={{ padding: "12px", borderRadius: "12px", backgroundColor: "var(--bg-secondary)", textAlign: "center" }}>
-              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase" }}>Optimal Bedtime</div>
-              <div style={{ fontSize: "20px", fontWeight: "900", color: "var(--accent)", marginTop: "4px" }}>{correlationTelemetry.bestBedtime}</div>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "none" }}>Optimal Bedtime</div>
+              <div style={{ fontSize: "20px", fontWeight: "600", color: "var(--accent)", marginTop: "4px" }}>{correlationTelemetry.bestBedtime}</div>
             </div>
             <div style={{ padding: "12px", borderRadius: "12px", backgroundColor: "var(--bg-secondary)", textAlign: "center" }}>
-              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase" }}>Peak Duration</div>
-              <div style={{ fontSize: "20px", fontWeight: "900", color: "#F59E0B", marginTop: "4px" }}>{correlationTelemetry.bestDuration}h</div>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "none" }}>Peak Duration</div>
+              <div style={{ fontSize: "20px", fontWeight: "600", color: "#F59E0B", marginTop: "4px" }}>{correlationTelemetry.bestDuration}h</div>
             </div>
             <div style={{ padding: "12px", borderRadius: "12px", backgroundColor: "var(--bg-secondary)", textAlign: "center" }}>
-              <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase" }}>Consistency Lift</div>
-              <div style={{ fontSize: "20px", fontWeight: "900", color: "#10B981", marginTop: "4px" }}>+{correlationTelemetry.peakConsistency - correlationTelemetry.lowConsistency}%</div>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "none" }}>Consistency Lift</div>
+              <div style={{ fontSize: "20px", fontWeight: "600", color: "#10B981", marginTop: "4px" }}>+{correlationTelemetry.peakConsistency - correlationTelemetry.lowConsistency}%</div>
             </div>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function SleepPage() {
       <div className="card fade-in stagger-2" style={{ padding: "24px", marginBottom: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" }}>
           <Clock size={18} color="var(--accent)" />
-          <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+          <h3 style={{ fontSize: "17px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
             Log Sleep
           </h3>
         </div>
@@ -170,38 +170,38 @@ export default function SleepPage() {
         <form onSubmit={handleLogSleep} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
             <div>
-              <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
                 Bedtime
               </label>
               <input
                 type="time"
                 value={bedtime}
                 onChange={e => setBedtime(e.target.value)}
-                style={{ width: "100%", fontWeight: "700", fontSize: "15px" }}
+                style={{ width: "100%", fontWeight: "600", fontSize: "15px" }}
               />
             </div>
             <div>
-              <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
                 Wake Time
               </label>
               <input
                 type="time"
                 value={waketime}
                 onChange={e => setWaketime(e.target.value)}
-                style={{ width: "100%", fontWeight: "700", fontSize: "15px" }}
+                style={{ width: "100%", fontWeight: "600", fontSize: "15px" }}
               />
             </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "14px" }}>
             <div>
-              <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
                 Sleep Quality
               </label>
               <select
                 value={quality}
                 onChange={e => setQuality(e.target.value as any)}
-                style={{ width: "100%", fontWeight: "700", fontSize: "14px" }}
+                style={{ width: "100%", fontWeight: "600", fontSize: "14px" }}
                 className="cursor-pointer"
               >
                 <option value="excellent">Excellent</option>
@@ -211,7 +211,7 @@ export default function SleepPage() {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
                 Notes (Optional)
               </label>
               <input
@@ -235,11 +235,11 @@ export default function SleepPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <BarChart2 size={18} color="var(--accent)" />
-            <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+            <h3 style={{ fontSize: "17px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
               Recent Sleep Logs
             </h3>
           </div>
-          <span style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-muted)" }}>{sleepEntries.length} Tracked</span>
+          <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)" }}>{sleepEntries.length} Tracked</span>
         </div>
 
         {sleepEntries.length === 0 ? (
@@ -255,7 +255,7 @@ export default function SleepPage() {
                     <Moon size={18} />
                   </div>
                   <div>
-                    <div style={{ fontSize: "15px", fontWeight: "800", color: "var(--text-primary)" }}>{s.durationHours} Hours</div>
+                    <div style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)" }}>{s.durationHours} Hours</div>
                     <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", marginTop: "2px" }}>
                       {format(new Date(s.date), "EEE, MMM d")} &bull; Tucked in {s.bedtime} $\rightarrow$ Woke {s.waketime}
                     </div>
@@ -263,7 +263,7 @@ export default function SleepPage() {
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <span style={{ padding: "4px 10px", borderRadius: "8px", backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", fontSize: "11px", fontWeight: "800", color: "var(--accent)", textTransform: "uppercase" }}>
+                  <span style={{ padding: "4px 10px", borderRadius: "8px", backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", fontSize: "11px", fontWeight: "600", color: "var(--accent)", textTransform: "none" }}>
                     {s.quality}
                   </span>
                   <button onClick={() => deleteSleepEntry(s.id)} className="cursor-pointer" style={{ background: "none", border: "none", color: "#EF4444", padding: "4px" }}>

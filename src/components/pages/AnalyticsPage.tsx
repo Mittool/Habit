@@ -66,7 +66,7 @@ function FormattedAiText({ text }: { text: string }) {
           <div key={idx} style={{ lineHeight: "1.6" }}>
             {parts.map((part, pI) => {
               if (part.startsWith("**") && part.endsWith("**")) {
-                return <strong key={pI} style={{ color: "var(--text-primary)", fontWeight: 800 }}>{part.slice(2, -2)}</strong>;
+                return <strong key={pI} style={{ color: "var(--text-primary)", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
               }
               return part;
             })}
@@ -228,7 +228,7 @@ export default function AnalyticsPage() {
             <CalendarDays size={16} color="var(--accent)" />
             <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Weekly Stats</span>
           </div>
-          <div style={{ fontSize: "24px", fontWeight: "700", color: "var(--text-primary)" }}>{weeklyAverage}%</div>
+          <div style={{ fontSize: "24px", fontWeight: "600", color: "var(--text-primary)" }}>{weeklyAverage}%</div>
           <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>habit completion average</div>
         </div>
         <div className="card" style={{ padding: "16px" }}>
@@ -236,7 +236,7 @@ export default function AnalyticsPage() {
             <TrendingUp size={16} color="#6366f1" />
             <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Monthly Stats</span>
           </div>
-          <div style={{ fontSize: "24px", fontWeight: "700", color: "var(--text-primary)" }}>{monthlyHabitAverage}%</div>
+          <div style={{ fontSize: "24px", fontWeight: "600", color: "var(--text-primary)" }}>{monthlyHabitAverage}%</div>
           <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>30-day habit average</div>
         </div>
       </div>
@@ -247,10 +247,10 @@ export default function AnalyticsPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
             <img src="/logo-inside.png" alt="Trac AI" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
             <div>
-              <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
+              <h3 style={{ fontSize: "17px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
                 Trac AI Review
               </h3>
-              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "none" }}>
                 Smart Insights
               </span>
             </div>
@@ -268,7 +268,7 @@ export default function AnalyticsPage() {
           </button>
           {coachAdvice && (
             <div className="fade-in" style={{ marginTop: "18px", padding: "18px", borderRadius: "12px", backgroundColor: "var(--bg-card)", borderLeft: "4px solid var(--accent)", color: "var(--text-primary)", fontSize: "14px", fontWeight: "500", lineHeight: "1.7", boxShadow: "0 4px 16px var(--shadow)" }}>
-              <div style={{ fontWeight: "800", color: "var(--accent)", marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <div style={{ fontWeight: "600", color: "var(--accent)", marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
                 <img src="/logo-inside.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
                 <span>AI Advice:</span>
               </div>
@@ -289,7 +289,7 @@ export default function AnalyticsPage() {
           <div key={card.label} className="card" style={{ padding: "16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontSize: "24px", fontWeight: "700", color: "var(--text-primary)", lineHeight: 1 }}>{card.value}</div>
+                <div style={{ fontSize: "24px", fontWeight: "600", color: "var(--text-primary)", lineHeight: 1 }}>{card.value}</div>
                 <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>{card.label}</div>
                 <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{card.sub}</div>
               </div>
@@ -445,7 +445,7 @@ export default function AnalyticsPage() {
                         fontWeight: "600",
                         color: "var(--text-muted)",
                         borderBottom: "1px solid var(--border)",
-                        textTransform: "uppercase",
+                        textTransform: "none",
                         letterSpacing: "0.5px",
                       }}
                     >

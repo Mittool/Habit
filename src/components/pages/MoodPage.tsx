@@ -162,7 +162,7 @@ export default function MoodPage() {
                 style={{
                   fontSize: "9px",
                   color: "var(--text-muted)",
-                  textTransform: "uppercase",
+                  textTransform: "none",
                   letterSpacing: "0.3px",
                 }}
               >
