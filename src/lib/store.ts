@@ -7,14 +7,45 @@ import { playHabitDoneSound, playMilestoneSound, triggerHapticLight, triggerHapt
 export type Theme = "white-paper" | "dark-paper" | "zen";
 export type MoodType = "great" | "good" | "neutral" | "bad" | "awful";
 
+export interface NotificationConfig {
+  general: {
+    enabled: boolean;
+    habitReminders: boolean;
+    taskReminders: boolean;
+    aiSmartReminders: boolean;
+    dailySummary: boolean;
+    weeklyReview: boolean;
+  };
+  timing: {
+    quietHoursStart: string; // "22:00"
+    quietHoursEnd: string; // "07:00"
+    weekendEnabled: boolean;
+    snoozeMinutes: number; // 15
+  };
+  feedback: {
+    sound: boolean;
+    vibration: boolean;
+  };
+  smart: {
+    adaptiveTime: boolean;
+    motivationalMessages: boolean;
+    smartRescheduling: boolean;
+    missedFollowUp: boolean;
+  };
+}
+
 export interface Habit {
   id: string;
   name: string;
   color: string;
   createdAt: string;
-  completions: Record<string, boolean>; // date string -> completed
+  completions: Record<string, boolean>;
   goal?: string;
-  notificationTime?: string; // e.g. "14:30" (locked in on first completion)
+  notificationEnabled?: boolean;
+  reminderTime?: string; // manual HH:mm e.g. "09:00"
+  reminderDays?: number[]; // [0,1,2,3,4,5,6]
+  completionTimestamps?: number[]; // list of exact completion timestamps in ms (last 30)
+  learnedAverageHHMM?: string; // calculated adaptive average e.g. "20:27"
 }
 
 export interface TodoItem {
@@ -106,8 +137,10 @@ interface AppState {
 
   // AI notifications
   aiNotifications: { id: string; message: string; timestamp: string; read: boolean }[];
+  notificationConfig: NotificationConfig;
 
   // Actions
+  setNotificationConfig: (updates: any) => void;
   setUser: (user: UserProfile | null) => void;
   setAuthenticated: (val: boolean) => void;
   setTheme: (theme: Theme) => void;
@@ -144,6 +177,19 @@ interface AppState {
   clearNotifications: () => void;
 }
 
+function calcAvgHHMM(timestamps: number[]): string {
+  if (!timestamps || timestamps.length === 0) return "09:00";
+  let sumMins = 0;
+  timestamps.forEach((ts) => {
+    const d = new Date(ts);
+    sumMins += d.getHours() * 60 + d.getMinutes();
+  });
+  const avg = Math.round(sumMins / timestamps.length);
+  const h = Math.floor(avg / 60).toString().padStart(2, "0");
+  const m = (avg % 60).toString().padStart(2, "0");
+  return `${h}:${m}`;
+}
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -169,6 +215,42 @@ export const useAppStore = create<AppState>()(
       },
       dailyQuote: null,
       aiNotifications: [],
+      notificationConfig: {
+        general: {
+          enabled: true,
+          habitReminders: true,
+          taskReminders: true,
+          aiSmartReminders: true,
+          dailySummary: true,
+          weeklyReview: true,
+        },
+        timing: {
+          quietHoursStart: "22:00",
+          quietHoursEnd: "07:00",
+          weekendEnabled: true,
+          snoozeMinutes: 15,
+        },
+        feedback: {
+          sound: true,
+          vibration: true,
+        },
+        smart: {
+          adaptiveTime: true,
+          motivationalMessages: true,
+          smartRescheduling: true,
+          missedFollowUp: true,
+        },
+      },
+
+      setNotificationConfig: (updates) =>
+        set((state) => ({
+          notificationConfig: {
+            general: { ...state.notificationConfig.general, ...(updates.general || {}) },
+            timing: { ...state.notificationConfig.timing, ...(updates.timing || {}) },
+            feedback: { ...state.notificationConfig.feedback, ...(updates.feedback || {}) },
+            smart: { ...state.notificationConfig.smart, ...(updates.smart || {}) },
+          },
+        })),
 
       setUser: (user) => set({ user }),
       setAuthenticated: (val) => set({ isAuthenticated: val }),
@@ -217,9 +299,14 @@ export const useAppStore = create<AppState>()(
             completions[date] = !wasDone;
 
             let notificationTime = h.notificationTime;
+            let completionTimestamps = h.completionTimestamps || [];
+            let learnedAverageHHMM = h.learnedAverageHHMM;
+
             if (!wasDone) {
               notificationTime = nowHHMM;
               soundTriggered = true;
+              completionTimestamps = [...completionTimestamps, Date.now()].slice(-30);
+              learnedAverageHHMM = calcAvgHHMM(completionTimestamps);
 
               const completionsCount = Object.keys(completions).filter((k) => completions[k]).length;
               if (completionsCount === 1 || completionsCount === 7 || completionsCount === 30 || completionsCount === 100) {
@@ -227,7 +314,7 @@ export const useAppStore = create<AppState>()(
               }
             }
 
-            return { ...h, completions, notificationTime };
+            return { ...h, completions, notificationTime, completionTimestamps, learnedAverageHHMM };
           });
 
           if (soundTriggered) {
