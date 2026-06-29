@@ -81,12 +81,12 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
-  const heatmapDays = Array.from({ length: 120 }, (_, i) => {
-    const d = subDays(new Date(), 119 - i);
+  const heatmapDays30 = Array.from({ length: 30 }, (_, i) => {
+    const d = subDays(new Date(), 29 - i);
     const key = format(d, "yyyy-MM-dd");
     const count = habits.filter((h) => h.completions && h.completions[key]).length;
     const pct = habits.length > 0 ? (count / habits.length) : 0;
-    return { date: format(d, "MMM d, yyyy"), count, pct };
+    return { date: format(d, "MMM d"), count, pct };
   });
 
   return (
@@ -202,39 +202,78 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         </div>
       </div>
 
-      {/* 6. Consistency Heatmap */}
-      <div className="card fade-in stagger-3" style={{ padding: "22px 24px", marginBottom: "24px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Consistency Heatmap</h3>
-          <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Last 120 Days</span>
-        </div>
-
+      {/* 6. Split Consistency Card (Half 7-Day Old View & Half 30-Day Heatmap) */}
+      <div className="card fade-in stagger-3" style={{ padding: "24px", marginBottom: "24px" }}>
         {heatmapTooltip && (
-          <div style={{ padding: "6px 10px", borderRadius: "6px", backgroundColor: "var(--text-primary)", color: "var(--bg-card)", fontSize: "11.5px", fontWeight: "600", marginBottom: "8px", width: "fit-content" }}>
+          <div style={{ padding: "6px 10px", borderRadius: "6px", backgroundColor: "var(--text-primary)", color: "var(--bg-card)", fontSize: "11.5px", fontWeight: "600", marginBottom: "14px", width: "fit-content" }}>
             {heatmapTooltip}
           </div>
         )}
 
-        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", alignItems: "center" }}>
-          {heatmapDays.map((hd, idx) => {
-            const bgAlpha = hd.pct === 0 ? "var(--bg-secondary)" : hd.pct < 0.4 ? "rgba(13, 148, 136, 0.3)" : hd.pct < 0.8 ? "rgba(13, 148, 136, 0.65)" : "var(--accent)";
-            return (
-              <div
-                key={idx}
-                onMouseEnter={() => setHeatmapTooltip(`${hd.date}: ${hd.count} routines completed`)}
-                onMouseLeave={() => setHeatmapTooltip(null)}
-                onClick={() => setHeatmapTooltip(`${hd.date}: ${hd.count} routines completed`)}
-                className="cursor-pointer"
-                style={{
-                  width: "11px",
-                  height: "11px",
-                  borderRadius: "2px",
-                  backgroundColor: bgAlpha,
-                  border: hd.pct === 0 ? "1px solid var(--border)" : "none",
-                }}
-              />
-            );
-          })}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "24px" }}>
+          {/* Left Column: 7-Day Graph View (Old View) */}
+          <div style={{ borderRight: "1px solid var(--border)", paddingRight: "12px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>7-Day Graph</h3>
+              <span style={{ fontSize: "12px", color: "var(--accent)", fontWeight: "600" }}>{weeklyAveragePct}% Avg</span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: "56px" }}>
+              {weekData.map((count, i) => {
+                const pct = habits.length > 0 ? Math.round((count / habits.length) * 100) : 0;
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      flex: 1,
+                      height: `${Math.max(pct, 12)}%`,
+                      borderRadius: "4px",
+                      backgroundColor: pct >= 70 ? "var(--accent)" : pct >= 40 ? "#F59E0B" : pct > 0 ? "#EF4444" : "var(--bg-secondary)",
+                      transition: "height 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                    }}
+                    title={`${pct}% completed`}
+                  />
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => (
+                <span key={i} style={{ flex: 1, textAlign: "center", fontSize: "10px", fontWeight: "600", color: "var(--text-muted)" }}>
+                  {d}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Column: 30-Day Heatmap */}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <h3 style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>30-Day Heatmap</h3>
+              <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Last 30 Days</span>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "6px" }}>
+              {heatmapDays30.map((hd, idx) => {
+                const bgAlpha = hd.pct === 0 ? "var(--bg-secondary)" : hd.pct < 0.4 ? "rgba(13, 148, 136, 0.3)" : hd.pct < 0.8 ? "rgba(13, 148, 136, 0.65)" : "var(--accent)";
+                return (
+                  <div
+                    key={idx}
+                    onMouseEnter={() => setHeatmapTooltip(`${hd.date}: ${hd.count} routines done`)}
+                    onMouseLeave={() => setHeatmapTooltip(null)}
+                    onClick={() => setHeatmapTooltip(`${hd.date}: ${hd.count} routines done`)}
+                    className="cursor-pointer"
+                    style={{
+                      width: "100%",
+                      aspectRatio: "1/1",
+                      borderRadius: "3px",
+                      backgroundColor: bgAlpha,
+                      border: hd.pct === 0 ? "1px solid var(--border)" : "none",
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
