@@ -293,7 +293,7 @@ export default function HabitsPage() {
                         }}
                         title="Get Trac AI Tip"
                       >
-                        <img src="/logo.png" alt="Trac AI" style={{ width: "16px", height: "16px", objectFit: "contain" }} />
+                        <img src="/logo-inside.png" alt="Trac AI" style={{ width: "16px", height: "16px", objectFit: "contain" }} />
                       </button>
                     )}
                     <button

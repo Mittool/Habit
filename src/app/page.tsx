@@ -78,7 +78,7 @@ export default function MainApp() {
       case "analytics":
       case "mood":
       case "sleep":
-        return <InsightsPage initialTab={["mood", "sleep"].includes(currentPage) ? currentPage as any : "stats"} />;
+        return <InsightsPage initialTab={["mood", "sleep"].includes(currentPage) ? currentPage as any : "stats"} onNavigate={(p) => setCurrentPage(p as NavPage)} />;
       case "settings":
         return <SettingsPage />;
       default:

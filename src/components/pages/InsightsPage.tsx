@@ -3,17 +3,32 @@ import { useState } from "react";
 import AnalyticsPage from "./AnalyticsPage";
 import MoodPage from "./MoodPage";
 import SleepPage from "./SleepPage";
-import { TrendingUp, Smile, Moon } from "lucide-react";
+import { TrendingUp, Smile, Moon, Settings } from "lucide-react";
 
 interface InsightsProps {
   initialTab?: "stats" | "mood" | "sleep";
+  onNavigate?: (page: string) => void;
 }
 
-export default function InsightsPage({ initialTab = "stats" }: InsightsProps) {
+export default function InsightsPage({ initialTab = "stats", onNavigate }: InsightsProps) {
   const [tab, setTab] = useState<"stats" | "mood" | "sleep">(initialTab);
 
   return (
     <div>
+      {/* Fixed Top Right Settings Button */}
+      {onNavigate && (
+        <div style={{ position: "fixed", top: "18px", right: "20px", zIndex: 999999 }}>
+          <button
+            onClick={() => onNavigate("settings")}
+            className="btn-secondary cursor-pointer"
+            style={{ padding: "10px", borderRadius: "12px" }}
+            title="Settings"
+          >
+            <Settings size={20} color="var(--text-primary)" />
+          </button>
+        </div>
+      )}
+
       <div style={{ padding: "32px 24px 12px", maxWidth: "800px", margin: "0 auto" }}>
         <h1 style={{ fontSize: "28px", fontWeight: "900", color: "var(--text-primary)", margin: "0 0 16px", letterSpacing: "-0.03em" }}>
           Insights

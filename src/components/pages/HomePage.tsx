@@ -194,7 +194,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
       <div className="fade-in" style={{ marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-            <img src="/logo.png" alt="Trac" className="animate-float" style={{ width: "42px", height: "42px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 4px 12px rgba(13,148,136,0.2)" }} />
+            <img src="/logo-inside.png" alt="Trac" className="animate-float" style={{ width: "42px", height: "42px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 4px 12px rgba(13,148,136,0.2)" }} />
             <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
               {greeting}, {user?.name || "there"}!
             </h1>

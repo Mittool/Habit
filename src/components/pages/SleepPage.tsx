@@ -126,7 +126,7 @@ export default function SleepPage() {
       {aiEnabled && (
         <div className="card fade-in stagger-1" style={{ padding: "24px", marginBottom: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-            <img src="/logo.png" alt="Trac AI" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
+            <img src="/logo-inside.png" alt="Trac AI" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
             <div>
               <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
                 Trac AI Sleep Review

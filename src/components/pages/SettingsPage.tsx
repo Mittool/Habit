@@ -228,7 +228,7 @@ export default function SettingsPage() {
       {/* Trac AI Features */}
       <div className="card fade-in stagger-3" style={{ padding: "24px", marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-          <img src="/logo.png" alt="Trac AI" style={{ width: "20px", height: "20px", objectFit: "contain" }} />
+          <img src="/logo-inside.png" alt="Trac AI" style={{ width: "20px", height: "20px", objectFit: "contain" }} />
           <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", margin: 0 }}>Trac AI Engine</h3>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", padding: "16px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px" }}>

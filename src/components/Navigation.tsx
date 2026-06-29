@@ -33,7 +33,7 @@ interface NavProps {
 const NAV_ITEMS: { id: NavPage; label: string; icon: React.ReactNode; isFab?: boolean }[] = [
   { id: "home", label: "Home", icon: <Home size={20} /> },
   { id: "planner", label: "Planner", icon: <CalendarDays size={20} /> },
-  { id: "ai-chat", label: "AI Chat", icon: <img src="/logo.png" alt="AI Chat" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />, isFab: true },
+  { id: "ai-chat", label: "AI Chat", icon: <img src="/logo-inside.png" alt="AI Chat" style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />, isFab: true },
   { id: "focus", label: "Focus", icon: <Target size={20} /> },
   { id: "insights", label: "Insights", icon: <TrendingUp size={20} /> },
 ];
@@ -84,7 +84,7 @@ export default function Navigation({ current, onChange }: NavProps) {
           }}
         >
           <img
-            src="/logo.png"
+            src="/logo-inside.png"
             alt="Trac"
             style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
           />
@@ -118,7 +118,7 @@ export default function Navigation({ current, onChange }: NavProps) {
                   onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.08)")}
                   onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                 >
-                  <Sparkles size={24} color="#FFFFFF" />
+                  <img src="/logo-inside.png" alt="AI Chat" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
                 </button>
               );
             }
@@ -203,7 +203,7 @@ export default function Navigation({ current, onChange }: NavProps) {
                   }}
                   title="AI Chat Assistant"
                 >
-                  <Sparkles size={26} color="#FFFFFF" />
+                  <img src="/logo-inside.png" alt="AI Chat" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
                 </button>
               </div>
             );

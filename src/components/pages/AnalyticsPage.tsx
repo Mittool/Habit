@@ -245,7 +245,7 @@ export default function AnalyticsPage() {
       {aiEnabled && (
         <div className="card fade-in" style={{ padding: "24px", marginBottom: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-            <img src="/logo.png" alt="Trac AI" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
+            <img src="/logo-inside.png" alt="Trac AI" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
             <div>
               <h3 style={{ fontSize: "17px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
                 Trac AI Review
@@ -264,12 +264,12 @@ export default function AnalyticsPage() {
             disabled={coachLoading}
             style={{ width: "100%", padding: "12px", fontSize: "14px" }}
           >
-            {coachLoading ? <><Loader size={16} className="spin" /> Analyzing your stats...</> : <><img src="/logo.png" alt="" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} /> What can I improve?</>}
+            {coachLoading ? <><Loader size={16} className="spin" /> Analyzing your stats...</> : <><img src="/logo-inside.png" alt="" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} /> What can I improve?</>}
           </button>
           {coachAdvice && (
             <div className="fade-in" style={{ marginTop: "18px", padding: "18px", borderRadius: "12px", backgroundColor: "var(--bg-card)", borderLeft: "4px solid var(--accent)", color: "var(--text-primary)", fontSize: "14px", fontWeight: "500", lineHeight: "1.7", boxShadow: "0 4px 16px var(--shadow)" }}>
               <div style={{ fontWeight: "800", color: "var(--accent)", marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <img src="/logo.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
+                <img src="/logo-inside.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
                 <span>AI Advice:</span>
               </div>
               <FormattedAiText text={coachAdvice} />

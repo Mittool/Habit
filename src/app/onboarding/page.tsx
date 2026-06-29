@@ -138,7 +138,7 @@ export default function OnboardingPage() {
         {/* STEP 0: Welcome */}
         {step === 0 && (
           <div style={{ textAlign: "center" }}>
-            <img src="/logo.png" alt="Trac" style={{ width: "72px", height: "72px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 8px 24px rgba(13,148,136,0.2)", margin: "0 auto 20px", display: "block" }} />
+            <img src="/logo-inside.png" alt="Trac" style={{ width: "72px", height: "72px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 8px 24px rgba(13,148,136,0.2)", margin: "0 auto 20px", display: "block" }} />
             <h2 style={{ fontSize: "28px", fontWeight: "800", color: "var(--text-primary)", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
               Welcome to Trac, {user?.name || "there"}
             </h2>
@@ -320,7 +320,7 @@ export default function OnboardingPage() {
                 {aiGenerating ? (
                   <><Loader size={18} className="spin" /> Creating Habits...</>
                 ) : (
-                  <><img src="/logo.png" alt="" style={{ width: "16px", height: "16px", objectFit: "cover", borderRadius: "50%" }} /> Create My Habits</>
+                  <><img src="/logo-inside.png" alt="" style={{ width: "16px", height: "16px", objectFit: "cover", borderRadius: "50%" }} /> Create My Habits</>
                 )}
               </button>
             </div>

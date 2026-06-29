@@ -140,7 +140,7 @@ export default function AuthPage() {
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <img
-            src="/logo.png"
+            src="/logo-inside.png"
             alt="Trac"
             style={{
               width: "76px",

@@ -128,7 +128,7 @@ export default function AiHubPage() {
     return (
       <div style={{ padding: "40px 24px", maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
         <div className="card fade-in" style={{ padding: "48px 24px", border: "1px solid var(--border)" }}>
-          <img src="/logo.png" alt="Trac AI" style={{ width: "72px", height: "72px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 16px", opacity: 0.5 }} />
+          <img src="/logo-inside.png" alt="Trac AI" style={{ width: "72px", height: "72px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 16px", opacity: 0.5 }} />
           <h2 style={{ fontSize: "22px", fontWeight: "800", color: "var(--text-primary)" }}>Trac AI Core Offline</h2>
           <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "8px 0 24px" }}>Enable Trac AI in Settings to unlock advanced neural intelligence.</p>
         </div>
@@ -142,7 +142,7 @@ export default function AiHubPage() {
       <div className="fade-in" style={{ marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
           <div className="animate-glow" style={{ padding: "8px", borderRadius: "16px", background: "var(--accent-light)", border: "1px solid var(--accent)", boxShadow: "0 0 24px rgba(13, 148, 136, 0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img src="/logo.png" alt="Trac AI" style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover" }} />
+            <img src="/logo-inside.png" alt="Trac AI" style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover" }} />
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -227,7 +227,7 @@ export default function AiHubPage() {
                 >
                   {isAi && (
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", fontWeight: "800", color: "var(--accent)", textTransform: "uppercase", marginBottom: "8px", letterSpacing: "0.05em" }}>
-                      <img src="/logo.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
+                      <img src="/logo-inside.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
                       <span>Trac AI Intelligence</span>
                     </div>
                   )}
@@ -332,7 +332,7 @@ export default function AiHubPage() {
         <div className="card fade-in stagger-2" style={{ padding: "28px", border: "1px solid var(--accent)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
             <div style={{ padding: "10px", borderRadius: "12px", backgroundColor: "var(--accent-light)", border: "1px solid var(--accent)" }}>
-              <img src="/logo.png" alt="Trac AI" style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover" }} />
+              <img src="/logo-inside.png" alt="Trac AI" style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover" }} />
             </div>
             <div>
               <h3 style={{ fontSize: "20px", fontWeight: "800", color: "var(--text-primary)", margin: 0 }}>
@@ -382,7 +382,7 @@ export default function AiHubPage() {
               {oracleTip && (
                 <div className="fade-in animate-glow" style={{ padding: "20px", backgroundColor: "var(--accent-light)", borderRadius: "16px", borderLeft: "4px solid var(--accent)", fontSize: "15px", fontWeight: "500", color: "var(--text-primary)", lineHeight: "1.6" }}>
                   <div style={{ fontWeight: "800", color: "var(--accent)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
-                    <img src="/logo.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
+                    <img src="/logo-inside.png" alt="Trac AI" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
                     <span>AI Tip:</span>
                   </div>
                   <FormattedAiText text={oracleTip} />
