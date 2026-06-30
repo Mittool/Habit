@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callGrok } from "@/lib/grok";
-import { COACH_SYSTEM_PROMPT } from "@/lib/coach-prompts";
+import { COACH_CHAT_PROMPT } from "@/lib/coach-prompts";
 
 export const dynamic = "force-dynamic";
 
@@ -8,14 +8,14 @@ export async function POST(req: NextRequest) {
   try {
     const { message, context } = await req.json();
     
-    const fullPrompt = `${COACH_SYSTEM_PROMPT}
+    const fullPrompt = `${COACH_CHAT_PROMPT}
 
-ACTIVE USER TELEMETRY & CONTEXT:
-${JSON.stringify(context || null, null, 2)}
+USER TELEMETRY LEDGER:
+${JSON.stringify(context || {}, null, 2)}
 
 USER QUERY: "${message}"
 
-Provide an elite coaching response. If generating habits or plans, structure them by daily routines (Morning, Afternoon, Evening) with scientific reasoning, difficulty ratings (Easy/Medium/Hard), and best execution times. Keep formatting pristine using bold headings.`;
+Synthesize an elite coaching response following James Clear and Cal Newport principles. Structure outcome advice cleanly with bold headings.`;
 
     const reply = await callGrok(fullPrompt, 0.7);
     return NextResponse.json({ reply });
