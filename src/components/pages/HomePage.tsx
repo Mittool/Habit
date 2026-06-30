@@ -76,6 +76,25 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
 
   useEffect(() => {
     fetchFreshQuote();
+
+    if (typeof window !== "undefined" && "Notification" in window) {
+      const curr = Notification.permission;
+      const stored = useAppStore.getState().notificationPermissionStatus;
+
+      if (curr === "default" && (!stored || stored === "default")) {
+        const timer = setTimeout(async () => {
+          try {
+            const perm = await Notification.requestPermission();
+            useAppStore.getState().setNotificationPermissionStatus(perm);
+          } catch {
+            useAppStore.getState().setNotificationPermissionStatus("denied");
+          }
+        }, 1500);
+        return () => clearTimeout(timer);
+      } else if (curr !== stored) {
+        useAppStore.getState().setNotificationPermissionStatus(curr);
+      }
+    }
   }, []);
 
   const hour = new Date().getHours();

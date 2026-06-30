@@ -183,6 +183,20 @@ export default function SettingsPage() {
           </div>
           <Toggle checked={notificationsEnabled} onChange={() => setNotificationsEnabled(!notificationsEnabled)} />
         </div>
+        {typeof window !== "undefined" && "Notification" in window && Notification.permission !== "granted" && (
+          <button
+            onClick={async () => {
+              const p = await Notification.requestPermission();
+              useAppStore.getState().setNotificationPermissionStatus(p);
+              if (p === "granted") setNotificationsEnabled(true);
+              else alert("Notification permission denied. Please allow alerts in your device system settings.");
+            }}
+            className="btn-secondary cursor-pointer"
+            style={{ width: "100%", marginTop: "14px", fontSize: "12.5px", padding: "10px" }}
+          >
+            Enable Device System Notification Permission
+          </button>
+        )}
       </div>
 
       {/* Themes */}

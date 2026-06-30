@@ -140,8 +140,10 @@ interface AppState {
   // AI notifications
   aiNotifications: { id: string; message: string; timestamp: string; read: boolean }[];
   notificationConfig: NotificationConfig;
+  notificationPermissionStatus?: string;
 
   // Actions
+  setNotificationPermissionStatus: (perm: string) => void;
   setNotificationConfig: (updates: any) => void;
   setUser: (user: UserProfile | null) => void;
   setAuthenticated: (val: boolean) => void;
@@ -253,6 +255,9 @@ export const useAppStore = create<AppState>()(
             smart: { ...state.notificationConfig.smart, ...(updates.smart || {}) },
           },
         })),
+
+      notificationPermissionStatus: "default",
+      setNotificationPermissionStatus: (perm) => set({ notificationPermissionStatus: perm }),
 
       setUser: (user) => set({ user }),
       setAuthenticated: (val) => set({ isAuthenticated: val }),
