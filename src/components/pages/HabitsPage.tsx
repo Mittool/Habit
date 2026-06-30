@@ -38,10 +38,6 @@ export default function HabitsPage() {
   const [loadingTip, setLoadingTip] = useState<string | null>(null);
   const [completedToastId, setCompletedToastId] = useState<string | null>(null);
 
-  // Icon Picker State
-  const [iconSearch, setIconSearch] = useState("");
-  const [selectedCat, setSelectedCat] = useState<string>("All");
-
   const last7 = Array.from({ length: 7 }, (_, i) => {
     const d = subDays(new Date(), 6 - i);
     return { key: format(d, "yyyy-MM-dd"), label: format(d, "EEE"), day: format(d, "d") };
@@ -82,13 +78,6 @@ export default function HabitsPage() {
       setLoadingTip(null);
     }
   }
-
-  const categories = ["All", "Health", "Reading", "Mindfulness", "Finance", "Coding & Study", "Lifestyle"];
-  const filteredIcons = HABIT_ICON_LIBRARY.filter(i => {
-    const matchCat = selectedCat === "All" || i.category === selectedCat;
-    const matchSearch = i.label.toLowerCase().includes(iconSearch.toLowerCase()) || i.key.toLowerCase().includes(iconSearch.toLowerCase());
-    return matchCat && matchSearch;
-  });
 
   return (
     <div style={{ padding: "32px 24px", maxWidth: "800px", margin: "0 auto" }}>
@@ -175,53 +164,17 @@ export default function HabitsPage() {
               </div>
             </div>
 
-            {/* Professional Vector Icon Picker */}
-            <div style={{ padding: "16px", borderRadius: "12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
-              <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-primary)", display: "block", marginBottom: "10px" }}>Choose Vector Icon</label>
+            {/* Choose Icon Matrix */}
+            <div style={{ padding: "14px", borderRadius: "12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-primary)", display: "block", marginBottom: "10px" }}>Choose Icon</label>
               
-              {/* Search & Category filter */}
-              <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
-                <div style={{ position: "relative", flex: 1, minWidth: "160px" }}>
-                  <Search size={14} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
-                  <input
-                    type="text"
-                    placeholder="Search icons..."
-                    value={iconSearch}
-                    onChange={e => setIconSearch(e.target.value)}
-                    style={{ width: "100%", paddingLeft: "30px", padding: "8px 10px 8px 30px", fontSize: "12px" }}
-                  />
-                </div>
-                <div style={{ display: "flex", gap: "4px", overflowX: "auto", paddingBottom: "2px" }}>
-                  {categories.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCat(cat)}
-                      className="cursor-pointer"
-                      style={{
-                        padding: "4px 8px",
-                        borderRadius: "6px",
-                        border: "none",
-                        fontSize: "11px",
-                        fontWeight: selectedCat === cat ? "600" : "500",
-                        backgroundColor: selectedCat === cat ? "var(--bg-card)" : "transparent",
-                        color: selectedCat === cat ? "var(--text-primary)" : "var(--text-secondary)",
-                        boxShadow: selectedCat === cat ? "0 1px 2px var(--shadow)" : "none",
-                      }}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Icon Matrix */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(44px, 1fr))", gap: "8px", maxHeight: "160px", overflowY: "auto", padding: "4px" }}>
-                {filteredIcons.map(ic => {
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(44px, 1fr))", gap: "8px", maxHeight: "180px", overflowY: "auto", padding: "2px" }}>
+                {HABIT_ICON_LIBRARY.map((ic) => {
                   const isChosen = form.iconKey === ic.key;
                   return (
                     <button
                       key={ic.key}
-                      onClick={() => setForm(f => ({ ...f, iconKey: ic.key }))}
+                      onClick={() => setForm((f) => ({ ...f, iconKey: ic.key }))}
                       className="cursor-pointer"
                       style={{
                         padding: "10px",
