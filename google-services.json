@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "797168193894",
+    "project_id": "trac-notifications",
+    "storage_bucket": "trac-notifications.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:797168193894:android:39b601ea84920586ec78a7",
+        "android_client_info": {
+          "package_name": "tracaihub.vercel.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCScoBlDSQV6RMkvShx5gsfUiYdV-7P3FE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -4,11 +4,13 @@ import React, { useEffect } from "react";
 import { registerServiceWorker } from "@/lib/pwa";
 import { initOneSignal } from "@/lib/onesignal";
 import { restoreFromCloudDatabase } from "@/lib/cloud";
+import { initFirebaseAnalytics } from "@/lib/firebase";
 
 export default function PWALayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     registerServiceWorker();
     initOneSignal();
+    initFirebaseAnalytics();
     restoreFromCloudDatabase();
 
     // Tell Median.co native iOS & Android app shell to draw Fullscreen Edge-to-Edge!
