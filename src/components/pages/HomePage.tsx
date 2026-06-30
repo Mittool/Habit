@@ -242,11 +242,10 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
             </div>
           </div>
 
-          {/* Right Column: Current Month Heatmap */}
+          {/* Right Column: Heatmap */}
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
               <h3 style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>{format(new Date(), "MMMM")} Heatmap</h3>
-              <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Current Month</span>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}>
