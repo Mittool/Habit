@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callGrok } from "@/lib/grok";
+import { COACH_SYSTEM_PROMPT } from "@/lib/coach-prompts";
 
 export const dynamic = "force-dynamic";
 
@@ -7,19 +8,21 @@ export async function POST(req: NextRequest) {
   try {
     const { message, context } = await req.json();
     
-    const systemPrompt = `You are Trac AI, a futuristic, ultra-intelligent productivity and performance AI oracle.
-User context & stats: ${JSON.stringify(context || {})}
+    const fullPrompt = `${COACH_SYSTEM_PROMPT}
 
-User Query: "${message}"
+ACTIVE USER TELEMETRY & CONTEXT:
+${JSON.stringify(context || null, null, 2)}
 
-Provide a brilliant, futuristic, highly actionable and motivating response. Keep formatting clean with bullet points or bold text if helpful. Keep it under 150 words. Be sharp, visionary, and empowering.`;
+USER QUERY: "${message}"
 
-    const reply = await callGrok(systemPrompt, 0.75);
+Provide an elite coaching response. If generating habits or plans, structure them by daily routines (Morning, Afternoon, Evening) with scientific reasoning, difficulty ratings (Easy/Medium/Hard), and best execution times. Keep formatting pristine using bold headings.`;
+
+    const reply = await callGrok(fullPrompt, 0.7);
     return NextResponse.json({ reply });
   } catch (error) {
     console.error("AI chat error:", error);
     return NextResponse.json({
-      reply: "⚡ **Neural Link Interrupted (Local Override):** Focus your cognitive energy on your single highest leverage task right now. Eliminate all background tabs, set a 25-minute timer, and initiate flow state.",
+      reply: "**Executive Coach Override:** Let us focus on systems over outcomes today. Identify your single highest leverage project, anchor it immediately after your next meal trigger, and execute 45 minutes of uninterrupted deep work.",
     });
   }
 }

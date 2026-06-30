@@ -83,30 +83,36 @@ export default function OnboardingPage() {
     // Simulate short neural synthesis delay
     await new Promise(r => setTimeout(r, 1200));
 
-    // Tailored guaranteed habits based on goals
+    // Tailored connected system routines (James Clear & GTD methodology)
     const blueprintHabits: Array<{ name: string; goal: string }> = [];
 
-    selectedGoals.forEach((goal) => {
-      if (goal.includes("Fitness") || goal.includes("Physical")) {
-        blueprintHabits.push({ name: "Morning 10k Steps", goal: `Guarantees: ${goal}` });
-        blueprintHabits.push({ name: "30m Resistance Training", goal: `Guarantees: ${goal}` });
-      } else if (goal.includes("Book") || goal.includes("Read")) {
-        blueprintHabits.push({ name: "Read 15 Pages Bedtime", goal: `Guarantees: ${goal}` });
-      } else if (goal.includes("Focus") || goal.includes("Procrastination") || goal.includes("Work")) {
-        blueprintHabits.push({ name: "25m Uninterrupted Flow", goal: `Guarantees: ${goal}` });
-        blueprintHabits.push({ name: "Zero Phone First Hour", goal: `Guarantees: ${goal}` });
-      } else if (goal.includes("Morning") || goal.includes("Discipline")) {
-        blueprintHabits.push({ name: "Wake Up at 6:30 AM", goal: `Guarantees: ${goal}` });
-      } else {
-        blueprintHabits.push({ name: `Daily Action: ${goal.slice(0, 15)}`, goal: `Guarantees: ${goal}` });
-      }
-    });
+    const isJeeOrExam = selectedGoals.some(g => g.toLowerCase().includes("jee") || g.toLowerCase().includes("exam") || g.toLowerCase().includes("crack"));
+    const isFitness = selectedGoals.some(g => g.toLowerCase().includes("fitness") || g.toLowerCase().includes("weight") || g.toLowerCase().includes("health"));
 
-    // If no goals selected, default foundational habits
+    if (isJeeOrExam) {
+      blueprintHabits.push({ name: "Morning: Review Yesterday Mistakes", goal: "System routine sequence 1" });
+      blueprintHabits.push({ name: "Morning: Solve 20 Math Problems", goal: "Active recall foundation" });
+      blueprintHabits.push({ name: "Afternoon: Chemistry Deep Focus", goal: "Spaced repetition practice" });
+      blueprintHabits.push({ name: "Evening: Timed Mock Questions", goal: "Exam simulation rigor" });
+      blueprintHabits.push({ name: "Night: Plan Tomorrow Priorities", goal: "Eliminates morning decision fatigue" });
+    } else if (isFitness) {
+      blueprintHabits.push({ name: "Morning: Sunlight & Mobility", goal: "Circadian cortisol alignment" });
+      blueprintHabits.push({ name: "Afternoon: Progressive Workout", goal: "Muscular adaptation trigger" });
+      blueprintHabits.push({ name: "Evening: Protein Intake Log", goal: "Nutritional recovery baseline" });
+      blueprintHabits.push({ name: "Night: Digital Sunset (10:30 PM)", goal: "Melatonin protection window" });
+    } else {
+      selectedGoals.forEach((goal) => {
+        blueprintHabits.push({ name: `Morning Ritual: ${goal.slice(0, 16)}`, goal: `System sequence for ${goal}` });
+        blueprintHabits.push({ name: `Deep Work Block: ${goal.slice(0, 16)}`, goal: `System sequence for ${goal}` });
+        blueprintHabits.push({ name: `Evening Review: ${goal.slice(0, 16)}`, goal: `Dopamine reinforcement loop` });
+      });
+    }
+
     if (blueprintHabits.length === 0) {
-      blueprintHabits.push({ name: "Morning Meditation (10m)", goal: "Cognitive foundational baseline" });
-      blueprintHabits.push({ name: "Deep Work Block (25m)", goal: "Productivity baseline" });
-      blueprintHabits.push({ name: "Evening Planning Review", goal: "Discipline reinforcement" });
+      blueprintHabits.push({ name: "Morning: Circadian Sunlight Walk", goal: "Huberman foundational baseline" });
+      blueprintHabits.push({ name: "Afternoon: 45m Deep Work Block", goal: "Cal Newport focus ritual" });
+      blueprintHabits.push({ name: "Evening: GTD Inbox Clearing", goal: "David Allen mental clarity" });
+      blueprintHabits.push({ name: "Night: Sleep Hygiene Tucking In", goal: "Restorative rest anchor" });
     }
 
     // Deduplicate and automatically inject into store
