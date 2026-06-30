@@ -466,7 +466,12 @@ export default function OnboardingPage() {
                 {aiLoading
                   ? "Trac AI is designing your habits..."
                   : aiHabits.length > 0
-                    ? `${aiHabits.length} habit${aiHabits.length === 1 ? "" : "s"} suggested${aiSource === "ai" ? " · live AI" : aiSource ? ` · ${aiSource.replace("fallback-", "fallback ")}` : ""}`
+                    ? (() => {
+                        if (aiSource === "ai") return `${aiHabits.length} habits suggested · live AI`;
+                        if (aiSource === "fallback-rate-limit") return `${aiHabits.length} habits suggested · AI quota hit, using smart fallback`;
+                        if (aiSource.startsWith("fallback")) return `${aiHabits.length} habits suggested · offline mode`;
+                        return `${aiHabits.length} habit${aiHabits.length === 1 ? "" : "s"} suggested`;
+                      })()
                     : "No habits yet"}
               </div>
               <button
