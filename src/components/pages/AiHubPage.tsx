@@ -50,12 +50,15 @@ function FormattedAiText({ text }: { text: string }) {
 }
 
 export default function AiHubPage() {
-  const { habits, todos, focusSessions, aiEnabled } = useAppStore();
+  const { habits, todos, focusSessions, aiEnabled, user } = useAppStore();
   const [activeTab, setActiveTab] = useState<"chat" | "generator" | "oracle">("chat");
+
+  const displayName = (user?.name || "").trim().split(/\s+/)[0] || "";
+  const greeting = `Trac AI is Active, Ask your Productive companion!${displayName ? `, ${displayName}` : ""}`;
 
   // Chat State
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "ai", text: "**App Ready.** Ask me anything about your daily habits and focus schedule, or start a timer protocol." }
+    { role: "ai", text: greeting }
   ]);
   const [inputVal, setInputVal] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
@@ -90,6 +93,8 @@ export default function AiHubPage() {
         body: JSON.stringify({
           message: userMsg,
           context: statsSummary,
+          userName: displayName,
+          history: messages,
         }),
       });
       const data = await res.json();
@@ -113,10 +118,23 @@ export default function AiHubPage() {
     setOracleLoading(true);
     setOracleTip("");
     try {
+      const h = habits.find(hb => hb.name === selectedHabit);
+      const completionsArr = h ? Object.entries(h.completions || {}) : [];
+      const last30 = completionsArr.slice(-30);
+      const done30 = last30.filter(([, v]) => v).length;
+      const habitStats = h ? {
+        createdAt: h.createdAt,
+        totalDaysTracked: completionsArr.length,
+        completionsLast30Days: done30,
+        rateLast30Days: last30.length > 0 ? Math.round((done30 / last30.length) * 100) : 0,
+        recentMisses: last30.filter(([, v]) => !v).map(([d]) => d).slice(-5),
+        goal: h.goal || null,
+        reminderTime: h.reminderTime || null,
+      } : {};
       const res = await fetch("/api/ai/habit-tip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ missedHabit: selectedHabit }),
+        body: JSON.stringify({ missedHabit: selectedHabit, stats: habitStats, userName: displayName }),
       });
       const data = await res.json();
       setOracleTip(data.tip);

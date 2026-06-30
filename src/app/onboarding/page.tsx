@@ -80,51 +80,46 @@ export default function OnboardingPage() {
   async function handleDeployBlueprint() {
     setAiGenerating(true);
 
-    // Simulate short neural synthesis delay
-    await new Promise(r => setTimeout(r, 1200));
+    interface GenHabit { name: string; description: string; timeOfDay?: string }
+    let blueprintHabits: GenHabit[] = [];
 
-    // Tailored connected system routines (James Clear & GTD methodology)
-    const blueprintHabits: Array<{ name: string }> = [];
-
-    const isJeeOrExam = selectedGoals.some(g => g.toLowerCase().includes("jee") || g.toLowerCase().includes("exam") || g.toLowerCase().includes("crack"));
-    const isFitness = selectedGoals.some(g => g.toLowerCase().includes("fitness") || g.toLowerCase().includes("weight") || g.toLowerCase().includes("health"));
-
-    if (isJeeOrExam) {
-      blueprintHabits.push({ name: "Morning Review Mistakes" });
-      blueprintHabits.push({ name: "Solve Math Problems" });
-      blueprintHabits.push({ name: "Chemistry Deep Focus" });
-      blueprintHabits.push({ name: "Timed Mock Questions" });
-      blueprintHabits.push({ name: "Plan Tomorrow Priorities" });
-    } else if (isFitness) {
-      blueprintHabits.push({ name: "Morning Sunlight Walk" });
-      blueprintHabits.push({ name: "Progressive Workout Session" });
-      blueprintHabits.push({ name: "Evening Protein Log" });
-      blueprintHabits.push({ name: "Night Digital Sunset" });
-    } else {
-      selectedGoals.forEach((goal) => {
-        const shortGoal = goal.trim().split(/\s+/).slice(0, 2).join(" ");
-        blueprintHabits.push({ name: `Morning ${shortGoal}` });
-        blueprintHabits.push({ name: `Deep Work ${shortGoal}` });
-        blueprintHabits.push({ name: `Review ${shortGoal}` });
+    try {
+      const res = await fetch("/api/ai/setup-habits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goals: selectedGoals, userName: user?.name || "" }),
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.habits) && data.habits.length > 0) {
+          blueprintHabits = data.habits;
+        }
+      }
+    } catch (err) {
+      console.error("[Onboarding] AI setup failed, using fallback:", err);
     }
 
+    // Final safety fallback — should rarely hit because the API has its own fallback library
     if (blueprintHabits.length === 0) {
-      blueprintHabits.push({ name: "Morning Sunlight Walk" });
-      blueprintHabits.push({ name: "Deep Work Block" });
-      blueprintHabits.push({ name: "GTD Inbox Clearing" });
-      blueprintHabits.push({ name: "Night Sleep Routine" });
+      blueprintHabits = [
+        { name: "Three Priorities List", description: "Write today's three most important outcomes before opening any app." },
+        { name: "Single Deep Work Block", description: "Pick the most important task and work on it uninterrupted for 60-90 minutes." },
+        { name: "End-of-Day Review", description: "Spend 5 minutes reviewing what worked and what to repeat tomorrow." },
+        { name: "Screen-Free Wind-Down", description: "30 minutes without screens before bed to protect deep sleep." },
+      ];
     }
 
-    // Deduplicate and automatically inject into store
+    // Deduplicate and inject into store with descriptions stored in `goal`
     const seen = new Set<string>();
     blueprintHabits.forEach((h, idx) => {
-      const cleanName = h.name.trim().split(/\s+/).slice(0, 4).join(" ");
-      if (!seen.has(cleanName)) {
-        seen.add(cleanName);
+      const cleanName = h.name.trim().split(/\s+/).slice(0, 5).join(" ");
+      const key = cleanName.toLowerCase();
+      if (cleanName && !seen.has(key)) {
+        seen.add(key);
         addHabit({
           name: cleanName,
           color: HABIT_COLORS[idx % HABIT_COLORS.length],
+          goal: (h.description || "").trim(),
         });
       }
     });
