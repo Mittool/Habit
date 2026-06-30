@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 function cleanAnalyticsReview(stats: Record<string, any>): string {
   const weekly = stats.weeklyHabitCompletionPercent || 85;
-  return `Completion\n• ${weekly}%\n\nStrongest Habit\n• Morning Routine\n\nWeakest Habit\n• Evening Review\n\nPattern\n• Missed mostly on weekends\n\nImprove\n• Anchor review before dinner\n\nTrend\n• +14% this month`;
+  return `**Completion**\n• ${weekly}%\n\n**Strongest Habit**\n• Morning Routine\n\n**Weakest Habit**\n• Evening Review\n\n**Pattern**\n• Missed mostly on weekends\n\n**Improve**\n• Anchor review before dinner\n\n**Trend**\n• +14% this month`;
 }
 
 export async function POST(req: NextRequest) {

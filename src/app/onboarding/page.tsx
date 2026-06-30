@@ -84,46 +84,47 @@ export default function OnboardingPage() {
     await new Promise(r => setTimeout(r, 1200));
 
     // Tailored connected system routines (James Clear & GTD methodology)
-    const blueprintHabits: Array<{ name: string; goal: string }> = [];
+    const blueprintHabits: Array<{ name: string }> = [];
 
     const isJeeOrExam = selectedGoals.some(g => g.toLowerCase().includes("jee") || g.toLowerCase().includes("exam") || g.toLowerCase().includes("crack"));
     const isFitness = selectedGoals.some(g => g.toLowerCase().includes("fitness") || g.toLowerCase().includes("weight") || g.toLowerCase().includes("health"));
 
     if (isJeeOrExam) {
-      blueprintHabits.push({ name: "Morning: Review Yesterday Mistakes", goal: "System routine sequence 1" });
-      blueprintHabits.push({ name: "Morning: Solve 20 Math Problems", goal: "Active recall foundation" });
-      blueprintHabits.push({ name: "Afternoon: Chemistry Deep Focus", goal: "Spaced repetition practice" });
-      blueprintHabits.push({ name: "Evening: Timed Mock Questions", goal: "Exam simulation rigor" });
-      blueprintHabits.push({ name: "Night: Plan Tomorrow Priorities", goal: "Eliminates morning decision fatigue" });
+      blueprintHabits.push({ name: "Morning Review Mistakes" });
+      blueprintHabits.push({ name: "Solve Math Problems" });
+      blueprintHabits.push({ name: "Chemistry Deep Focus" });
+      blueprintHabits.push({ name: "Timed Mock Questions" });
+      blueprintHabits.push({ name: "Plan Tomorrow Priorities" });
     } else if (isFitness) {
-      blueprintHabits.push({ name: "Morning: Sunlight & Mobility", goal: "Circadian cortisol alignment" });
-      blueprintHabits.push({ name: "Afternoon: Progressive Workout", goal: "Muscular adaptation trigger" });
-      blueprintHabits.push({ name: "Evening: Protein Intake Log", goal: "Nutritional recovery baseline" });
-      blueprintHabits.push({ name: "Night: Digital Sunset (10:30 PM)", goal: "Melatonin protection window" });
+      blueprintHabits.push({ name: "Morning Sunlight Walk" });
+      blueprintHabits.push({ name: "Progressive Workout Session" });
+      blueprintHabits.push({ name: "Evening Protein Log" });
+      blueprintHabits.push({ name: "Night Digital Sunset" });
     } else {
       selectedGoals.forEach((goal) => {
-        blueprintHabits.push({ name: `Morning Ritual: ${goal.slice(0, 16)}`, goal: `System sequence for ${goal}` });
-        blueprintHabits.push({ name: `Deep Work Block: ${goal.slice(0, 16)}`, goal: `System sequence for ${goal}` });
-        blueprintHabits.push({ name: `Evening Review: ${goal.slice(0, 16)}`, goal: `Dopamine reinforcement loop` });
+        const shortGoal = goal.trim().split(/\s+/).slice(0, 2).join(" ");
+        blueprintHabits.push({ name: `Morning ${shortGoal}` });
+        blueprintHabits.push({ name: `Deep Work ${shortGoal}` });
+        blueprintHabits.push({ name: `Review ${shortGoal}` });
       });
     }
 
     if (blueprintHabits.length === 0) {
-      blueprintHabits.push({ name: "Morning: Circadian Sunlight Walk", goal: "Huberman foundational baseline" });
-      blueprintHabits.push({ name: "Afternoon: 45m Deep Work Block", goal: "Cal Newport focus ritual" });
-      blueprintHabits.push({ name: "Evening: GTD Inbox Clearing", goal: "David Allen mental clarity" });
-      blueprintHabits.push({ name: "Night: Sleep Hygiene Tucking In", goal: "Restorative rest anchor" });
+      blueprintHabits.push({ name: "Morning Sunlight Walk" });
+      blueprintHabits.push({ name: "Deep Work Block" });
+      blueprintHabits.push({ name: "GTD Inbox Clearing" });
+      blueprintHabits.push({ name: "Night Sleep Routine" });
     }
 
     // Deduplicate and automatically inject into store
     const seen = new Set<string>();
     blueprintHabits.forEach((h, idx) => {
-      if (!seen.has(h.name)) {
-        seen.add(h.name);
+      const cleanName = h.name.trim().split(/\s+/).slice(0, 4).join(" ");
+      if (!seen.has(cleanName)) {
+        seen.add(cleanName);
         addHabit({
-          name: h.name,
+          name: cleanName,
           color: HABIT_COLORS[idx % HABIT_COLORS.length],
-          goal: h.goal
         });
       }
     });

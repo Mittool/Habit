@@ -17,10 +17,10 @@ interface ChatMessage {
 }
 
 const INSTANT_FLOWS = [
-  { id: "focus", title: "Initiate Deep Focus", prompt: "Give me a 3-step ritual to enter deep focus in the next 5 minutes." },
-  { id: "proc", title: "Beat Procrastination", prompt: "I am procrastinating on a hard task. Give me a psychological reframe to start immediately." },
-  { id: "energy", title: "Dopamine Reset", prompt: "I feel mentally drained and distracted. How do I reset my cognitive energy right now?" },
-  { id: "morning", title: "Peak Morning Routine", prompt: "Design an ultra-minimalist 15-minute morning routine for high productivity." },
+  { id: "focus", title: "Start Deep Focus", prompt: "Give me a 3-step routine to enter deep focus in the next 5 minutes." },
+  { id: "proc", title: "Beat Procrastination", prompt: "I am procrastinating on a hard task. Give me a practical reframe to start immediately." },
+  { id: "energy", title: "Energy Reset", prompt: "I feel mentally drained and distracted. How do I reset my focus right now?" },
+  { id: "morning", title: "Peak Morning Plan", prompt: "Design an ultra-minimalist 15-minute morning routine for high productivity." },
 ];
 
 function FormattedAiText({ text }: { text: string }) {
@@ -29,7 +29,10 @@ function FormattedAiText({ text }: { text: string }) {
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       {text.split("\n").map((line, idx) => {
         if (!line.trim()) return <div key={idx} style={{ height: "4px" }} />;
-        const cleanLine = line.replace(/^[⚡🔥🚀🧘🌅🔋🛡️💬🔮🧠💡]+\s*/g, "");
+        let cleanLine = line.replace(/^[⚡🔥🚀🧘🌅🔋🛡️💬🔮🧠💡]+\s*/g, "");
+        if (/^#{1,6}\s+/.test(cleanLine)) {
+          cleanLine = "**" + cleanLine.replace(/^#{1,6}\s+/, "").replace(/\*\*$/, "") + "**";
+        }
         const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
         return (
           <div key={idx} style={{ lineHeight: "1.6" }}>
@@ -52,7 +55,7 @@ export default function AiHubPage() {
 
   // Chat State
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "ai", text: "**Trac Neural Link Established.** I am Trac AI, your cognitive acceleration oracle. Ask me anything about your productivity architecture, or deploy a focus protocol." }
+    { role: "ai", text: "**App Ready.** Ask me anything about your daily habits and focus schedule, or start a timer protocol." }
   ]);
   const [inputVal, setInputVal] = useState("");
   const [chatLoading, setChatLoading] = useState(false);

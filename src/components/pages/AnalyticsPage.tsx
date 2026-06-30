@@ -60,7 +60,10 @@ function FormattedAiText({ text }: { text: string }) {
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       {text.split("\n").map((line, idx) => {
         if (!line.trim()) return <div key={idx} style={{ height: "4px" }} />;
-        const cleanLine = line.replace(/^[⚡🔥🚀🧘🌅🔋🛡️💬🔮🧠💡]+\s*/g, "");
+        let cleanLine = line.replace(/^[⚡🔥🚀🧘🌅🔋🛡️💬🔮🧠💡]+\s*/g, "");
+        if (/^#{1,6}\s+/.test(cleanLine)) {
+          cleanLine = "**" + cleanLine.replace(/^#{1,6}\s+/, "").replace(/\*\*$/, "") + "**";
+        }
         const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
         return (
           <div key={idx} style={{ lineHeight: "1.6" }}>

@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ reply });
   } catch (error) {
     return NextResponse.json({
-      reply: "Possible Cause\n• Context switching overload\n\nTry\n• 25-minute focus session\n• Phone tucked away\n• Water replenishment\n\nBest Time\n• Next 2 hours"
+      reply: "**Possible Cause**\n• Context switching overload\n\n**Try**\n• 25-minute focus session\n• Phone tucked away\n• Water replenishment\n\n**Best Time**\n• Next 2 hours"
     });
   }
 }

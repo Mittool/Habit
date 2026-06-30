@@ -1,0 +1,41 @@
+0 verbose cli /usr/bin/node /usr/lib/node_modules/npm/bin/npm-cli.js
+1 info using npm@10.8.2
+2 info using node@v20.20.2
+3 silly config load:file:/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/user/.npmrc
+5 silly config load:file:/usr/etc/npmrc
+6 verbose title npm exec tsc --noEmit
+7 verbose argv "exec" "--" "tsc" "--noEmit"
+8 verbose logfile logs-max:10 dir:/home/user/.npm/_logs/2026-06-30T14_45_56_628Z-
+9 verbose logfile /home/user/.npm/_logs/2026-06-30T14_45_56_628Z-debug-0.log
+10 silly logfile done cleaning log files
+11 silly packumentCache heap:1002438656 maxSize:250609664 maxEntrySize:125304832
+12 http fetch GET 200 https://registry.npmjs.org/tsc 85ms (cache miss)
+13 silly packumentCache heap:1002438656 maxSize:250609664 maxEntrySize:125304832
+14 http fetch GET 200 https://registry.npmjs.org/npm 204ms
+15 silly packumentCache heap:1002438656 maxSize:250609664 maxEntrySize:125304832
+16 warn exec The following package was not found and will be installed: tsc@2.0.4
+17 silly idealTree buildDeps
+18 silly fetch manifest tsc@2.0.4
+19 silly packumentCache full:https://registry.npmjs.org/tsc cache-miss
+20 http fetch GET 200 https://registry.npmjs.org/tsc 41ms (cache miss)
+21 silly packumentCache full:https://registry.npmjs.org/tsc set size:undefined disposed:false
+22 silly placeDep ROOT tsc@2.0.4 OK for:  want: 2.0.4
+23 silly reify moves {}
+24 silly audit bulk request { tsc: [ '2.0.4' ] }
+25 silly tarball no local data for tsc@https://registry.npmjs.org/tsc/-/tsc-2.0.4.tgz. Extracting by manifest.
+26 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 51ms
+27 silly audit report {}
+28 http fetch GET 200 https://registry.npmjs.org/tsc/-/tsc-2.0.4.tgz 47ms (cache miss)
+29 warn deprecated tsc@2.0.4: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+30 verbose cwd /home/user
+31 verbose os Linux 6.1.158+
+32 verbose node v20.20.2
+33 verbose npm  v10.8.2
+34 notice
+34 notice New major version of npm available! 10.8.2 -> 11.18.0
+34 notice Changelog: https://github.com/npm/cli/releases/tag/v11.18.0
+34 notice To update run: npm install -g npm@11.18.0
+34 notice  { force: true, [Symbol(proc-log.meta)]: true }
+35 verbose exit 1
+36 verbose code 1

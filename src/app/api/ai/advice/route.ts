@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ advice });
   } catch (error) {
     return NextResponse.json({
-      advice: "Do Now\n• Eliminate open tabs\n• Silence notifications\n• 45-minute focus session\n\nAvoid\n• Multitasking\n• Social media\n\nExpected Result\n• Higher focus"
+      advice: "**Do Now**\n• Eliminate open tabs\n• Silence notifications\n• 45-minute focus session\n\n**Avoid**\n• Multitasking\n• Social media\n\n**Expected Result**\n• Higher focus"
     });
   }
 }

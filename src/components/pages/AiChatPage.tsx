@@ -28,7 +28,10 @@ function FormattedAiText({ text }: { text: string }) {
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
       {text.split("\n").map((line, idx) => {
         if (!line.trim()) return <div key={idx} style={{ height: "4px" }} />;
-        const cleanLine = line.replace(/^[⚡🔥🚀🧘🌅🔋🛡️💬🔮🧠💡]+\s*/g, "");
+        let cleanLine = line.replace(/^[⚡🔥🚀🧘🌅🔋🛡️💬🔮🧠💡]+\s*/g, "");
+        if (/^#{1,6}\s+/.test(cleanLine)) {
+          cleanLine = "**" + cleanLine.replace(/^#{1,6}\s+/, "").replace(/\*\*$/, "") + "**";
+        }
         const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
         return (
           <div key={idx} style={{ lineHeight: "1.6" }}>
@@ -50,7 +53,7 @@ export default function AiChatPage() {
   const [activeTab, setActiveTab] = useState<"chat" | "generator" | "oracle">("chat");
 
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "ai", text: "Status\n• Online\n\nCommand\n• Select tip or ask question\n\nGoal\n• Scan answers in under 10s" }
+    { role: "ai", text: "**Status**\n• Online\n\n**Command**\n• Select tip or ask question\n\n**Goal**\n• Scan answers in under 10s" }
   ]);
   const [inputVal, setInputVal] = useState("");
   const [chatLoading, setChatLoading] = useState(false);

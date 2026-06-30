@@ -1,0 +1,33 @@
+0 verbose cli /usr/bin/node /usr/lib/node_modules/npm/bin/npm-cli.js
+1 info using npm@10.8.2
+2 info using node@v20.20.2
+3 silly config load:file:/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/user/.npmrc
+5 silly config load:file:/usr/etc/npmrc
+6 verbose title npm exec tsc --noEmit
+7 verbose argv "exec" "--package" "typescript" "--" "tsc" "--noEmit"
+8 verbose logfile logs-max:10 dir:/home/user/.npm/_logs/2026-06-30T14_45_59_922Z-
+9 verbose logfile /home/user/.npm/_logs/2026-06-30T14_45_59_922Z-debug-0.log
+10 silly packumentCache heap:1002438656 maxSize:250609664 maxEntrySize:125304832
+11 silly logfile done cleaning log files
+12 http fetch GET 200 https://registry.npmjs.org/typescript 544ms (cache miss)
+13 silly packumentCache heap:1002438656 maxSize:250609664 maxEntrySize:125304832
+14 warn exec The following package was not found and will be installed: typescript@6.0.3
+15 silly idealTree buildDeps
+16 silly fetch manifest typescript@6.0.3
+17 silly packumentCache full:https://registry.npmjs.org/typescript cache-miss
+18 http fetch GET 200 https://registry.npmjs.org/typescript 443ms (cache miss)
+19 silly packumentCache full:https://registry.npmjs.org/typescript set size:undefined disposed:false
+20 silly placeDep ROOT typescript@6.0.3 OK for:  want: 6.0.3
+21 silly reify moves {}
+22 silly audit bulk request { typescript: [ '6.0.3' ] }
+23 silly tarball no local data for typescript@https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz. Extracting by manifest.
+24 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 59ms
+25 silly audit report {}
+26 http fetch GET 200 https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz 421ms (cache miss)
+27 verbose cwd /home/user
+28 verbose os Linux 6.1.158+
+29 verbose node v20.20.2
+30 verbose npm  v10.8.2
+31 verbose exit 2
+32 verbose code 2
