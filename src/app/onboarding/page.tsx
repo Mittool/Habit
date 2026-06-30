@@ -1,7 +1,24 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Palette, CheckCircle2, ChevronRight, Sun, Moon, Leaf, Target, Loader, Plus, X } from "lucide-react";
+import {
+  Palette,
+  CheckCircle2,
+  ChevronRight,
+  Sun,
+  Moon,
+  Leaf,
+  Target,
+  Loader,
+  Plus,
+  X,
+  RefreshCw,
+  Sparkles,
+  Sunrise,
+  Sunset,
+  Coffee,
+  Trash2,
+} from "lucide-react";
 import { useAppStore, Theme } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { triggerCloudSync } from "@/lib/cloud";
@@ -40,6 +57,26 @@ const PRESET_GOALS = [
 
 const HABIT_COLORS = ["#0D9488", "#3B82F6", "#8B5CF6", "#F59E0B", "#10B981"];
 
+interface GenHabit {
+  name: string;
+  description: string;
+  timeOfDay?: "morning" | "day" | "evening" | "night";
+}
+
+const TIME_ICON: Record<string, React.ReactNode> = {
+  morning: <Sunrise size={14} />,
+  day: <Coffee size={14} />,
+  evening: <Sunset size={14} />,
+  night: <Moon size={14} />,
+};
+
+const TIME_LABEL: Record<string, string> = {
+  morning: "Morning",
+  day: "Day",
+  evening: "Evening",
+  night: "Night",
+};
+
 export default function OnboardingPage() {
   const { theme, setTheme, setOnboardingDone, user, isAuthenticated, addHabit } = useAppStore();
   const router = useRouter();
@@ -49,7 +86,15 @@ export default function OnboardingPage() {
   // Goals State
   const [selectedGoals, setSelectedGoals] = useState<string[]>(["Peak Physical Fitness", "Deep Focus & Zero Procrastination"]);
   const [customGoal, setCustomGoal] = useState("");
-  const [aiGenerating, setAiGenerating] = useState(false);
+
+  // Live AI preview state
+  const [aiHabits, setAiHabits] = useState<GenHabit[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiSource, setAiSource] = useState<string>("");
+  const [committing, setCommitting] = useState(false);
+  const requestIdRef = useRef(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const unsub = useAppStore.persist.onFinishHydration(() => setHydrated(true));
@@ -77,41 +122,70 @@ export default function OnboardingPage() {
     }
   }
 
-  async function handleDeployBlueprint() {
-    setAiGenerating(true);
-
-    interface GenHabit { name: string; description: string; timeOfDay?: string }
-    let blueprintHabits: GenHabit[] = [];
-
+  // ─── Live AI habit generation ───
+  const fetchHabits = useCallback(async (regen = false) => {
+    if (selectedGoals.length === 0) {
+      setAiHabits([]);
+      setAiError(null);
+      return;
+    }
+    const myReqId = ++requestIdRef.current;
+    setAiLoading(true);
+    setAiError(null);
     try {
       const res = await fetch("/api/ai/setup-habits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goals: selectedGoals, userName: user?.name || "" }),
+        body: JSON.stringify({
+          goals: selectedGoals,
+          userName: user?.name || "",
+          regenerate: regen,
+          // small entropy so regenerate produces a fresh batch
+          nonce: regen ? Date.now() : undefined,
+        }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.habits) && data.habits.length > 0) {
-          blueprintHabits = data.habits;
-        }
+      const data = await res.json();
+      if (myReqId !== requestIdRef.current) return; // stale response
+      if (Array.isArray(data.habits) && data.habits.length > 0) {
+        setAiHabits(data.habits);
+        setAiSource(data.source || "");
+      } else {
+        setAiError("AI did not return any habits. Try regenerating.");
       }
     } catch (err) {
-      console.error("[Onboarding] AI setup failed, using fallback:", err);
+      if (myReqId !== requestIdRef.current) return;
+      console.error("[Onboarding] AI fetch failed:", err);
+      setAiError("Could not reach the AI. Showing nothing — try regenerate.");
+    } finally {
+      if (myReqId === requestIdRef.current) setAiLoading(false);
     }
+  }, [selectedGoals, user?.name]);
 
-    // Final safety fallback — should rarely hit because the API has its own fallback library
-    if (blueprintHabits.length === 0) {
-      blueprintHabits = [
-        { name: "Three Priorities List", description: "Write today's three most important outcomes before opening any app." },
-        { name: "Single Deep Work Block", description: "Pick the most important task and work on it uninterrupted for 60-90 minutes." },
-        { name: "End-of-Day Review", description: "Spend 5 minutes reviewing what worked and what to repeat tomorrow." },
-        { name: "Screen-Free Wind-Down", description: "30 minutes without screens before bed to protect deep sleep." },
-      ];
-    }
+  // Auto-fetch whenever the user lands on the preview step OR changes goals while on it
+  useEffect(() => {
+    if (step !== 3) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchHabits(false);
+    }, 350);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, selectedGoals.join("|")]);
 
-    // Deduplicate and inject into store with descriptions stored in `goal`
+  function removeAiHabit(idx: number) {
+    setAiHabits(prev => prev.filter((_, i) => i !== idx));
+  }
+
+  function updateAiHabit(idx: number, patch: Partial<GenHabit>) {
+    setAiHabits(prev => prev.map((h, i) => i === idx ? { ...h, ...patch } : h));
+  }
+
+  async function confirmAndFinish() {
+    setCommitting(true);
     const seen = new Set<string>();
-    blueprintHabits.forEach((h, idx) => {
+    aiHabits.forEach((h, idx) => {
       const cleanName = h.name.trim().split(/\s+/).slice(0, 5).join(" ");
       const key = cleanName.toLowerCase();
       if (cleanName && !seen.has(key)) {
@@ -150,9 +224,12 @@ export default function OnboardingPage() {
     );
   }
 
+  // Wider card for preview step
+  const cardMaxWidth = step === 3 ? "720px" : "520px";
+
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--bg-primary)", padding: "24px" }}>
-      <div className="card fade-in" style={{ width: "100%", maxWidth: "520px", padding: "40px 32px" }}>
+      <div className="card fade-in" style={{ width: "100%", maxWidth: cardMaxWidth, padding: "40px 32px" }}>
         {/* STEP 0: Welcome */}
         {step === 0 && (
           <div style={{ textAlign: "center" }}>
@@ -248,7 +325,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* STEP 2: Define Goals & Auto-Create Habits */}
+        {/* STEP 2: Define Goals */}
         {step === 2 && (
           <div className="fade-in">
             <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
@@ -260,16 +337,16 @@ export default function OnboardingPage() {
                   Choose Your Goals
                 </h2>
                 <p style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                  Select 1 to 3 goals (Optional)
+                  Select 1 to 3 goals — the AI will design habits live in the next step
                 </p>
               </div>
             </div>
 
             <p style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-secondary)", lineHeight: "1.5", margin: "0 0 16px" }}>
-              Trac AI will review your goals and automatically add the best daily habits for you.
+              Pick from the presets or type your own. Trac AI will instantly generate the best habits for whatever you choose.
             </p>
 
-            {/* Selected Goals Display Matrix */}
+            {/* Selected Goals */}
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px", minHeight: "36px" }}>
               {selectedGoals.map((sg, sIdx) => (
                 <div key={sIdx} className="fade-in" style={{ padding: "6px 12px", borderRadius: "9999px", backgroundColor: "var(--accent)", color: "#FFFFFF", fontSize: "12px", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
@@ -279,11 +356,16 @@ export default function OnboardingPage() {
                   </button>
                 </div>
               ))}
+              {selectedGoals.length === 0 && (
+                <div style={{ fontSize: "12px", color: "var(--text-muted)", fontStyle: "italic", padding: "8px 0" }}>
+                  No goals selected — pick at least one below
+                </div>
+              )}
             </div>
 
-            {/* Preset Selection Chips */}
+            {/* Preset chips */}
             <div style={{ marginBottom: "18px" }}>
-              <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", textTransform: "none", display: "block", marginBottom: "8px" }}>
+              <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", display: "block", marginBottom: "8px" }}>
                 Recommended Targets:
               </label>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -314,11 +396,11 @@ export default function OnboardingPage() {
               </div>
             </div>
 
-            {/* Custom Goal Input */}
+            {/* Custom goal */}
             <div style={{ display: "flex", gap: "8px", marginBottom: "28px" }}>
               <input
                 type="text"
-                placeholder="Or input custom goal..."
+                placeholder="Or input your own custom goal..."
                 value={customGoal}
                 onChange={e => setCustomGoal(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && addCustomGoal()}
@@ -331,14 +413,202 @@ export default function OnboardingPage() {
             </div>
 
             <div style={{ display: "flex", gap: "12px" }}>
-              <button disabled={aiGenerating} className="btn-secondary cursor-pointer" onClick={() => setStep(1)} style={{ flex: 1, padding: "14px" }}>
+              <button className="btn-secondary cursor-pointer" onClick={() => setStep(1)} style={{ flex: 1, padding: "14px" }}>
                 Back
               </button>
-              <button disabled={aiGenerating} className="btn-primary cursor-pointer" onClick={handleDeployBlueprint} style={{ flex: 2, padding: "14px", fontSize: "14px" }}>
-                {aiGenerating ? (
-                  <><Loader size={18} className="spin" /> Creating Habits...</>
+              <button
+                disabled={selectedGoals.length === 0}
+                className="btn-primary cursor-pointer"
+                onClick={() => setStep(3)}
+                style={{ flex: 2, padding: "14px", fontSize: "14px", opacity: selectedGoals.length === 0 ? 0.5 : 1 }}
+              >
+                <Sparkles size={16} /> Preview AI Habits <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: Live AI Habit Preview */}
+        {step === 3 && (
+          <div className="fade-in">
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
+              <div style={{ padding: "10px", borderRadius: "14px", backgroundColor: "var(--accent)", color: "#FFFFFF" }}>
+                <Sparkles size={24} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h2 style={{ fontSize: "22px", fontWeight: "600", margin: 0, color: "var(--text-primary)" }}>
+                  Your AI-Designed Habits
+                </h2>
+                <p style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)", margin: "2px 0 0" }}>
+                  Live recommendations for your goals — edit, remove, or regenerate
+                </p>
+              </div>
+            </div>
+
+            {/* Goals recap */}
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px", padding: "10px 12px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", alignSelf: "center", marginRight: "4px" }}>For:</span>
+              {selectedGoals.map((g, i) => (
+                <span key={i} style={{ padding: "4px 10px", borderRadius: "9999px", backgroundColor: "var(--accent-light)", color: "var(--accent)", fontSize: "11px", fontWeight: "600" }}>{g}</span>
+              ))}
+              <button
+                onClick={() => setStep(2)}
+                className="cursor-pointer"
+                style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--accent)", fontSize: "11px", fontWeight: "600", textDecoration: "underline", padding: 0 }}
+              >
+                Change goals
+              </button>
+            </div>
+
+            {/* Regenerate row */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+              <div style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "500" }}>
+                {aiLoading
+                  ? "Trac AI is designing your habits..."
+                  : aiHabits.length > 0
+                    ? `${aiHabits.length} habit${aiHabits.length === 1 ? "" : "s"} suggested${aiSource === "ai" ? " · live AI" : aiSource ? ` · ${aiSource.replace("fallback-", "fallback ")}` : ""}`
+                    : "No habits yet"}
+              </div>
+              <button
+                onClick={() => fetchHabits(true)}
+                disabled={aiLoading || selectedGoals.length === 0}
+                className="btn-secondary cursor-pointer"
+                style={{ padding: "6px 12px", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                <RefreshCw size={13} className={aiLoading ? "spin" : ""} />
+                Regenerate
+              </button>
+            </div>
+
+            {/* Error */}
+            {aiError && !aiLoading && (
+              <div style={{ padding: "12px 14px", borderRadius: "10px", backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#DC2626", fontSize: "12.5px", fontWeight: "500", marginBottom: "12px" }}>
+                {aiError}
+              </div>
+            )}
+
+            {/* Habit list / skeletons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px", maxHeight: "420px", overflowY: "auto", paddingRight: "4px" }}>
+              {aiLoading && aiHabits.length === 0 && (
+                <>
+                  {[0, 1, 2, 3].map(i => (
+                    <div key={i} className="skeleton-pulse" style={{
+                      padding: "16px",
+                      borderRadius: "12px",
+                      border: "1px solid var(--border)",
+                      backgroundColor: "var(--bg-secondary)",
+                      minHeight: "78px",
+                    }}>
+                      <div style={{ height: "14px", width: "60%", backgroundColor: "var(--border)", borderRadius: "4px", marginBottom: "8px", opacity: 0.6 }} />
+                      <div style={{ height: "10px", width: "90%", backgroundColor: "var(--border)", borderRadius: "4px", marginBottom: "4px", opacity: 0.4 }} />
+                      <div style={{ height: "10px", width: "75%", backgroundColor: "var(--border)", borderRadius: "4px", opacity: 0.4 }} />
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {aiHabits.map((h, idx) => {
+                const tod = h.timeOfDay || "day";
+                const color = HABIT_COLORS[idx % HABIT_COLORS.length];
+                return (
+                  <div
+                    key={idx}
+                    className="fade-in"
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: "12px",
+                      border: "1px solid var(--border)",
+                      backgroundColor: "var(--bg-card)",
+                      display: "flex",
+                      gap: "12px",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div style={{ width: "8px", alignSelf: "stretch", borderRadius: "4px", backgroundColor: color, flexShrink: 0, minHeight: "40px" }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+                        <input
+                          value={h.name}
+                          onChange={(e) => updateAiHabit(idx, { name: e.target.value })}
+                          style={{
+                            fontSize: "14.5px",
+                            fontWeight: "600",
+                            color: "var(--text-primary)",
+                            background: "transparent",
+                            border: "none",
+                            padding: "2px 0",
+                            flex: "1 1 auto",
+                            minWidth: "120px",
+                            outline: "none",
+                          }}
+                        />
+                        <span style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          padding: "2px 8px",
+                          borderRadius: "9999px",
+                          backgroundColor: "var(--bg-secondary)",
+                          color: "var(--text-secondary)",
+                          fontSize: "10.5px",
+                          fontWeight: "600",
+                        }}>
+                          {TIME_ICON[tod]}
+                          <span>{TIME_LABEL[tod]}</span>
+                        </span>
+                      </div>
+                      <textarea
+                        value={h.description}
+                        onChange={(e) => updateAiHabit(idx, { description: e.target.value })}
+                        rows={2}
+                        style={{
+                          fontSize: "12.5px",
+                          fontWeight: "500",
+                          color: "var(--text-secondary)",
+                          lineHeight: "1.45",
+                          background: "transparent",
+                          border: "none",
+                          padding: "2px 0",
+                          width: "100%",
+                          resize: "none",
+                          outline: "none",
+                          fontFamily: "inherit",
+                        }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => removeAiHabit(idx)}
+                      className="cursor-pointer"
+                      title="Remove this habit"
+                      style={{ background: "none", border: "none", padding: "4px", color: "var(--text-muted)", display: "flex", alignSelf: "flex-start" }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                );
+              })}
+
+              {!aiLoading && aiHabits.length === 0 && !aiError && (
+                <div style={{ padding: "32px", textAlign: "center", color: "var(--text-muted)", fontSize: "13px", backgroundColor: "var(--bg-secondary)", borderRadius: "12px" }}>
+                  Click <strong>Regenerate</strong> to get fresh suggestions.
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button disabled={committing} className="btn-secondary cursor-pointer" onClick={() => setStep(2)} style={{ flex: 1, padding: "14px" }}>
+                Back
+              </button>
+              <button
+                disabled={committing || aiLoading || aiHabits.length === 0}
+                className="btn-primary cursor-pointer"
+                onClick={confirmAndFinish}
+                style={{ flex: 2, padding: "14px", fontSize: "14px", opacity: (committing || aiLoading || aiHabits.length === 0) ? 0.6 : 1 }}
+              >
+                {committing ? (
+                  <><Loader size={18} className="spin" /> Saving...</>
                 ) : (
-                  <><img src="/logo-inside.png" alt="" style={{ width: "16px", height: "16px", objectFit: "cover", borderRadius: "50%" }} /> Create My Habits</>
+                  <><CheckCircle2 size={16} /> Add These {aiHabits.length} Habit{aiHabits.length === 1 ? "" : "s"}</>
                 )}
               </button>
             </div>

@@ -155,22 +155,31 @@ function normalize(parsed: any): Habit[] | null {
 export async function POST(req: NextRequest) {
   let goals: string[] = [];
   let userName = "";
+  let regenerate = false;
+  let nonce: number | undefined;
   try {
     const body = await req.json();
     goals = Array.isArray(body.goals) ? body.goals.filter((g: any) => typeof g === "string" && g.trim()) : [];
     userName = body.userName || "";
+    regenerate = Boolean(body.regenerate);
+    nonce = typeof body.nonce === "number" ? body.nonce : undefined;
   } catch {}
 
   if (goals.length === 0) {
     return NextResponse.json({ habits: pickFallback([]), source: "fallback-no-goals" });
   }
 
+  const variationSeed = nonce ?? Math.floor(Math.random() * 1_000_000);
+  const variationNote = regenerate
+    ? `\nVARIATION SEED: ${variationSeed}. The user asked for a DIFFERENT set than before — pick alternative angles, different times of day, fresh wording. Do not repeat the most obvious choices.`
+    : `\nSEED: ${variationSeed}.`;
+
   const prompt = `${TRAC_RESPONSE_STYLE}
 
 You are designing a personalised daily habit system for a real user.
 
 User: ${userName || "user"}
-Goals (1-3): ${goals.map(g => `"${g}"`).join(", ")}
+Goals (1-3): ${goals.map(g => `"${g}"`).join(", ")}${variationNote}
 
 REQUIREMENTS:
 - Generate 4 to 6 habits TOTAL across the day, directly tied to the user's specific goals.
@@ -189,7 +198,7 @@ Return STRICT JSON, no commentary, no markdown fences:
 }`;
 
   try {
-    const raw = await callGrok(prompt, 0.85);
+    const raw = await callGrok(prompt, regenerate ? 0.95 : 0.85);
     const parsed = tryParseJson(raw);
     const habits = normalize(parsed);
     if (habits && habits.length >= 3) {
