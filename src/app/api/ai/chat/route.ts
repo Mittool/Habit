@@ -7,22 +7,11 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const { message, context } = await req.json();
-    
-    const fullPrompt = `${COACH_CHAT_PROMPT}
-
-USER TELEMETRY LEDGER:
-${JSON.stringify(context || {}, null, 2)}
-
-USER QUERY: "${message}"
-
-Synthesize an elite coaching response following James Clear and Cal Newport principles. Structure outcome advice cleanly with bold headings.`;
-
-    const reply = await callGrok(fullPrompt, 0.7);
+    const reply = await callGrok(`${COACH_CHAT_PROMPT}\nData: ${JSON.stringify(context)}\nUser: ${message}`, 0.7);
     return NextResponse.json({ reply });
   } catch (error) {
-    console.error("AI chat error:", error);
     return NextResponse.json({
-      reply: "**Executive Coach Override:** Let us focus on systems over outcomes today. Identify your single highest leverage project, anchor it immediately after your next meal trigger, and execute 45 minutes of uninterrupted deep work.",
+      reply: "Possible Cause\n• Context switching overload\n\nTry\n• 25-minute focus session\n• Phone tucked away\n• Water replenishment\n\nBest Time\n• Next 2 hours"
     });
   }
 }

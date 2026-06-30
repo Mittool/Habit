@@ -50,7 +50,7 @@ export default function AiChatPage() {
   const [activeTab, setActiveTab] = useState<"chat" | "generator" | "oracle">("chat");
 
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "ai", text: "**Executive Coach Online.** I am Trac AI, your evidence-based productivity and behavioral change coach (Atomic Habits, GTD, Deep Work). Tell me your target goals or active schedule bottlenecks." }
+    { role: "ai", text: "Status\n• Online\n\nCommand\n• Select tip or ask question\n\nGoal\n• Scan answers in under 10s" }
   ]);
   const [inputVal, setInputVal] = useState("");
   const [chatLoading, setChatLoading] = useState(false);

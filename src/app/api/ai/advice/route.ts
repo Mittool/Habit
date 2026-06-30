@@ -6,20 +6,12 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const { mood, need, context } = await req.json();
-    const prompt = `${PRODUCTIVITY_CONSULTANT_PROMPT}
-
-USER TELEMETRY: ${JSON.stringify(context || {})}
-State: feeling "${mood}". Bottleneck challenge: "${need}".
-
-Provide ONE hyper-specific, evidence-informed coaching prescription based on Deep Work and Time Blocking. Keep under 75 words.`;
-
-    const advice = await callGrok(prompt, 0.7);
+    const { need } = await req.json();
+    const advice = await callGrok(`${PRODUCTIVITY_CONSULTANT_PROMPT}\n\nQuery: ${need}`, 0.7);
     return NextResponse.json({ advice });
   } catch (error) {
-    console.error("AI advice error:", error);
     return NextResponse.json({
-      advice: "**Circadian Directive:** Channel your current state into immediate action. Reduce the task to a 2-minute starter ritual, eliminate open browser tabs, and initiate 20 minutes of focus.",
+      advice: "Do Now\n• Eliminate open tabs\n• Silence notifications\n• 45-minute focus session\n\nAvoid\n• Multitasking\n• Social media\n\nExpected Result\n• Higher focus"
     });
   }
 }
