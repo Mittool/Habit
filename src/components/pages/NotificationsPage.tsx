@@ -1,9 +1,10 @@
 "use client";
+import React from "react";
 import { useAppStore } from "@/lib/store";
 import { format } from "date-fns";
-import { Bell, Trash2, CheckCheck, BellOff, Loader, Smartphone, ShieldCheck, Clock, CheckCircle2, Send, AlertTriangle } from "lucide-react";
-import { useState, useEffect } from "react";
-import { promptOneSignalPush, syncOneSignalUserTags } from "@/lib/onesignal";
+import { Bell, Trash2, CheckCheck, BellOff, Loader, Smartphone, ShieldCheck, Clock, CheckCircle2, Send, AlertTriangle, Link2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { promptOneSignalPush, syncOneSignalUserTags, getOneSignalStatus, enableAndLinkPush, OneSignalStatus } from "@/lib/onesignal";
 
 interface TestResult {
   ok: boolean;
@@ -16,20 +17,48 @@ export default function NotificationsPage() {
   const [generating, setGenerating] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<string>("default");
   const [testing, setTesting] = useState(false);
+  const [linking, setLinking] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
-  const [externalIdInLocal, setExternalIdInLocal] = useState<string | null>(null);
+  const [osStatus, setOsStatus] = useState<OneSignalStatus | null>(null);
+
+  const refreshStatus = useCallback(async () => {
+    const s = await getOneSignalStatus();
+    setOsStatus(s);
+    setPermissionStatus(s.permission);
+  }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      setPermissionStatus(Notification.permission);
-      setExternalIdInLocal(localStorage.getItem("trac-one-signal-external-id"));
+    refreshStatus();
+    // Poll every 2s so status updates as the user grants permission / SDK finishes booting
+    const iv = setInterval(refreshStatus, 2000);
+    return () => clearInterval(iv);
+  }, [refreshStatus]);
+
+  async function handleEnableAndLink() {
+    setLinking(true);
+    setTestResult(null);
+    const res = await enableAndLinkPush(user?.id);
+    setLinking(false);
+    await refreshStatus();
+    if (!res.ok) {
+      setTestResult({
+        ok: false,
+        message:
+          res.reason === "permission-denied"
+            ? "Permission denied. Enable notifications in your device system settings, then try again."
+            : `Failed: ${res.reason}`,
+      });
+    } else {
+      // Give OneSignal ~1.5s to propagate the subscription server-side, then send a test push
+      setTimeout(async () => {
+        await sendTestPush();
+      }, 1500);
     }
-  }, []);
+  }
 
   async function sendTestPush() {
     setTesting(true);
     setTestResult(null);
-    // Prefer the freshly-stored id, fall back to signed-in Supabase user
     const externalUserId = (typeof window !== "undefined" ? localStorage.getItem("trac-one-signal-external-id") : null) || user?.id || "";
     try {
       const res = await fetch("/api/notifications/test", {
@@ -152,25 +181,57 @@ export default function NotificationsPage() {
           <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "10px" }}>
             Push Diagnostics
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: "12px", rowGap: "6px", fontSize: "12px", fontWeight: "500", marginBottom: "12px" }}>
-            <span style={{ color: "var(--text-muted)" }}>Browser permission:</span>
-            <span style={{ color: permissionStatus === "granted" ? "var(--accent)" : "var(--text-primary)", fontWeight: "600" }}>{permissionStatus}</span>
-            <span style={{ color: "var(--text-muted)" }}>Signed in user:</span>
-            <span style={{ color: user?.id ? "var(--text-primary)" : "#DC2626", fontWeight: "600", wordBreak: "break-all" }}>{user?.id || "not signed in"}</span>
-            <span style={{ color: "var(--text-muted)" }}>OneSignal link:</span>
-            <span style={{ color: externalIdInLocal ? "var(--accent)" : "#D97706", fontWeight: "600", wordBreak: "break-all" }}>
-              {externalIdInLocal ? "linked (" + externalIdInLocal.slice(0, 8) + "...)" : "not linked yet — log out & in"}
-            </span>
-          </div>
+
+          {(() => {
+            const permOk = osStatus?.permission === "granted";
+            const linkOk = !!osStatus?.externalId && !!user?.id && osStatus?.externalId === user.id;
+            const subOk = !!osStatus?.pushSubscriptionId && !!osStatus?.optedIn;
+            const rows: Array<[string, string, boolean]> = [
+              ["SDK loaded", osStatus?.sdkReady ? "yes" : "loading...", !!osStatus?.sdkReady],
+              ["Browser permission", osStatus?.permission || "checking", permOk],
+              ["Signed-in user", user?.id ? user.id.slice(0, 8) + "..." : "not signed in", !!user?.id],
+              ["Push subscription", subOk ? (osStatus?.pushSubscriptionId?.slice(0, 8) + "...") : (osStatus?.optedIn ? "opted in" : "not subscribed"), subOk],
+              ["OneSignal link", linkOk ? "linked ✓" : (osStatus?.externalId ? "id mismatch" : "not linked"), linkOk],
+            ];
+            return (
+              <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", columnGap: "12px", rowGap: "8px", fontSize: "12px", fontWeight: "500", marginBottom: "12px", alignItems: "center" }}>
+                {rows.map(([label, val, ok]) => (
+                  <React.Fragment key={label}>
+                    <span style={{ color: "var(--text-muted)" }}>{label}:</span>
+                    <span style={{ color: "var(--text-primary)", fontWeight: "600", wordBreak: "break-all" }}>{val}</span>
+                    <span style={{ color: ok ? "#0D9488" : "#D97706", fontSize: "14px" }}>{ok ? "●" : "○"}</span>
+                  </React.Fragment>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* One-tap fix: permission + opt-in + link + test push */}
+          {(() => {
+            const allGood = osStatus?.permission === "granted" && !!osStatus?.pushSubscriptionId && !!osStatus?.optedIn && !!osStatus?.externalId && osStatus.externalId === user?.id;
+            return (
+              <button
+                onClick={handleEnableAndLink}
+                disabled={linking || testing || !user?.id}
+                className="btn-primary cursor-pointer"
+                style={{ width: "100%", padding: "12px", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "8px" }}
+              >
+                {linking ? <Loader size={14} className="spin" /> : <Link2 size={14} />}
+                {linking ? "Enabling & linking..." : allGood ? "Re-link and Send Test Push" : "Enable Push & Link My Device"}
+              </button>
+            );
+          })()}
+
           <button
             onClick={sendTestPush}
-            disabled={testing}
+            disabled={testing || linking}
             className="btn-secondary cursor-pointer"
             style={{ width: "100%", padding: "10px", fontSize: "12.5px", fontWeight: "600", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
           >
             {testing ? <Loader size={14} className="spin" /> : <Send size={14} />}
-            {testing ? "Sending test push..." : "Send Test Push To My Device"}
+            {testing ? "Sending test push..." : "Send Test Push Only"}
           </button>
+
           {testResult && (
             <div
               className="fade-in"
