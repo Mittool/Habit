@@ -14,7 +14,6 @@ export type NavPage =
   | "focus"
   | "insights"
   | "settings"
-  | "notifications"
   // Legacy aliases for deep linking
   | "ai-hub"
   | "habits"

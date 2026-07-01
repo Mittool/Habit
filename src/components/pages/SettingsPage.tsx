@@ -4,6 +4,7 @@ import { useAppStore, Theme } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { performIsolatedSignOut, syncUserProfileName } from "@/lib/cloud";
+import { enableAndLinkPush, clearOneSignalExternalUserId } from "@/lib/onesignal";
 import {
   Sun,
   Moon,
@@ -58,7 +59,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
   );
 }
 
-export default function SettingsPage({ onNavigate }: { onNavigate?: (page: string) => void } = {}) {
+export default function SettingsPage() {
   const {
     user,
     theme,
@@ -178,38 +179,26 @@ export default function SettingsPage({ onNavigate }: { onNavigate?: (page: strin
             <Bell size={18} color="var(--accent)" />
             <div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Smart Notifications</h3>
-              <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "2px 0 0" }}>Timely check-ins and habit reminders</p>
+              <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "2px 0 0" }}>Adaptive habit reminders and task alerts</p>
             </div>
           </div>
-          <Toggle checked={notificationsEnabled} onChange={() => setNotificationsEnabled(!notificationsEnabled)} />
-        </div>
-        {typeof window !== "undefined" && "Notification" in window && Notification.permission !== "granted" && (
-          <button
-            onClick={async () => {
-              const p = await Notification.requestPermission();
-              useAppStore.getState().setNotificationPermissionStatus(p);
-              if (p === "granted") setNotificationsEnabled(true);
-              else alert("Notification permission denied. Please allow alerts in your device system settings.");
+          <Toggle
+            checked={notificationsEnabled}
+            onChange={async () => {
+              const willEnable = !notificationsEnabled;
+              if (willEnable) {
+                // Turning ON — run the full push setup silently in one shot.
+                setNotificationsEnabled(true);
+                const currentUserId = useAppStore.getState().user?.id;
+                await enableAndLinkPush(currentUserId);
+              } else {
+                // Turning OFF — flip the flag and unlink so nothing more fires.
+                setNotificationsEnabled(false);
+                clearOneSignalExternalUserId();
+              }
             }}
-            className="btn-secondary cursor-pointer"
-            style={{ width: "100%", marginTop: "14px", fontSize: "12.5px", padding: "10px" }}
-          >
-            Enable Device System Notification Permission
-          </button>
-        )}
-
-        {/* Open full Push Notifications & Diagnostics screen */}
-        <button
-          onClick={() => onNavigate?.("notifications")}
-          className="btn-secondary cursor-pointer"
-          style={{ width: "100%", marginTop: "10px", fontSize: "12.5px", padding: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}
-        >
-          <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <Bell size={14} />
-            Push Notifications & Diagnostics
-          </span>
-          <span style={{ fontSize: "16px", color: "var(--text-muted)" }}>›</span>
-        </button>
+          />
+        </div>
       </div>
 
       {/* Themes */}

@@ -4,7 +4,8 @@
 //   2. Device is actually subscribed under this external_user_id
 //   3. OneSignal → device delivery works
 //
-// Called from the "Send Test Push" button in NotificationsPage.
+// Kept as an internal debug endpoint. Can be called with an authenticated
+// user's external_user_id to verify OneSignal delivery end-to-end.
 
 import { NextRequest, NextResponse } from "next/server";
 

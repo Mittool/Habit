@@ -9,7 +9,6 @@ import AiChatPage from "@/components/pages/AiChatPage";
 import FocusPage from "@/components/pages/FocusPage";
 import InsightsPage from "@/components/pages/InsightsPage";
 import SettingsPage from "@/components/pages/SettingsPage";
-import NotificationsPage from "@/components/pages/NotificationsPage";
 import { initMobilePushScheduler } from "@/lib/pwa";
 import { setupWebViewNavigationBridge } from "@/lib/median-webview";
 import { refreshAllReminders, scheduleMidnightRefresh } from "@/lib/scheduler";
@@ -106,9 +105,7 @@ export default function MainApp() {
       case "sleep":
         return <InsightsPage initialTab={["mood", "sleep"].includes(currentPage) ? currentPage as any : "stats"} onNavigate={(p) => setCurrentPage(p as NavPage)} />;
       case "settings":
-        return <SettingsPage onNavigate={(p) => setCurrentPage(p as NavPage)} />;
-      case "notifications":
-        return <NotificationsPage />;
+        return <SettingsPage />;
       default:
         return <HomePage onNavigate={(p) => setCurrentPage(p as NavPage)} />;
     }
