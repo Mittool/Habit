@@ -1,20 +1,54 @@
 "use client";
 import { useAppStore } from "@/lib/store";
 import { format } from "date-fns";
-import { Bell, Trash2, CheckCheck, BellOff, Loader, Smartphone, ShieldCheck, Clock, CheckCircle2 } from "lucide-react";
+import { Bell, Trash2, CheckCheck, BellOff, Loader, Smartphone, ShieldCheck, Clock, CheckCircle2, Send, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { promptOneSignalPush, syncOneSignalUserTags } from "@/lib/onesignal";
 
+interface TestResult {
+  ok: boolean;
+  message: string;
+  detail?: any;
+}
+
 export default function NotificationsPage() {
-  const { aiNotifications, markNotificationRead, clearNotifications, habits, todos, aiEnabled, addAiNotification } = useAppStore();
+  const { aiNotifications, markNotificationRead, clearNotifications, habits, todos, aiEnabled, addAiNotification, user } = useAppStore();
   const [generating, setGenerating] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<string>("default");
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [externalIdInLocal, setExternalIdInLocal] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
       setPermissionStatus(Notification.permission);
+      setExternalIdInLocal(localStorage.getItem("trac-one-signal-external-id"));
     }
   }, []);
+
+  async function sendTestPush() {
+    setTesting(true);
+    setTestResult(null);
+    // Prefer the freshly-stored id, fall back to signed-in Supabase user
+    const externalUserId = (typeof window !== "undefined" ? localStorage.getItem("trac-one-signal-external-id") : null) || user?.id || "";
+    try {
+      const res = await fetch("/api/notifications/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ externalUserId }),
+      });
+      const data = await res.json();
+      setTestResult({
+        ok: !!data.ok,
+        message: data.ok ? data.message : (data.error || "Unknown error"),
+        detail: data,
+      });
+    } catch (err: any) {
+      setTestResult({ ok: false, message: `Fetch failed: ${err?.message || err}` });
+    } finally {
+      setTesting(false);
+    }
+  }
 
   async function requestMobilePermissions() {
     promptOneSignalPush();
@@ -112,6 +146,53 @@ export default function NotificationsPage() {
           <Smartphone size={18} />
           <span>{permissionStatus === "granted" ? "Mobile Push Alerts Active" : "Enable Mobile Push Notifications"}</span>
         </button>
+
+        {/* ─── Diagnostics & Test Push ─── */}
+        <div style={{ marginTop: "16px", padding: "14px 16px", borderRadius: "12px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "10px" }}>
+            Push Diagnostics
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: "12px", rowGap: "6px", fontSize: "12px", fontWeight: "500", marginBottom: "12px" }}>
+            <span style={{ color: "var(--text-muted)" }}>Browser permission:</span>
+            <span style={{ color: permissionStatus === "granted" ? "var(--accent)" : "var(--text-primary)", fontWeight: "600" }}>{permissionStatus}</span>
+            <span style={{ color: "var(--text-muted)" }}>Signed in user:</span>
+            <span style={{ color: user?.id ? "var(--text-primary)" : "#DC2626", fontWeight: "600", wordBreak: "break-all" }}>{user?.id || "not signed in"}</span>
+            <span style={{ color: "var(--text-muted)" }}>OneSignal link:</span>
+            <span style={{ color: externalIdInLocal ? "var(--accent)" : "#D97706", fontWeight: "600", wordBreak: "break-all" }}>
+              {externalIdInLocal ? "linked (" + externalIdInLocal.slice(0, 8) + "...)" : "not linked yet — log out & in"}
+            </span>
+          </div>
+          <button
+            onClick={sendTestPush}
+            disabled={testing}
+            className="btn-secondary cursor-pointer"
+            style={{ width: "100%", padding: "10px", fontSize: "12.5px", fontWeight: "600", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+          >
+            {testing ? <Loader size={14} className="spin" /> : <Send size={14} />}
+            {testing ? "Sending test push..." : "Send Test Push To My Device"}
+          </button>
+          {testResult && (
+            <div
+              className="fade-in"
+              style={{
+                marginTop: "10px",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                backgroundColor: testResult.ok ? "rgba(13,148,136,0.08)" : "rgba(220,38,38,0.08)",
+                border: `1px solid ${testResult.ok ? "rgba(13,148,136,0.3)" : "rgba(220,38,38,0.3)"}`,
+                fontSize: "12px",
+                fontWeight: "500",
+                color: testResult.ok ? "#0D9488" : "#DC2626",
+                lineHeight: "1.5",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                {testResult.ok ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
+                <span style={{ flex: 1 }}>{testResult.message}</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Dynamic Habit Notification Times Matrix */}

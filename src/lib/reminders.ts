@@ -20,7 +20,7 @@ export interface NextReminderInput {
 
 export interface NextReminderResult {
   nextFireAt: Date;
-  reason: "week1-yesterday" | "rolling-avg" | "manual-fallback" | "manual-only";
+  reason: "week1-yesterday" | "week1-first-completion" | "rolling-avg" | "manual-fallback" | "manual-only";
   averageHHMM?: string;
 }
 
@@ -153,13 +153,35 @@ export function computeNextReminder(input: NextReminderInput): NextReminderResul
         averageHHMM: `${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}`,
       };
     }
-    // No yesterday completion → manual fallback
+    // No yesterday completion → try manual reminder time
     if (input.manualReminderHHMM) {
       const parsed = parseHHMM(input.manualReminderHHMM);
       if (parsed) {
         const nextFireAt = toDateInFuture(now, parsed.h, parsed.m, input.reminderDays);
         return { nextFireAt, reason: "manual-fallback" };
       }
+    }
+    // ─── Cold-start fallback ───
+    // Brand-new habit with no manual time and no history. Use the most recent
+    // completion (today) minus 20 min, projected onto tomorrow.
+    // This ensures we ALWAYS schedule something as soon as the first
+    // completion is recorded, so users see push activity from day one.
+    if (history.length > 0) {
+      const last = new Date(history[history.length - 1]);
+      const mins = minutesInDay(last);
+      const targetMins = subtractMinutes(mins, LEAD_MINUTES);
+      const hh = Math.floor(targetMins / 60);
+      const mm = targetMins % 60;
+      const nextFireAt = toDateInFuture(now, hh, mm, input.reminderDays);
+      // Force at least "tomorrow" so we don't ping in the past
+      if (nextFireAt.toDateString() === now.toDateString() && nextFireAt.getTime() <= now.getTime()) {
+        nextFireAt.setDate(nextFireAt.getDate() + 1);
+      }
+      return {
+        nextFireAt,
+        reason: "week1-first-completion",
+        averageHHMM: `${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}`,
+      };
     }
     return null;
   }
