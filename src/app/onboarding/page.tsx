@@ -22,6 +22,7 @@ import {
 import { useAppStore, Theme } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { triggerCloudSync } from "@/lib/cloud";
+import { LogoLoadingScreen } from "@/components/LogoAnimation";
 
 const THEMES: { id: Theme; name: string; desc: string; icon: React.ReactNode; colors: string[] }[] = [
   {
@@ -217,11 +218,7 @@ export default function OnboardingPage() {
   }
 
   if (!hydrated) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--bg-primary)" }}>
-        <div style={{ color: "var(--text-muted)", fontSize: "14px" }}>Initializing Trac...</div>
-      </div>
-    );
+    return <LogoLoadingScreen />;
   }
 
   // Wider card for preview step

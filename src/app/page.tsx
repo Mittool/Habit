@@ -12,6 +12,7 @@ import SettingsPage from "@/components/pages/SettingsPage";
 import { initMobilePushScheduler } from "@/lib/pwa";
 import { setupWebViewNavigationBridge, pushHistoryEntry } from "@/lib/median-webview";
 import { refreshAllReminders, scheduleMidnightRefresh } from "@/lib/scheduler";
+import { LogoLoadingScreen } from "@/components/LogoAnimation";
 
 export default function MainApp() {
   const { isAuthenticated, onboardingDone, habits, todos } = useAppStore();
@@ -101,19 +102,11 @@ export default function MainApp() {
   }, [hydrated, goBack]);
 
   if (!hydrated) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--bg-primary)" }}>
-        <div style={{ color: "var(--text-muted)", fontSize: "14px" }}>Loading...</div>
-      </div>
-    );
+    return <LogoLoadingScreen />;
   }
 
   if (!isAuthenticated || !onboardingDone) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--bg-primary)" }}>
-        <div style={{ color: "var(--text-muted)", fontSize: "14px" }}>Redirecting...</div>
-      </div>
-    );
+    return <LogoLoadingScreen />;
   }
 
   const renderPage = () => {

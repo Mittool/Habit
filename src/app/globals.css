@@ -328,6 +328,23 @@ input:focus, textarea:focus, select:focus {
   animation: skeletonPulse 1.4s ease-in-out infinite;
 }
 
+/* Trac logo line-drawing animation.
+   The path is authored with pathLength=100 so 0 → 100 is "empty → full",
+   then 0 → -100 fades the drawn line back out for a clean loop. */
+@keyframes tracLogoDrawMain {
+  0%   { stroke-dashoffset: 100; }
+  55%  { stroke-dashoffset: 0; }
+  85%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -100; }
+}
+@keyframes tracLogoDrawArm {
+  0%   { stroke-dashoffset: 100; opacity: 0; }
+  25%  { stroke-dashoffset: 100; opacity: 0; }
+  50%  { stroke-dashoffset: 0; opacity: 1; }
+  85%  { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: -100; opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
