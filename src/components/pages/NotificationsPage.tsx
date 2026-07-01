@@ -4,7 +4,7 @@ import { useAppStore } from "@/lib/store";
 import { format } from "date-fns";
 import { Bell, Trash2, CheckCheck, BellOff, Loader, Smartphone, ShieldCheck, Clock, CheckCircle2, Send, AlertTriangle, Link2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { promptOneSignalPush, syncOneSignalUserTags, getOneSignalStatus, enableAndLinkPush, OneSignalStatus } from "@/lib/onesignal";
+import { promptOneSignalPush, syncOneSignalUserTags, getOneSignalStatus, enableAndLinkPush, OneSignalStatus, getRuntimeDiagnostics } from "@/lib/onesignal";
 
 interface TestResult {
   ok: boolean;
@@ -20,11 +20,14 @@ export default function NotificationsPage() {
   const [linking, setLinking] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [osStatus, setOsStatus] = useState<OneSignalStatus | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [runtimeDbg, setRuntimeDbg] = useState<any>(null);
 
   const refreshStatus = useCallback(async () => {
     const s = await getOneSignalStatus();
     setOsStatus(s);
     setPermissionStatus(s.permission);
+    setRuntimeDbg(getRuntimeDiagnostics());
   }, []);
 
   useEffect(() => {
@@ -264,6 +267,23 @@ export default function NotificationsPage() {
               </div>
             </div>
           )}
+
+          {/* Runtime detection details — expandable so we can debug why the
+              app is being routed to the wrong SDK path (web vs Median). */}
+          <div style={{ marginTop: "12px", borderTop: "1px dashed var(--border)", paddingTop: "10px" }}>
+            <button
+              onClick={() => setShowDetails((v) => !v)}
+              className="cursor-pointer"
+              style={{ background: "none", border: "none", padding: 0, fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textDecoration: "underline" }}
+            >
+              {showDetails ? "Hide" : "Show"} detection details
+            </button>
+            {showDetails && runtimeDbg && (
+              <pre style={{ marginTop: "8px", fontSize: "10.5px", lineHeight: "1.5", color: "var(--text-secondary)", backgroundColor: "var(--bg-card)", padding: "10px", borderRadius: "6px", border: "1px solid var(--border)", overflowX: "auto", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+{JSON.stringify(runtimeDbg, null, 2)}
+              </pre>
+            )}
+          </div>
         </div>
       </div>
 

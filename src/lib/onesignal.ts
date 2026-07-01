@@ -36,16 +36,46 @@ function inMedian(): boolean {
   return typeof window !== "undefined" && !!window.median?.onesignal;
 }
 
-// True when we're clearly inside a native wrapper (userAgent flag or the
-// median global exists even if the onesignal sub-object hasn't hydrated yet).
-// This is what routes calls to the Median path; inMedian() is only used
-// inside the path to check whether the bridge is ready to call.
+// True when we're clearly inside a native wrapper.
+// Detection signals (any one is enough):
+//   - window.median or window.gonative globals exist
+//   - userAgent explicitly includes "median" or "gonative"
+//   - userAgent looks like an Android WebView ("; wv)")
+//   - iOS in-app WebView (iPhone/iPad UA but Safari missing)
+//   - Notification API missing entirely (browsers all have it — its
+//     absence is a strong tell of a stripped WebView)
 function probablyMedian(): boolean {
   if (typeof window === "undefined") return false;
   const w = window as any;
   if (w.median || w.gonative) return true;
   const ua = navigator?.userAgent?.toLowerCase() ?? "";
-  return ua.includes("median") || ua.includes("gonative");
+  if (ua.includes("median") || ua.includes("gonative")) return true;
+  if (ua.includes("; wv)")) return true; // Android WebView
+  const isIOSDevice = /iphone|ipad|ipod/.test(ua);
+  const looksLikeSafari = ua.includes("safari") && !ua.includes("crios") && !ua.includes("fxios");
+  if (isIOSDevice && !looksLikeSafari) return true; // iOS in-app WebView
+  // Last-resort: real browsers ALWAYS expose window.Notification.
+  // If it's missing we cannot be on the web path anyway.
+  if (typeof (w as any).Notification === "undefined") return true;
+  return false;
+}
+
+// Expose the raw signals for the on-screen diagnostic panel so we can see
+// exactly why a user is (or is not) being routed to the Median path.
+export function getRuntimeDiagnostics() {
+  if (typeof window === "undefined") {
+    return { ssr: true } as const;
+  }
+  const w = window as any;
+  return {
+    userAgent: navigator?.userAgent ?? "",
+    hasMedianGlobal: !!w.median,
+    hasMedianOneSignal: !!w.median?.onesignal,
+    hasGonativeGlobal: !!w.gonative,
+    hasNotificationApi: typeof (w as any).Notification !== "undefined",
+    probablyMedian: probablyMedian(),
+    inMedian: inMedian(),
+  };
 }
 
 // Wait until window.median.onesignal is available (Median injects it a moment
