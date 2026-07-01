@@ -14,14 +14,14 @@ export function isWebViewApp(): boolean {
   );
 }
 
-// Global Interceptor for Context Menus & Android Hardware Back Button
-export function setupWebViewNavigationBridge(
-  getCurrentTab: () => string,
-  navigateToTab: (tab: string) => void
-) {
-  if (typeof window === "undefined") return;
+// Global interceptor for right-click context menus and Android hardware back
+// button. `onBack` is the caller's own back handler — it should pop one item
+// from an in-app navigation stack and return true if it handled it, or false
+// if there is nowhere left to go (we then exit the app).
+export function setupWebViewNavigationBridge(onBack: () => boolean) {
+  if (typeof window === "undefined") return () => {};
 
-  // 1. Block default browser long-press context menus on all non-editable UI elements
+  // 1. Block default browser long-press context menus on non-editable UI
   const handleContextMenu = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
     if (!target || !target.matches("input, textarea, [contenteditable='true']")) {
@@ -30,18 +30,18 @@ export function setupWebViewNavigationBridge(
   };
   window.addEventListener("contextmenu", handleContextMenu);
 
-  // 2. Android Hardware Back Button Bridge Interceptor (Median.co / GoNative SDK)
-  // Median calls `window.gonative_back_pressed()` when physical Android back button is tapped
-  const handleAndroidBack = () => {
-    const current = getCurrentTab();
-    
-    // If user is inside any subscreen or tab other than Home
-    if (current !== "home") {
-      navigateToTab("home");
-      return true; // Tells Median: We handled navigation in SPA, do NOT exit or go back in browser history!
+  // 2. Hardware back button interceptor.
+  // Median calls `gonative_back_pressed` / `median_back_pressed` on Android
+  // physical back. Return true to tell Median "I handled it, don't do the
+  // native default action". Return false to let Median exit the app.
+  const handleAndroidBack = (): boolean => {
+    try {
+      const handled = onBack();
+      if (handled) return true;
+    } catch (err) {
+      console.error("[nav] back handler error:", err);
     }
-
-    // If user is already on Home root screen -> Command Median native OS to exit app cleanly
+    // Nothing left in the stack — exit the app cleanly
     try {
       const w = window as any;
       if (w.median?.app?.exit) {
@@ -54,28 +54,33 @@ export function setupWebViewNavigationBridge(
     } catch {
       window.location.href = "median://app/exit";
     }
-    return true; // Blocks default browser white screen navigation
+    return true; // prevent default white-screen navigation
   };
 
-  // Expose hooks to global window for Median native OS bridge
   (window as any).gonative_back_pressed = handleAndroidBack;
   (window as any).median_back_pressed = handleAndroidBack;
 
-  // Standard HTML5 History popstate back button fallback
+  // 3. HTML5 popstate — browser / iOS swipe-back / PWA back gesture.
+  // We push one extra history entry per in-app navigation (see nav-stack.ts)
+  // so popstate corresponds one-to-one with the user pressing back.
   const handlePopState = (e: PopStateEvent) => {
-    const current = getCurrentTab();
-    if (current !== "home") {
-      e.preventDefault();
-      navigateToTab("home");
-      // Push state back to prevent browser url change
-      window.history.pushState(null, "", "/");
+    const handled = onBack();
+    if (!handled) {
+      // Let the browser actually go back / exit the PWA
+      return;
     }
+    // We consumed the back event. Push a fresh entry so the NEXT back press
+    // also fires popstate instead of leaving the app.
+    window.history.pushState({ trac: true }, "", window.location.href);
+    e.preventDefault?.();
   };
   window.addEventListener("popstate", handlePopState);
 
-  // Ensure initial history state is locked at root SPA URL
+  // Seed a history entry so the very first back press fires popstate
+  // (some engines skip popstate if the stack has only the initial entry).
   if (window.history.state === null) {
-    window.history.replaceState({ root: true }, "", "/");
+    window.history.replaceState({ trac: true, seed: true }, "", window.location.href);
+    window.history.pushState({ trac: true }, "", window.location.href);
   }
 
   return () => {

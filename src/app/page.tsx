@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import Navigation, { NavPage } from "@/components/Navigation";
@@ -16,7 +16,38 @@ import { refreshAllReminders, scheduleMidnightRefresh } from "@/lib/scheduler";
 export default function MainApp() {
   const { isAuthenticated, onboardingDone, habits, todos } = useAppStore();
   const router = useRouter();
-  const [currentPage, setCurrentPage] = useState<NavPage>("home");
+
+  // Navigation stack. Home is always the root. Every user navigation pushes
+  // onto the stack; the hardware back button pops one entry. When the stack
+  // is at just ["home"], pressing back exits the app.
+  const [pageStack, setPageStack] = useState<NavPage[]>(["home"]);
+  const currentPage = pageStack[pageStack.length - 1];
+
+  const navigateTo = useCallback((page: NavPage) => {
+    setPageStack((stack) => {
+      // Don't push a duplicate of what's already on top
+      if (stack[stack.length - 1] === page) return stack;
+      // If the target page is already deeper in the stack, truncate to it
+      // (natural behavior: tapping a tab you've already been on shouldn't
+      // build up a taller and taller stack).
+      const existing = stack.indexOf(page);
+      if (existing >= 0) return stack.slice(0, existing + 1);
+      return [...stack, page];
+    });
+  }, []);
+
+  const goBack = useCallback((): boolean => {
+    let handled = false;
+    setPageStack((stack) => {
+      if (stack.length > 1) {
+        handled = true;
+        return stack.slice(0, -1);
+      }
+      return stack;
+    });
+    return handled;
+  }, []);
+
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -57,15 +88,12 @@ export default function MainApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, isAuthenticated]);
 
-  // Median WebView Hardware Back Button & Context Menu Bridge
+  // Hardware back button + browser popstate → pop the in-app stack.
+  // Only set up once (goBack is stable via useCallback).
   useEffect(() => {
     if (!hydrated) return;
-    const cleanup = setupWebViewNavigationBridge(
-      () => currentPage,
-      (targetTab) => setCurrentPage(targetTab as NavPage)
-    );
-    return cleanup;
-  }, [hydrated, currentPage]);
+    return setupWebViewNavigationBridge(goBack);
+  }, [hydrated, goBack]);
 
   if (!hydrated) {
     return (
@@ -86,7 +114,7 @@ export default function MainApp() {
   const renderPage = () => {
     switch (currentPage) {
       case "home":
-        return <HomePage onNavigate={(p) => setCurrentPage(p as NavPage)} />;
+        return <HomePage onNavigate={(p) => navigateTo(p as NavPage)} />;
       case "planner":
       case "habits":
       case "todo":
@@ -103,17 +131,17 @@ export default function MainApp() {
       case "analytics":
       case "mood":
       case "sleep":
-        return <InsightsPage initialTab={["mood", "sleep"].includes(currentPage) ? currentPage as any : "stats"} onNavigate={(p) => setCurrentPage(p as NavPage)} />;
+        return <InsightsPage initialTab={["mood", "sleep"].includes(currentPage) ? currentPage as any : "stats"} onNavigate={(p) => navigateTo(p as NavPage)} />;
       case "settings":
         return <SettingsPage />;
       default:
-        return <HomePage onNavigate={(p) => setCurrentPage(p as NavPage)} />;
+        return <HomePage onNavigate={(p) => navigateTo(p as NavPage)} />;
     }
   };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "var(--bg-primary)" }}>
-      <Navigation current={currentPage} onChange={setCurrentPage} />
+      <Navigation current={currentPage} onChange={navigateTo} />
 
       {/* Main content - Full Screen Flex Container */}
       <main
