@@ -328,18 +328,7 @@ input:focus, textarea:focus, select:focus {
   animation: skeletonPulse 1.4s ease-in-out infinite;
 }
 
-/* Trac dual-ring loading spinner keyframes. Outer ring spins clockwise
-   quickly; inner ring rotates the other way at a different tempo for a
-   subtle interlocking feel. Both respect prefers-reduced-motion via the
-   global override below. */
-@keyframes tracSpinnerOuter {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-@keyframes tracSpinnerInner {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
+/* (Loading spinner animation removed — using static text loading screen instead.) */
 
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

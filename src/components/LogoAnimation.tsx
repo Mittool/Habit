@@ -2,88 +2,40 @@
 import React from "react";
 
 /**
- * Clean dual-ring loading spinner. Two concentric SVG circles rotate
- * in opposite directions with staggered arc lengths for visual interest.
- * Colors use the current theme's accent variable.
+ * Static "Loading" text placeholder. Deliberately no animation.
+ * Kept as a named component so every existing call site keeps working.
  */
 export default function LogoAnimation({
-  size = 64,
-  color = "var(--accent)",
-  strokeWidth = 3,
+  size,
+  color = "var(--text-muted)",
 }: {
   size?: number;
   color?: string;
+  /** kept for API compat with earlier callers — no-op */
   strokeWidth?: number;
   /** kept for API compat with earlier callers — no-op */
   loop?: boolean;
   /** kept for API compat with earlier callers — no-op */
   durationMs?: number;
 }) {
-  const half = size / 2;
-  const outerR = half - strokeWidth;
-  const innerR = outerR - strokeWidth * 2.2;
-  const outerCirc = 2 * Math.PI * outerR;
-  const innerCirc = 2 * Math.PI * innerR;
-
   return (
     <div
       style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: size,
-        height: size,
+        color,
+        fontSize: size ? Math.max(12, Math.round(size / 5)) : 14,
+        fontWeight: 500,
       }}
       aria-label="Loading"
       role="status"
     >
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: "visible" }}>
-        <circle
-          cx={half}
-          cy={half}
-          r={outerR}
-          fill="none"
-          stroke={color}
-          strokeOpacity={0.18}
-          strokeWidth={strokeWidth}
-        />
-        <circle
-          cx={half}
-          cy={half}
-          r={outerR}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={`${outerCirc * 0.28} ${outerCirc}`}
-          style={{
-            transformOrigin: "center",
-            animation: "tracSpinnerOuter 1.1s linear infinite",
-          }}
-        />
-        <circle
-          cx={half}
-          cy={half}
-          r={innerR}
-          fill="none"
-          stroke={color}
-          strokeOpacity={0.5}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={`${innerCirc * 0.55} ${innerCirc}`}
-          style={{
-            transformOrigin: "center",
-            animation: "tracSpinnerInner 1.4s cubic-bezier(0.6, 0, 0.4, 1) infinite reverse",
-          }}
-        />
-      </svg>
+      Loading...
     </div>
   );
 }
 
 /**
- * Full-viewport spinner used for hydration / auth-restore / redirect states.
- * Uses the app-shell background so route transitions do not colour-flash.
+ * Full-viewport loading screen. Plain centered "Loading..." text — no
+ * animation, no spinner, no logo effect.
  */
 export function LogoLoadingScreen() {
   return (
@@ -96,7 +48,9 @@ export function LogoLoadingScreen() {
         backgroundColor: "var(--bg-primary)",
       }}
     >
-      <LogoAnimation size={64} />
+      <div style={{ color: "var(--text-muted)", fontSize: 14, fontWeight: 500 }}>
+        Loading...
+      </div>
     </div>
   );
 }
