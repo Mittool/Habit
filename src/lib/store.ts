@@ -76,6 +76,11 @@ export interface TimeBlock {
   todoId?: string;
   color?: string;
   date: string;
+  // Push notification wiring
+  notificationEnabled?: boolean; // default true
+  leadTimeMinutes?: number; // default 5 min before startTime
+  scheduledReminderAt?: string;
+  scheduledReminderId?: string;
 }
 
 export interface MoodEntry {
@@ -493,25 +498,71 @@ export const useAppStore = create<AppState>()(
           ),
         })),
 
-      addTimeBlock: (block) =>
+      addTimeBlock: (block) => {
+        const newId = crypto.randomUUID();
         set((state) => ({
           timeBlocks: [
             ...state.timeBlocks,
-            { ...block, id: crypto.randomUUID() },
+            { ...block, id: newId },
           ],
-        })),
+        }));
+        if (typeof window !== "undefined") {
+          import("./scheduler").then(({ scheduleTimeBlockReminder }) => {
+            const b = get().timeBlocks.find((x) => x.id === newId);
+            if (!b) return;
+            scheduleTimeBlockReminder(b).then((r) => {
+              if (r.nextFireAt || r.externalId) {
+                set((s) => ({
+                  timeBlocks: s.timeBlocks.map((x) =>
+                    x.id === newId
+                      ? { ...x, scheduledReminderAt: r.nextFireAt ?? undefined, scheduledReminderId: r.externalId ?? undefined }
+                      : x
+                  ),
+                }));
+              }
+            });
+          });
+        }
+      },
 
-      updateTimeBlock: (id, updates) =>
+      updateTimeBlock: (id, updates) => {
         set((state) => ({
           timeBlocks: state.timeBlocks.map((b) =>
             b.id === id ? { ...b, ...updates } : b
           ),
-        })),
+        }));
+        const isSchedulerCommit =
+          "scheduledReminderId" in (updates || {}) || "scheduledReminderAt" in (updates || {});
+        if (!isSchedulerCommit && typeof window !== "undefined") {
+          import("./scheduler").then(({ scheduleTimeBlockReminder }) => {
+            const b = get().timeBlocks.find((x) => x.id === id);
+            if (!b) return;
+            scheduleTimeBlockReminder(b).then((r) => {
+              if (r.nextFireAt || r.externalId) {
+                set((s) => ({
+                  timeBlocks: s.timeBlocks.map((x) =>
+                    x.id === id
+                      ? { ...x, scheduledReminderAt: r.nextFireAt ?? undefined, scheduledReminderId: r.externalId ?? undefined }
+                      : x
+                  ),
+                }));
+              }
+            });
+          });
+        }
+      },
 
-      deleteTimeBlock: (id) =>
+      deleteTimeBlock: (id) => {
+        const beingDeleted = get().timeBlocks.find((b) => b.id === id);
         set((state) => ({
           timeBlocks: state.timeBlocks.filter((b) => b.id !== id),
-        })),
+        }));
+        if (beingDeleted && typeof window !== "undefined") {
+          import("./scheduler").then(({ cancelTimeBlockReminder }) => {
+            cancelTimeBlockReminder(beingDeleted);
+          });
+        }
+      },
 
       addMoodEntry: (entry) =>
         set((state) => {

@@ -14,7 +14,7 @@
 
 "use client";
 
-import { Habit, TodoItem } from "./store";
+import { Habit, TimeBlock, TodoItem } from "./store";
 import { computeNextReminder, computeTaskReminder } from "./reminders";
 
 interface ScheduleResult {
@@ -152,6 +152,61 @@ export async function cancelTaskReminder(todo: TodoItem): Promise<void> {
   }
 }
 
+// ─── Time blocks (planner) ───────────────────────────────
+// Time blocks are date + startTime pairs. Reminder fires leadTimeMinutes
+// before startTime on the block's date. Never learns — the schedule is
+// exactly what the user wrote.
+export async function scheduleTimeBlockReminder(block: TimeBlock): Promise<ScheduleResult> {
+  if (block.scheduledReminderId) {
+    await apiCall("cancel", { notificationId: block.scheduledReminderId });
+  }
+  if (block.notificationEnabled === false) {
+    return { nextFireAt: null, externalId: null, reason: "notifications-disabled" };
+  }
+  if (!block.date || !block.startTime) {
+    return { nextFireAt: null, externalId: null, reason: "missing-date-or-time" };
+  }
+  // Build a Date from block.date ("yyyy-MM-dd") + block.startTime ("HH:MM")
+  const [hh, mm] = block.startTime.split(":").map(Number);
+  if (isNaN(hh) || isNaN(mm)) {
+    return { nextFireAt: null, externalId: null, reason: "bad-time-format" };
+  }
+  const startDate = new Date(`${block.date}T00:00:00`);
+  startDate.setHours(hh, mm, 0, 0);
+  const leadMs = (block.leadTimeMinutes ?? 5) * 60 * 1000;
+  const fireAt = new Date(startDate.getTime() - leadMs);
+  if (fireAt.getTime() <= Date.now()) {
+    return { nextFireAt: null, externalId: null, reason: "past-start-time" };
+  }
+
+  const externalUserId = getExternalUserId();
+  if (!externalUserId) {
+    return { nextFireAt: fireAt.toISOString(), externalId: null, reason: "no-user-id" };
+  }
+
+  const label = block.label || "Time block";
+  const scheduled = await apiCall("schedule", {
+    externalUserId,
+    targetType: "timeblock",
+    targetId: block.id,
+    title: `Coming up: ${label}`,
+    body: `${label} starts at ${block.startTime}${block.endTime ? ` (until ${block.endTime})` : ""}.`,
+    sendAt: fireAt.toISOString(),
+  });
+
+  return {
+    nextFireAt: fireAt.toISOString(),
+    externalId: scheduled?.notificationId ?? null,
+    reason: "timeblock-fixed-lead",
+  };
+}
+
+export async function cancelTimeBlockReminder(block: TimeBlock): Promise<void> {
+  if (block.scheduledReminderId) {
+    await apiCall("cancel", { notificationId: block.scheduledReminderId });
+  }
+}
+
 // ─── Daily refresh (step 8) ─────────────────────────────────
 // Called from src/app/page.tsx once on mount and again at local midnight.
 // Recomputes every habit & task reminder so timezone changes, edits, and
@@ -179,6 +234,19 @@ export async function refreshAllReminders(): Promise<void> {
     if (todo.completed || !todo.dueAt) continue;
     const result = await scheduleTaskReminder(todo);
     state.updateTodo(todo.id, {
+      scheduledReminderAt: result.nextFireAt ?? undefined,
+      scheduledReminderId: result.externalId ?? undefined,
+    });
+  }
+  // Time blocks — only reschedule future ones (past blocks are skipped in
+  // scheduleTimeBlockReminder anyway, this just avoids REST spam)
+  const now = Date.now();
+  for (const block of state.timeBlocks) {
+    const startIso = `${block.date}T${block.startTime || "00:00"}`;
+    const startTs = new Date(startIso).getTime();
+    if (isNaN(startTs) || startTs <= now) continue;
+    const result = await scheduleTimeBlockReminder(block);
+    state.updateTimeBlock(block.id, {
       scheduledReminderAt: result.nextFireAt ?? undefined,
       scheduledReminderId: result.externalId ?? undefined,
     });
