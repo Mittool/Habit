@@ -18,76 +18,76 @@ interface Habit {
 // ─────────────────────────────────────────────────────────────
 const CATEGORY_LIBRARY: Record<string, Habit[]> = {
   fitness: [
-    { name: "5-Minute Mobility Flow", description: "Wake up the body with hip openers, shoulder rolls, and spinal twists before reaching for the phone.", timeOfDay: "morning" },
-    { name: "Strength Training Block", description: "30-45 minutes of progressive overload — compound lifts or bodyweight push/pull/squat circuits.", timeOfDay: "day" },
-    { name: "Protein Target Check-in", description: "Log meals and hit your daily protein target to support muscle recovery and satiety.", timeOfDay: "evening" },
-    { name: "Cool-Down Stretch", description: "10 minutes of static stretching focused on the muscles you trained today to improve recovery and sleep quality.", timeOfDay: "night" },
+    { name: "5-Minute Morning Stretch", description: "Right after you wake up, spend 5 minutes doing simple stretches — reach your arms overhead, twist side to side, touch your toes. This wakes up stiff muscles from sleep and makes the rest of your day feel less sluggish.", timeOfDay: "morning" },
+    { name: "Daily Workout Session", description: "Do 30-45 minutes of exercise — this could be lifting weights at the gym, doing push-ups and squats at home, or a fitness class you enjoy. If you're new, start with 3 sets of 10 reps for each exercise.", timeOfDay: "day" },
+    { name: "Track Your Meals", description: "Write down what you eat today, either in a notes app or a free tracker like MyFitnessPal. This makes you eat healthier automatically because you actually see what you're putting in your body.", timeOfDay: "evening" },
+    { name: "Cool-Down Stretch", description: "Before bed, spend 10 minutes gently stretching the muscles you used today. This helps you feel less sore tomorrow and helps you fall asleep faster because your body is more relaxed.", timeOfDay: "night" },
   ],
   reading: [
-    { name: "10 Pages Before Phone", description: "Read 10 pages of your current book before opening any app — anchors reading to your morning routine.", timeOfDay: "morning" },
-    { name: "Annotated Reading Block", description: "30-minute focused reading session with a notebook nearby to capture ideas and questions.", timeOfDay: "day" },
-    { name: "Reading Reflection Note", description: "Write a 3-sentence summary of what you read today to lock the ideas into long-term memory.", timeOfDay: "evening" },
-    { name: "Wind-Down Fiction", description: "20 minutes of fiction in dim light to signal sleep onset and lower screen exposure.", timeOfDay: "night" },
+    { name: "Read 10 Pages First", description: "Before you open your phone in the morning, read 10 pages of a book. That's usually just 10-15 minutes. Doing it before the phone means you actually do it, instead of losing the morning to scrolling.", timeOfDay: "morning" },
+    { name: "30-Minute Reading Session", description: "Set aside 30 quiet minutes to read your current book, with your phone in another room. Keep a notebook or sticky notes handy to jot down ideas you want to remember later.", timeOfDay: "day" },
+    { name: "Write What You Learned", description: "In 2-3 sentences, write down the most interesting thing you read today. This tiny recap makes ideas actually stick in your memory instead of forgetting them by next week.", timeOfDay: "evening" },
+    { name: "Wind-Down Story Time", description: "Read 20 minutes of fiction (novels, stories) in dim light before bed instead of scrolling. Fiction relaxes your brain and helps you fall asleep faster than screens do.", timeOfDay: "night" },
   ],
   focus: [
-    { name: "Top 3 Priorities List", description: "Write the three most important outcomes for today before checking email or messages.", timeOfDay: "morning" },
-    { name: "90-Minute Deep Work Block", description: "Single-task on the hardest item for 90 minutes with phone in another room and notifications off.", timeOfDay: "day" },
-    { name: "Inbox & Tabs Zero", description: "Close all open tabs and clear your inbox to a single screen — reduces tomorrow's cognitive load.", timeOfDay: "evening" },
-    { name: "Tomorrow's Plan Sketch", description: "Write tomorrow's first task on paper so you start the day without decision fatigue.", timeOfDay: "night" },
+    { name: "Write Top 3 Tasks", description: "Before you check email or messages, write down the 3 most important things you want to finish today. This one habit stops your day from getting hijacked by other people's requests.", timeOfDay: "morning" },
+    { name: "One Deep Focus Block", description: "Pick your hardest task and work on it for 60-90 minutes straight — phone in another room, notifications off. Even one session like this per day gets more done than a whole day of jumping between things.", timeOfDay: "day" },
+    { name: "Clean Up Tabs & Inbox", description: "Take 10 minutes to close all your open browser tabs and reply to or archive emails until your inbox is empty. Starting tomorrow with a clean slate makes it way easier to focus.", timeOfDay: "evening" },
+    { name: "Plan Tomorrow's First Task", description: "Before bed, write down the very first task you'll do tomorrow morning. When you wake up, you'll know exactly what to do instead of wasting 30 minutes deciding.", timeOfDay: "night" },
   ],
   discipline: [
-    { name: "Same-Time Wake Up", description: "Wake at the same time every day including weekends to stabilise circadian rhythm and willpower.", timeOfDay: "morning" },
-    { name: "No-Snooze Cold Splash", description: "Splash cold water on the face immediately on waking — short, repeatable, builds first-decision discipline.", timeOfDay: "morning" },
-    { name: "Single Hard Task First", description: "Complete the day's hardest task before lunch when willpower is highest.", timeOfDay: "day" },
-    { name: "Phone Off At 10pm", description: "Hard cutoff for all screens — protects sleep and signals end-of-day to the brain.", timeOfDay: "night" },
+    { name: "Wake Up Same Time Daily", description: "Set your alarm for the same time every single day, including weekends. Your body loves routine — after about a week you'll start waking up naturally and feel more energetic all day.", timeOfDay: "morning" },
+    { name: "No Snooze Button", description: "The instant your alarm goes off, sit up and put your feet on the floor. Skipping the snooze button is a small daily win that trains your brain to follow through on other things too.", timeOfDay: "morning" },
+    { name: "Do Hardest Task First", description: "Whatever task you're dreading most today, do it before lunch. Your willpower is strongest in the morning, and getting the hard thing done first makes the rest of the day feel easy.", timeOfDay: "day" },
+    { name: "Phone Off At 10pm", description: "Put your phone on Do Not Disturb (or in another room) by 10pm every night. This one boundary protects your sleep AND makes tomorrow morning way better.", timeOfDay: "night" },
   ],
   mindfulness: [
-    { name: "4-7-8 Breath Reset", description: "Four cycles of 4-second inhale, 7-second hold, 8-second exhale to drop cortisol on waking.", timeOfDay: "morning" },
-    { name: "Single-Task Mindful Meal", description: "Eat one meal a day with no phone, no screen — pure attention on taste and chewing.", timeOfDay: "day" },
-    { name: "Two-Minute Mind Sweep", description: "Sit quietly for 2 minutes and label any rising thought as 'thinking' — trains attention reset.", timeOfDay: "evening" },
-    { name: "Gratitude Three Lines", description: "Write three specific things from today you are grateful for to wire positive recall.", timeOfDay: "night" },
+    { name: "Slow Breathing Reset", description: "Do 4 slow breaths: inhale for 4 seconds, hold for 7, breathe out for 8. Repeat 4 times. This calms your body down instantly and works better than a coffee for shaking off morning grogginess.", timeOfDay: "morning" },
+    { name: "One Meal Without Phone", description: "Eat one full meal today with no phone, no TV, no laptop — just your food. You'll actually taste it and feel full sooner. This is one of the easiest ways to feel more present in your day.", timeOfDay: "day" },
+    { name: "2-Minute Sit Still", description: "Sit still for 2 minutes with your eyes closed. When a thought comes up, just notice it and let it pass — don't try to stop thinking. It's not about emptying your mind, just resting it for a moment.", timeOfDay: "evening" },
+    { name: "Three Gratitudes", description: "Write down 3 specific things from today you're thankful for — the small stuff counts (a good coffee, a laugh with a friend). Doing this daily actually rewires your brain to notice good things more.", timeOfDay: "night" },
   ],
   exam: [
-    { name: "Review Yesterday's Mistakes", description: "Spend 15 minutes re-solving any problems you got wrong yesterday — the highest leverage study minutes you own.", timeOfDay: "morning" },
-    { name: "Subject Rotation Block", description: "90 minutes of deep focus on one subject; rotate the subject daily to keep all topics warm.", timeOfDay: "day" },
-    { name: "Active Recall Flashcards", description: "20 minutes of self-tested flashcards on this week's concepts — beats re-reading every time.", timeOfDay: "evening" },
-    { name: "Mock Question Set", description: "Solve 5 timed exam-style questions and mark them honestly to track real readiness.", timeOfDay: "night" },
+    { name: "Review Yesterday's Mistakes", description: "Spend 15 minutes redoing any questions you got wrong yesterday. This is the fastest way to actually learn from mistakes instead of repeating them on the real exam.", timeOfDay: "morning" },
+    { name: "Focused Study Session", description: "Study one subject for 90 minutes with your phone off. Pick a different subject each day so all of them stay fresh in your mind before the exam.", timeOfDay: "day" },
+    { name: "Test Yourself with Flashcards", description: "Use flashcards (paper or an app like Anki/Quizlet) for 20 minutes on this week's topics. Testing yourself is proven to work better than just re-reading your notes.", timeOfDay: "evening" },
+    { name: "5 Timed Practice Questions", description: "Solve 5 exam-style questions with a timer running, then honestly mark them. This shows you exactly how ready you are and what to study more tomorrow.", timeOfDay: "night" },
   ],
   language: [
-    { name: "15-Minute Vocab Drill", description: "Spaced-repetition flashcards for new words — short, daily, and ruthlessly consistent beats long weekend sessions.", timeOfDay: "morning" },
-    { name: "Listen Native Audio", description: "20 minutes of podcasts, music, or shows in the target language during commute or chores — passive immersion.", timeOfDay: "day" },
-    { name: "Speak Out Loud", description: "Talk to yourself in the target language for 5 minutes — narrate what you're doing to build fluency reflex.", timeOfDay: "evening" },
-    { name: "Journal Three Sentences", description: "Write three sentences about your day in the target language to lock in active grammar use.", timeOfDay: "night" },
+    { name: "15-Minute Vocab Practice", description: "Spend 15 minutes practicing new words using a free app like Duolingo, Anki, or Quizlet. Short daily practice works way better than long study sessions once a week.", timeOfDay: "morning" },
+    { name: "Listen to the Language", description: "Play 20 minutes of podcasts, music, or a show in the language you're learning — during your commute, while cooking, or on a walk. Your ear gets used to the sounds without any extra effort.", timeOfDay: "day" },
+    { name: "Speak Out Loud", description: "Talk to yourself in the language for 5 minutes — describe what you're doing right now, even if you make mistakes. This builds the muscle memory to speak without freezing up in real conversations.", timeOfDay: "evening" },
+    { name: "Write 3 Sentences", description: "Before bed, write 3 sentences about your day in the language you're learning. Even simple ones like 'I ate pasta today' count. This locks in the grammar you learned during the day.", timeOfDay: "night" },
   ],
   music: [
-    { name: "Technique Warm-Up", description: "10 minutes of scales, chords, or finger exercises before any song work — the boring reps make everything else easier.", timeOfDay: "morning" },
-    { name: "Focused Practice Block", description: "25 minutes on ONE difficult passage at slow tempo with a metronome — repetition with correction beats playing through.", timeOfDay: "day" },
-    { name: "Learn New Section", description: "Add 8-16 bars of new material to your current piece — small daily additions compound into a full repertoire.", timeOfDay: "evening" },
-    { name: "Record And Listen", description: "Record one minute of yourself playing and listen back — your ears catch things your hands cannot.", timeOfDay: "night" },
+    { name: "10-Minute Warm-Up", description: "Before playing any songs, spend 10 minutes on scales, chords, or finger exercises. It might feel boring, but this is what makes the songs you actually want to play feel easier week after week.", timeOfDay: "morning" },
+    { name: "Slow Practice One Part", description: "Pick ONE tricky part of a song and play it slowly for 25 minutes with a metronome. Playing slowly and correctly is what actually makes you faster — practicing fast just cements your mistakes.", timeOfDay: "day" },
+    { name: "Learn a New Section", description: "Add just 8-16 bars of new music to whatever song you're working on. Small daily bits add up — in a month you'll have learned a whole new piece without it feeling hard.", timeOfDay: "evening" },
+    { name: "Record and Listen Back", description: "Record 1 minute of yourself playing on your phone, then listen back. You'll hear mistakes you couldn't notice while playing — this is the fastest way to actually improve.", timeOfDay: "night" },
   ],
   writing: [
-    { name: "Morning Pages Draft", description: "Write 500 words first thing, no editing — clears mental noise and builds the writing muscle through volume.", timeOfDay: "morning" },
-    { name: "Single Project Block", description: "45 minutes on one writing project with no tabs or research — production now, polish later.", timeOfDay: "day" },
-    { name: "Edit Yesterday's Work", description: "Spend 15 minutes editing what you wrote yesterday — fresh eyes catch what tired ones miss.", timeOfDay: "evening" },
-    { name: "Read One Great Author", description: "20 minutes of high-quality reading in your genre to absorb sentence rhythm and structure.", timeOfDay: "night" },
+    { name: "500 Words First Thing", description: "Write 500 words in the morning before doing anything else — don't edit, don't judge, just write. It clears the mental noise and builds your writing muscle. This should take 15-25 minutes.", timeOfDay: "morning" },
+    { name: "One Project, 45 Minutes", description: "Work on ONE writing project for 45 minutes with your browser tabs closed. No research, no editing — just get words on the page. You can polish later.", timeOfDay: "day" },
+    { name: "Edit Yesterday's Words", description: "Spend 15 minutes editing what you wrote yesterday. Fresh eyes catch problems that tired eyes miss the day before — this is how good writing actually gets made.", timeOfDay: "evening" },
+    { name: "Read a Great Writer", description: "Read 20 minutes of a book in the genre you're writing. Great writing rubs off on you without you having to think about it — you'll start writing better sentences almost automatically.", timeOfDay: "night" },
   ],
   money: [
-    { name: "Net Worth Glance", description: "Quick 2-minute check of accounts and balances to keep money awareness high without obsession.", timeOfDay: "morning" },
-    { name: "Log Today's Spending", description: "Record every purchase as it happens — the act of writing it down curbs impulse spending naturally.", timeOfDay: "day" },
-    { name: "Plan Tomorrow's Expenses", description: "Decide what you'll spend on tomorrow before bed so the day starts with intent, not reaction.", timeOfDay: "evening" },
-    { name: "Weekly Save Transfer", description: "Move a fixed amount to savings the same day each week — automate the decision out of willpower.", timeOfDay: "night" },
+    { name: "Check Your Accounts", description: "Take 2 minutes to look at your bank and credit card balances. Not to worry — just to know. This tiny daily habit stops the panic of surprise bills and keeps you in control.", timeOfDay: "morning" },
+    { name: "Log Every Purchase", description: "Every time you spend money today, write it down (in a notes app or a free app like Wallet/Mint). Just seeing where your money goes each day naturally cuts wasteful spending in half.", timeOfDay: "day" },
+    { name: "Plan Tomorrow's Spending", description: "Before bed, decide what you'll spend on tomorrow: groceries, coffee, transport. Planning it means you spend on things you actually want, not random impulse buys.", timeOfDay: "evening" },
+    { name: "Weekly Save Transfer", description: "Once a week on the same day, move a set amount of money from your checking into savings — even ₹500 or $10 counts. Doing it automatically means you actually save, instead of waiting for 'leftover' money.", timeOfDay: "night" },
   ],
   creative: [
-    { name: "Idea Capture Sketch", description: "Three rough sketches or concepts in a notebook — quantity beats quality at the idea stage.", timeOfDay: "morning" },
-    { name: "Studio Time Block", description: "60 minutes of hands-on creation with phone face-down — uninterrupted making is where breakthroughs happen.", timeOfDay: "day" },
-    { name: "Show Your Work", description: "Post or share one piece of work-in-progress — public commitment forces consistent output.", timeOfDay: "evening" },
-    { name: "Study A Master", description: "Spend 15 minutes analysing one piece by an artist you admire — break down what makes it work.", timeOfDay: "night" },
+    { name: "3 Quick Idea Sketches", description: "In a notebook, make 3 rough sketches or write down 3 ideas — they can be terrible! At the idea stage, quantity beats quality. Most great ideas come from cranking out lots of bad ones first.", timeOfDay: "morning" },
+    { name: "60 Minutes of Making", description: "Spend 60 uninterrupted minutes actually creating your thing — drawing, editing, building. Phone face-down, no email. Big breakthroughs almost always come from single sessions like this.", timeOfDay: "day" },
+    { name: "Share Your Work", description: "Post or share one piece of what you made today — even if it's rough. Showing your work publicly is scary but it's the single fastest way to grow and get honest feedback.", timeOfDay: "evening" },
+    { name: "Study Someone You Admire", description: "Spend 15 minutes looking closely at one piece of work by an artist or creator you look up to. Ask yourself: what makes this good? You'll start doing the same things in your own work.", timeOfDay: "night" },
   ],
   sleep: [
-    { name: "Same-Time Wake Up", description: "Wake at the same time every day to anchor your circadian rhythm — the foundation of every other sleep fix.", timeOfDay: "morning" },
-    { name: "Sunlight Within 30 Minutes", description: "Get 5 minutes of outdoor light early — the strongest natural signal to set your internal clock.", timeOfDay: "morning" },
-    { name: "Caffeine Cutoff At 2pm", description: "No caffeine after 2pm — half-life of 6 hours means your evening coffee is still active at bedtime.", timeOfDay: "day" },
-    { name: "Screen-Free Wind Down", description: "30 minutes off all screens before bed to let melatonin rise and signal sleep onset.", timeOfDay: "night" },
+    { name: "Wake Up Same Time Daily", description: "Wake up at the exact same time every day, including weekends. Your body clock loves routine — this one habit is the foundation of every other sleep improvement.", timeOfDay: "morning" },
+    { name: "Get Morning Sunlight", description: "Within 30 minutes of waking, step outside for 5 minutes of natural daylight — even on a cloudy day. Sunlight in the morning is the strongest signal to reset your body clock, and helps you sleep better tonight.", timeOfDay: "morning" },
+    { name: "No Caffeine After 2pm", description: "Skip coffee, tea, energy drinks, and cola after 2pm. Caffeine stays in your body for about 6 hours, so an afternoon coffee is still keeping you awake at bedtime, even if you don't notice.", timeOfDay: "day" },
+    { name: "Screens Off Before Bed", description: "Turn off phones, laptops, and TVs 30 minutes before bed. The blue light from screens tricks your brain into staying alert. Reading a book or stretching instead makes falling asleep way easier.", timeOfDay: "night" },
   ],
 };
 
@@ -170,10 +170,10 @@ function actionForTopic(topic: string, slot: "morning" | "day" | "evening" | "ni
   // Quit/avoid goals
   if (/smok|drink|sugar|alcohol|caffeine|junk|porn|gambl/i.test(lower)) {
     const map = {
-      morning: { name: `Morning ${t} Check-In`, desc: `Note your craving level for ${lower} on a 1-10 scale before the day starts — awareness is what makes the urge surfable, not unstoppable.` },
-      day: { name: `Replace ${t} Urge`, desc: `When the urge to ${lower} hits, do 10 push-ups, take a walk, or drink water instead — break the loop with a physical pattern interrupt.` },
-      evening: { name: `Log Trigger Moments`, desc: `Write down each time you wanted to ${lower} today and what triggered it — patterns become obvious within a week.` },
-      night: { name: `Win Streak Tally`, desc: `Mark today's date on a visible calendar if you avoided ${lower} — the chain of marks becomes its own motivation.` },
+      morning: { name: `Morning ${t} Check-In`, desc: `Before the day starts, rate how much you're craving ${lower} on a scale of 1 to 10. Noticing the craving is the first step to controlling it — cravings feel weaker once you name them.` },
+      day: { name: `Replace ${t} Urge`, desc: `When the urge to ${lower} hits, do something physical instead — 10 push-ups, a quick walk, or a big glass of water. Interrupting the pattern with movement makes the urge pass in about 5 minutes.` },
+      evening: { name: `Log What Triggered You`, desc: `Write down each time today you wanted to ${lower} and what was happening (stress? boredom? a specific place?). After a week you'll clearly see your personal triggers and can plan around them.` },
+      night: { name: `Mark Today as a Win`, desc: `If you avoided ${lower} today, put an X on today's date on a calendar you can see every day. Watching the chain of X's grow becomes surprisingly motivating on its own.` },
     };
     return map[slot];
   }
@@ -181,10 +181,10 @@ function actionForTopic(topic: string, slot: "morning" | "day" | "evening" | "ni
   // Language goals
   if (SUBJECT_HINTS.has(lower) && /spanish|french|german|japanese|chinese|korean|italian|portuguese|hindi|arabic|english|russian/i.test(lower)) {
     const map = {
-      morning: { name: `Morning ${t} Vocab`, desc: `15 minutes of ${t} flashcards or spaced-repetition before checking your phone — early-day memory is your sharpest.` },
-      day: { name: `${t} Listening Block`, desc: `20 minutes of ${t} podcasts, music, or video during commute or chores — passive immersion compounds quickly.` },
-      evening: { name: `Speak ${t} Out Loud`, desc: `Talk to yourself in ${t} for 5 minutes — narrate what you're doing to build fluency reflexes.` },
-      night: { name: `${t} Three Sentences`, desc: `Write three sentences in ${t} about your day to lock in active grammar use before bed.` },
+      morning: { name: `Morning ${t} Vocab`, desc: `Spend 15 minutes practicing ${t} words using a free app like Duolingo, Anki, or Quizlet. Doing it before checking your phone means you actually do it — your memory is also sharpest in the morning.` },
+      day: { name: `${t} Listening Block`, desc: `Play 20 minutes of ${t} podcasts, music, or a show during your commute or while doing chores. Your ear naturally learns the sounds and rhythm of ${t} without any extra effort.` },
+      evening: { name: `Speak ${t} Out Loud`, desc: `Talk to yourself in ${t} for 5 minutes — describe what you're doing, even simple things like "I am making dinner". This builds the confidence to actually speak with a real person.` },
+      night: { name: `${t} Three Sentences`, desc: `Before bed, write 3 sentences in ${t} about your day. They can be very simple — the point is to actively use the grammar you learned, which makes it stick way better than just reading.` },
     };
     return map[slot];
   }
@@ -192,10 +192,10 @@ function actionForTopic(topic: string, slot: "morning" | "day" | "evening" | "ni
   // Instrument / music
   if (/guitar|piano|violin|drums|bass|cello|saxophone|flute/i.test(lower)) {
     const map = {
-      morning: { name: `${t} Warm-Up`, desc: `10 minutes of scales, chords, or finger exercises on ${t} — the boring reps make everything else easier.` },
-      day: { name: `${t} Focused Practice`, desc: `25 minutes on ONE difficult passage at slow tempo with a metronome — repetition with correction beats playing through.` },
-      evening: { name: `${t} Learn New Section`, desc: `Add 8-16 bars of new material to your current piece on ${t} — small daily additions become full repertoire.` },
-      night: { name: `${t} Record & Listen`, desc: `Record one minute of yourself playing ${t} and listen back — your ears catch things your hands cannot.` },
+      morning: { name: `${t} Warm-Up`, desc: `Spend 10 minutes on ${t} basics — scales, chord shapes, or finger exercises. It might feel boring, but these small drills are what make the songs you actually want to play feel easier.` },
+      day: { name: `${t} Slow Practice`, desc: `Pick ONE tricky part of a song and play it slowly on ${t} for 25 minutes, using a free metronome app to keep time. Playing slowly and correctly is what makes you faster later.` },
+      evening: { name: `Learn New Section`, desc: `Add just 8-16 new bars of music to whatever song you're learning on ${t}. Tiny daily additions add up — in a month you'll have learned a whole new song without it feeling hard.` },
+      night: { name: `Record and Listen`, desc: `Record 1 minute of yourself playing ${t} on your phone, then listen back. You'll hear mistakes you couldn't notice while playing — this is the fastest way to actually improve.` },
     };
     return map[slot];
   }
@@ -203,20 +203,20 @@ function actionForTopic(topic: string, slot: "morning" | "day" | "evening" | "ni
   // Sport / running / fitness specific subjects
   if (/marathon|triathlon|5k|10k|running|cycling|swimming|climbing|hiking|yoga|pilates|boxing/i.test(lower)) {
     const map = {
-      morning: { name: `${t} Training Session`, desc: `Today's prescribed ${t} workout — protect the time, dial in the warm-up, and execute the plan.` },
-      day: { name: `${t} Fuel Check`, desc: `Hit your hydration and calorie target to support ${t} performance — under-fuelling kills progress faster than under-training.` },
-      evening: { name: `${t} Mobility Work`, desc: `15 minutes of mobility or stretching tied to ${t} demands — prevents the injuries that derail training cycles.` },
-      night: { name: `${t} Log Today`, desc: `Record distance, time, effort, and how you felt — the log is what turns workouts into a trajectory.` },
+      morning: { name: `${t} Training Session`, desc: `Do today's scheduled ${t} workout — even if you don't feel like it. Warm up first, then follow your plan. Consistency matters far more than any single perfect session.` },
+      day: { name: `Fuel Your Body`, desc: `Drink enough water and eat enough calories to support your ${t} training. Under-eating actually stops your progress faster than skipping a workout would — your body needs fuel to get stronger.` },
+      evening: { name: `Stretch and Recover`, desc: `Spend 15 minutes stretching the muscles you used for ${t} today. This is what prevents the injuries that force people to stop training for weeks at a time.` },
+      night: { name: `Log Today's Workout`, desc: `Write down what you did today: distance or time, how hard it felt, how you felt after. Tracking is what turns random workouts into real progress you can actually see.` },
     };
     return map[slot];
   }
 
   // Default goal-aware verbs
   const map = {
-    morning: { name: `Morning ${t} Focus`, desc: `Spend 15 minutes on ${t} first thing — early-day focus is your highest-quality cognitive time and locks the priority in before distractions arrive.` },
-    day: { name: `Deep ${t} Block`, desc: `One uninterrupted 45-minute session on ${t} — phone in another room, single task, real progress measured by output not time.` },
-    evening: { name: `${t} Progress Note`, desc: `Write three sentences about what you moved forward on ${t} today — naming progress is what makes it stick.` },
-    night: { name: `Plan Tomorrow's ${t}`, desc: `Before bed, decide the one specific ${t} action you'll take tomorrow morning — eliminates start-up friction at the moment of weakest willpower.` },
+    morning: { name: `Morning ${t} Focus`, desc: `Spend 15 minutes on ${t} first thing in the morning — before checking messages or social media. Your brain is at its sharpest early on, and this locks in your top priority before distractions take over.` },
+    day: { name: `${t} Work Session`, desc: `Set aside 45 minutes to work only on ${t} — phone in another room, one task at a time. A single focused session like this gets more done than a whole day of jumping between things.` },
+    evening: { name: `${t} Progress Note`, desc: `Write 3 sentences about what you moved forward on ${t} today. Naming your progress out loud is what makes it feel real and keeps you motivated to keep going tomorrow.` },
+    night: { name: `Plan Tomorrow's ${t} Step`, desc: `Before bed, decide the one specific ${t} action you'll do tomorrow morning. Knowing exactly what to do first thing removes the mental effort of deciding when you're groggy.` },
   };
   return map[slot];
 }
@@ -400,12 +400,24 @@ Goals (1-3): ${goals.map(g => `"${g}"`).join(", ")}${variationNote}
 REQUIREMENTS:
 - Generate 4 to 6 habits TOTAL across the day, directly tied to the user's specific goals.
 - Each habit name: maximum 5 words, action-oriented, specific to the goal (NOT generic like "Morning Sunlight Walk", "Read 10 Pages" unless reading is the goal).
-- Each habit description: 1-2 sentences (15-35 words), explaining the mechanism and why it advances THIS user's goal.
+- Each habit description MUST be written for a total beginner. 2-3 sentences (25-55 words). It must:
+    * Say EXACTLY what to do (concrete steps a first-timer can follow)
+    * Say HOW LONG it takes (e.g. "just 10 minutes")
+    * Say WHY it helps in plain everyday language
+    * NEVER use jargon words like "pomodoro", "spaced repetition", "circadian rhythm", "compound lifts", "trigger pairing", "MAD", "anchor", "cue stacking", "dopamine", "REM", "deep work" without immediately explaining them in simple words (e.g. instead of "pomodoro" say "a 25-minute focused work block").
+    * NEVER assume the reader already knows fitness / productivity / study terminology.
+    * Avoid buzzwords ("compound", "leverage", "high-quality cognitive time", "output not time", "ignition") — use everyday phrases a 12-year-old would understand.
 - Spread habits across morning / day / evening / night so the user has structure, but only include a time slot if it makes sense for the goal.
 - NEVER include filler habits ("drink water", "meditate", "journal") unless the user's goal explicitly demands them.
 - NEVER repeat the same habit theme.
 - Habits must be reasonable for a normal busy person — no 5am ice baths, no 2-hour blocks.
 - If the user has a CUSTOM goal (anything not in the preset list), the habits must reference that goal's actual topic — e.g. "Learn Spanish" → habits with vocab, listening, speaking, not generic "deep work".
+
+GOOD description example (beginner friendly):
+  "Spend 15 minutes reviewing new Spanish words using a flashcards app like Anki or Quizlet. Doing this before you check your phone in the morning helps the words stick in your memory much better than trying to cram before bed."
+
+BAD description example (too jargon-heavy):
+  "15-minute spaced-repetition vocab drill before dopamine hits — anchors morning-cognition to language acquisition."
 
 Return STRICT JSON, no commentary, no markdown fences:
 {

@@ -69,6 +69,15 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Reserve the vertical scrollbar gutter at all times so page-to-page
+   navigation never shifts content left/right when the content height
+   changes and the scrollbar appears/disappears. Fixes the "shaking"
+   users reported when switching tabs. */
+html {
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
 /* Median.co WebView Native Application Optimization Rules */
 div, span, p, h1, h2, h3, h4, h5, h6, button, a, img, svg, aside, nav, header, footer, section, table, td, tr, li, ul {
   -webkit-touch-callout: none !important;
