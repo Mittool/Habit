@@ -2,43 +2,28 @@
 import React from "react";
 
 /**
- * Trac logo animation — line-drawing effect.
- *
- * The logo is a stylised "T" made of two rounded strokes:
- *   1. A long "P-like" path: enter top-left → across the top bar →
- *      curve around the rounded right end → back left along the
- *      pill's underside → descend as the vertical stem.
- *   2. A short inner horizontal stroke that forms the T's left arm.
- *
- * Both paths animate via SVG stroke-dashoffset so they appear to be
- * traced out by an invisible pen. Keyframes live in globals.css so this
- * works in the Next.js App Router without any styling library.
- *
- * Used in place of every "Loading..." / "Redirecting..." spinner.
+ * Clean dual-ring loading spinner. Two concentric SVG circles rotate
+ * in opposite directions with staggered arc lengths for visual interest.
+ * Colors use the current theme's accent variable.
  */
 export default function LogoAnimation({
-  size = 96,
+  size = 64,
   color = "var(--accent)",
-  strokeWidth = 6.5,
-  loop = true,
-  durationMs = 1400,
+  strokeWidth = 3,
 }: {
   size?: number;
   color?: string;
   strokeWidth?: number;
+  /** kept for API compat with earlier callers — no-op */
   loop?: boolean;
+  /** kept for API compat with earlier callers — no-op */
   durationMs?: number;
 }) {
-  const iterationCount = loop ? "infinite" : "1";
-  const durationSec = `${(durationMs / 1000).toFixed(2)}s`;
-  const commonAnimStyle: React.CSSProperties = {
-    strokeDasharray: 100,
-    strokeDashoffset: 100,
-    animationDuration: durationSec,
-    animationIterationCount: iterationCount as any,
-    animationTimingFunction: "cubic-bezier(0.65, 0, 0.35, 1)",
-    animationFillMode: "both",
-  };
+  const half = size / 2;
+  const outerR = half - strokeWidth;
+  const innerR = outerR - strokeWidth * 2.2;
+  const outerCirc = 2 * Math.PI * outerR;
+  const innerCirc = 2 * Math.PI * innerR;
 
   return (
     <div
@@ -52,36 +37,44 @@ export default function LogoAnimation({
       aria-label="Loading"
       role="status"
     >
-      <svg
-        viewBox="0 0 100 100"
-        width={size}
-        height={size}
-        fill="none"
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ overflow: "visible" }}
-      >
-        {/*
-          Main stroke — one continuous path traced in a single motion:
-            start at top-left of the pill → across the top → arc around
-            the rounded right end → back along the underside to the
-            centre → drop straight down as the vertical stem.
-        */}
-        <path
-          pathLength={100}
-          style={{ ...commonAnimStyle, animationName: "tracLogoDrawMain" }}
-          d="M 22 32 L 74 32 Q 84 32 84 42 Q 84 52 74 52 L 50 52 L 50 84"
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: "visible" }}>
+        <circle
+          cx={half}
+          cy={half}
+          r={outerR}
+          fill="none"
+          stroke={color}
+          strokeOpacity={0.18}
+          strokeWidth={strokeWidth}
         />
-        {/*
-          Inner T crossbar — sits inside the pill; its right end just
-          meets the stem so together they read as a T.
-        */}
-        <path
-          pathLength={100}
-          style={{ ...commonAnimStyle, animationName: "tracLogoDrawArm" }}
-          d="M 28 42 L 50 42"
+        <circle
+          cx={half}
+          cy={half}
+          r={outerR}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={`${outerCirc * 0.28} ${outerCirc}`}
+          style={{
+            transformOrigin: "center",
+            animation: "tracSpinnerOuter 1.1s linear infinite",
+          }}
+        />
+        <circle
+          cx={half}
+          cy={half}
+          r={innerR}
+          fill="none"
+          stroke={color}
+          strokeOpacity={0.5}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={`${innerCirc * 0.55} ${innerCirc}`}
+          style={{
+            transformOrigin: "center",
+            animation: "tracSpinnerInner 1.4s cubic-bezier(0.6, 0, 0.4, 1) infinite reverse",
+          }}
         />
       </svg>
     </div>
@@ -89,9 +82,8 @@ export default function LogoAnimation({
 }
 
 /**
- * Full-viewport version — replaces every "Loading..." / "Redirecting..."
- * splash across the app. Uses the app-shell background so route
- * transitions do not flash a different colour.
+ * Full-viewport spinner used for hydration / auth-restore / redirect states.
+ * Uses the app-shell background so route transitions do not colour-flash.
  */
 export function LogoLoadingScreen() {
   return (
@@ -104,7 +96,7 @@ export function LogoLoadingScreen() {
         backgroundColor: "var(--bg-primary)",
       }}
     >
-      <LogoAnimation size={96} />
+      <LogoAnimation size={64} />
     </div>
   );
 }

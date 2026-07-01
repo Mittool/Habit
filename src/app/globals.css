@@ -328,21 +328,17 @@ input:focus, textarea:focus, select:focus {
   animation: skeletonPulse 1.4s ease-in-out infinite;
 }
 
-/* Trac logo line-drawing animation.
-   The path is authored with pathLength=100 so 0 → 100 is "empty → full",
-   then 0 → -100 fades the drawn line back out for a clean loop. */
-@keyframes tracLogoDrawMain {
-  0%   { stroke-dashoffset: 100; }
-  55%  { stroke-dashoffset: 0; }
-  85%  { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: -100; }
+/* Trac dual-ring loading spinner keyframes. Outer ring spins clockwise
+   quickly; inner ring rotates the other way at a different tempo for a
+   subtle interlocking feel. Both respect prefers-reduced-motion via the
+   global override below. */
+@keyframes tracSpinnerOuter {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
-@keyframes tracLogoDrawArm {
-  0%   { stroke-dashoffset: 100; opacity: 0; }
-  25%  { stroke-dashoffset: 100; opacity: 0; }
-  50%  { stroke-dashoffset: 0; opacity: 1; }
-  85%  { stroke-dashoffset: 0; opacity: 1; }
-  100% { stroke-dashoffset: -100; opacity: 0; }
+@keyframes tracSpinnerInner {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {

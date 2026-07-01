@@ -13,10 +13,18 @@ import { initMobilePushScheduler } from "@/lib/pwa";
 import { setupWebViewNavigationBridge, pushHistoryEntry } from "@/lib/median-webview";
 import { refreshAllReminders, scheduleMidnightRefresh } from "@/lib/scheduler";
 import { LogoLoadingScreen } from "@/components/LogoAnimation";
+import { supabase } from "@/lib/supabase";
+import { restoreFromCloudDatabase } from "@/lib/cloud";
 
 export default function MainApp() {
   const { isAuthenticated, onboardingDone, habits, todos } = useAppStore();
   const router = useRouter();
+  // Waits for BOTH Zustand persist to hydrate AND for the async Supabase
+  // session restore to finish. Without this gate we redirect off "/" before
+  // restoreFromCloudDatabase has had a chance to flip isAuthenticated true,
+  // which caused users to see a permanent "Redirecting..." loop between
+  // /auth and / on cold start.
+  const [authRestored, setAuthRestored] = useState(false);
 
   // Navigation stack. Home is always the root. Every user navigation pushes
   // onto the stack; the hardware back button pops one entry. When the stack
@@ -66,14 +74,37 @@ export default function MainApp() {
     return unsubFinishHydration;
   }, []);
 
+  // Wait for Supabase to tell us whether a session exists before redirecting.
+  // We call restoreFromCloudDatabase here (it will noop if no session) and
+  // only after it returns do we consider the auth state authoritative.
   useEffect(() => {
     if (!hydrated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // If supabase isn't configured, skip straight to whatever the store says
+        if (supabase) {
+          await restoreFromCloudDatabase();
+        }
+      } catch (err) {
+        console.error("[MainApp] auth restore failed:", err);
+      } finally {
+        if (!cancelled) setAuthRestored(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [hydrated]);
+
+  // Redirect only AFTER the auth restore has finished. This is what fixes
+  // the "stuck on Redirecting" loop.
+  useEffect(() => {
+    if (!hydrated || !authRestored) return;
     if (!isAuthenticated) {
       router.replace("/auth");
     } else if (!onboardingDone) {
       router.replace("/onboarding");
     }
-  }, [hydrated, isAuthenticated, onboardingDone, router]);
+  }, [hydrated, authRestored, isAuthenticated, onboardingDone, router]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -101,11 +132,13 @@ export default function MainApp() {
     return setupWebViewNavigationBridge(goBack);
   }, [hydrated, goBack]);
 
-  if (!hydrated) {
+  if (!hydrated || !authRestored) {
     return <LogoLoadingScreen />;
   }
 
   if (!isAuthenticated || !onboardingDone) {
+    // Redirect effect above has already fired router.replace — show the
+    // spinner until the navigation completes.
     return <LogoLoadingScreen />;
   }
 
