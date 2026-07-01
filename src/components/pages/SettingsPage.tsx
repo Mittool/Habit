@@ -58,7 +58,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
   );
 }
 
-export default function SettingsPage() {
+export default function SettingsPage({ onNavigate }: { onNavigate?: (page: string) => void } = {}) {
   const {
     user,
     theme,
@@ -197,6 +197,19 @@ export default function SettingsPage() {
             Enable Device System Notification Permission
           </button>
         )}
+
+        {/* Open full Push Notifications & Diagnostics screen */}
+        <button
+          onClick={() => onNavigate?.("notifications")}
+          className="btn-secondary cursor-pointer"
+          style={{ width: "100%", marginTop: "10px", fontSize: "12.5px", padding: "10px", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Bell size={14} />
+            Push Notifications & Diagnostics
+          </span>
+          <span style={{ fontSize: "16px", color: "var(--text-muted)" }}>›</span>
+        </button>
       </div>
 
       {/* Themes */}
