@@ -33,16 +33,21 @@ Go to https://dashboard.onesignal.com → your app → **Settings → Platforms*
 | `REST API Key` | **server only** — env var `ONESIGNAL_REST_API_KEY` | **SECRET** |
 
 Add the REST API Key to:
-- Local: `.env.local`
-- Production: your hosting provider (Vercel → Settings → Environment Variables)
+- **Local dev:** `.env.local` (already added — file is gitignored, will not leak)
+- **Production host:** Vercel → Settings → Environment Variables → add both `ONESIGNAL_APP_ID` and `ONESIGNAL_REST_API_KEY` → redeploy
 
 ```bash
-# .env.local
+# .env.local  (already configured in this repo — DO NOT commit)
 ONESIGNAL_APP_ID=ad5bb9f0-fe63-460c-8a8d-cf5331800d5c
-ONESIGNAL_REST_API_KEY=<paste the REST API Key from OneSignal here>
+ONESIGNAL_REST_API_KEY=os_v2_app_...   # paste from dashboard
 ```
 
-Without this key, `/api/notifications` returns local-only stub IDs and no real push is sent.
+Verified with a live call to `https://api.onesignal.com/notifications`:
+- Schedule endpoint returns 200 + `{ id: "<uuid>", external_id: null }`
+- Cancel endpoint returns 200 + `{ success: true }`
+
+Without this key set, `/api/notifications` returns local-only stub IDs
+and no real push is sent — the app still works offline.
 
 ---
 

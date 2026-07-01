@@ -75,7 +75,8 @@ export async function POST(req: NextRequest) {
       target_channel: "push",
       headings: { en: title },
       contents: { en: msgBody },
-      send_after: new Date(sendAt).toUTCString(),
+      // OneSignal accepts ISO8601 with timezone offset; more reliable than RFC 2822
+      send_after: new Date(sendAt).toISOString(),
       // OneSignal collapses same-id notifications so we never stack duplicates:
       android_group: `trac-${targetType}-${targetId}`,
       collapse_id: `trac-${targetType}-${targetId}`,
@@ -98,9 +99,20 @@ export async function POST(req: NextRequest) {
         console.error("[OneSignal] schedule failed:", res.status, data);
         return NextResponse.json({ error: "onesignal-error", detail: data }, { status: 502 });
       }
+      // If no device is currently subscribed for this external_id, OneSignal
+      // returns { id: "", recipients: 0 } with no `errors`. That's not a
+      // failure — it just means the reminder can't be delivered right now.
+      // Return a synthetic id so the caller can still store & later cancel it
+      // without pounding OneSignal's DELETE endpoint with empty strings.
+      const rawId: string = typeof data.id === "string" ? data.id : "";
+      const recipients: number = typeof data.recipients === "number" ? data.recipients : 0;
+      const notificationId = rawId.length > 0
+        ? rawId
+        : `pending-${targetType}-${targetId}-${Date.now()}`;
       return NextResponse.json({
-        notificationId: data.id ?? null,
-        recipients: data.recipients ?? 0,
+        notificationId,
+        recipients,
+        pending: rawId.length === 0,
       });
     } catch (err: any) {
       console.error("[OneSignal] schedule exception:", err);
@@ -113,9 +125,10 @@ export async function POST(req: NextRequest) {
     const { notificationId } = body as { notificationId: string };
     if (!notificationId) return NextResponse.json({ ok: true, skipped: "no-id" });
 
-    // Local-only IDs (dev fallback) — nothing to cancel remotely.
-    if (notificationId.startsWith("local-")) {
-      return NextResponse.json({ ok: true, skipped: "local-id" });
+    // Local-only IDs (dev fallback) OR pending IDs (no subscribers at schedule
+    // time) — nothing to cancel remotely.
+    if (notificationId.startsWith("local-") || notificationId.startsWith("pending-")) {
+      return NextResponse.json({ ok: true, skipped: "synthetic-id" });
     }
 
     if (!haveOneSignalKey()) {
