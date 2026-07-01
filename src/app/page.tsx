@@ -10,7 +10,7 @@ import FocusPage from "@/components/pages/FocusPage";
 import InsightsPage from "@/components/pages/InsightsPage";
 import SettingsPage from "@/components/pages/SettingsPage";
 import { initMobilePushScheduler } from "@/lib/pwa";
-import { setupWebViewNavigationBridge } from "@/lib/median-webview";
+import { setupWebViewNavigationBridge, pushHistoryEntry } from "@/lib/median-webview";
 import { refreshAllReminders, scheduleMidnightRefresh } from "@/lib/scheduler";
 
 export default function MainApp() {
@@ -32,7 +32,12 @@ export default function MainApp() {
       // build up a taller and taller stack).
       const existing = stack.indexOf(page);
       if (existing >= 0) return stack.slice(0, existing + 1);
-      return [...stack, page];
+      const next = [...stack, page];
+      // Mirror the SPA push into browser history so the hardware back
+      // button (which the webview interprets as "history.back()") fires
+      // popstate → our onBack handler.
+      pushHistoryEntry(page);
+      return next;
     });
   }, []);
 
