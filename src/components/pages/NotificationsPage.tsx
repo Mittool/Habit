@@ -157,10 +157,18 @@ export default function NotificationsPage() {
             </div>
           </div>
 
-          <div style={{ padding: "6px 12px", borderRadius: "9999px", backgroundColor: permissionStatus === "granted" ? "#D1FAE5" : "#FEF3C7", color: permissionStatus === "granted" ? "#0D9488" : "#D97706", fontSize: "12px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
-            <ShieldCheck size={16} />
-            <span>Status: {permissionStatus.toUpperCase()}</span>
-          </div>
+          {(() => {
+            const optedIn = !!osStatus?.optedIn;
+            const label = optedIn ? "ACTIVE" : (osStatus?.permission === "denied" ? "BLOCKED" : "NOT SUBSCRIBED");
+            const bg = optedIn ? "#D1FAE5" : "#FEF3C7";
+            const fg = optedIn ? "#0D9488" : "#D97706";
+            return (
+              <div style={{ padding: "6px 12px", borderRadius: "9999px", backgroundColor: bg, color: fg, fontSize: "12px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+                <ShieldCheck size={16} />
+                <span>Status: {label}</span>
+              </div>
+            );
+          })()}
         </div>
 
         <p style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-secondary)", lineHeight: "1.5", margin: "0 0 18px" }}>
@@ -186,9 +194,12 @@ export default function NotificationsPage() {
             const permOk = osStatus?.permission === "granted";
             const linkOk = !!osStatus?.externalId && !!user?.id && osStatus?.externalId === user.id;
             const subOk = !!osStatus?.pushSubscriptionId && !!osStatus?.optedIn;
+            const runtime = osStatus?.runtime ?? "unknown";
+            const runtimeLabel = runtime === "median" ? "Native app (Median)" : runtime === "web" ? "Web browser / PWA" : "detecting...";
             const rows: Array<[string, string, boolean]> = [
+              ["Runtime", runtimeLabel, runtime !== "unknown"],
               ["SDK loaded", osStatus?.sdkReady ? "yes" : "loading...", !!osStatus?.sdkReady],
-              ["Browser permission", osStatus?.permission || "checking", permOk],
+              ["Permission", osStatus?.permission || "checking", permOk],
               ["Signed-in user", user?.id ? user.id.slice(0, 8) + "..." : "not signed in", !!user?.id],
               ["Push subscription", subOk ? (osStatus?.pushSubscriptionId?.slice(0, 8) + "...") : (osStatus?.optedIn ? "opted in" : "not subscribed"), subOk],
               ["OneSignal link", linkOk ? "linked ✓" : (osStatus?.externalId ? "id mismatch" : "not linked"), linkOk],
