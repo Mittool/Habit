@@ -313,7 +313,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
                     </div>
                     <div>
                       <div style={{ fontSize: "14px", fontWeight: "600", color: done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: done ? "line-through" : "none" }}>{h.name}</div>
-                      {h.goal && <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>{h.goal}</div>}
                     </div>
                   </div>
 
