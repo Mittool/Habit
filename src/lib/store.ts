@@ -44,9 +44,12 @@ export interface Habit {
   notificationEnabled?: boolean;
   reminderTime?: string; // manual HH:mm e.g. "09:00"
   reminderDays?: number[]; // [0,1,2,3,4,5,6]
-  completionTimestamps?: number[];
+  completionTimestamps?: number[]; // legacy — kept for back-compat
+  completionHistory?: string[]; // ISO strings per spec ("2026-07-01T20:10")
   learnedAverageHHMM?: string;
   notificationTime?: string;
+  scheduledReminderAt?: string; // ISO of the currently scheduled next reminder
+  scheduledReminderId?: string; // OneSignal notification id (so we can cancel it)
   iconKey?: string;
 }
 
@@ -57,6 +60,11 @@ export interface TodoItem {
   createdAt: string;
   pomodoroCount: number;
   habitId?: string;
+  // Tasks do NOT learn. If dueAt is set, notify exactly leadTimeMinutes before.
+  dueAt?: string; // ISO datetime, e.g. "2026-07-05T15:00"
+  leadTimeMinutes?: number; // default 10
+  scheduledReminderAt?: string;
+  scheduledReminderId?: string;
 }
 
 export interface TimeBlock {
@@ -283,19 +291,56 @@ export const useAppStore = create<AppState>()(
           ],
         })),
 
-      updateHabit: (id, updates) =>
+      updateHabit: (id, updates) => {
         set((state) => ({
           habits: state.habits.map((h) => (h.id === id ? { ...h, ...updates } : h)),
-        })),
+        }));
+        // Step 7: any edit → cancel old reminder & schedule a new one.
+        // We skip the reschedule cycle when the update itself is coming from
+        // the scheduler (scheduledReminderId / scheduledReminderAt) to avoid
+        // an infinite loop.
+        const isSchedulerCommit =
+          "scheduledReminderId" in (updates || {}) || "scheduledReminderAt" in (updates || {});
+        if (!isSchedulerCommit && typeof window !== "undefined") {
+          import("./scheduler").then(({ scheduleHabitReminder }) => {
+            const h = get().habits.find((x) => x.id === id);
+            if (!h) return;
+            scheduleHabitReminder(h).then((r) => {
+              if (r.nextFireAt || r.externalId) {
+                set((s) => ({
+                  habits: s.habits.map((x) =>
+                    x.id === id
+                      ? {
+                          ...x,
+                          scheduledReminderAt: r.nextFireAt ?? undefined,
+                          scheduledReminderId: r.externalId ?? undefined,
+                        }
+                      : x
+                  ),
+                }));
+              }
+            });
+          });
+        }
+      },
 
-      deleteHabit: (id) =>
+      deleteHabit: (id) => {
+        const habitBeingDeleted = get().habits.find((h) => h.id === id);
         set((state) => ({
           habits: state.habits.filter((h) => h.id !== id),
-        })),
+        }));
+        if (habitBeingDeleted && typeof window !== "undefined") {
+          import("./scheduler").then(({ cancelHabitReminder }) => {
+            cancelHabitReminder(habitBeingDeleted);
+          });
+        }
+      },
 
       toggleHabitCompletion: (habitId, date) => {
         set((state) => {
-          const nowHHMM = format(new Date(), "HH:mm");
+          const now = new Date();
+          const nowHHMM = format(now, "HH:mm");
+          const nowIso = now.toISOString().slice(0, 16); // "2026-07-01T20:10"
           let soundTriggered = false;
           let milestoneReached = false;
 
@@ -307,21 +352,27 @@ export const useAppStore = create<AppState>()(
 
             let notificationTime = h.notificationTime;
             let completionTimestamps = h.completionTimestamps || [];
+            let completionHistory = h.completionHistory || [];
             let learnedAverageHHMM = h.learnedAverageHHMM;
 
             if (!wasDone) {
+              // 1. Save the completion timestamp (spec step 2.1)
               notificationTime = nowHHMM;
               soundTriggered = true;
               completionTimestamps = [...completionTimestamps, Date.now()].slice(-30);
+              completionHistory = [...completionHistory, nowIso].slice(-60);
               learnedAverageHHMM = calcAvgHHMM(completionTimestamps);
 
               const completionsCount = Object.keys(completions).filter((k) => completions[k]).length;
               if (completionsCount === 1 || completionsCount === 7 || completionsCount === 30 || completionsCount === 100) {
                 milestoneReached = true;
               }
+            } else {
+              // Un-checking a habit: remove the matching entry from history if any
+              completionHistory = completionHistory.filter((iso) => !iso.startsWith(date));
             }
 
-            return { ...h, completions, notificationTime, completionTimestamps, learnedAverageHHMM };
+            return { ...h, completions, notificationTime, completionTimestamps, completionHistory, learnedAverageHHMM };
           });
 
           if (soundTriggered) {
@@ -340,30 +391,100 @@ export const useAppStore = create<AppState>()(
 
           return { habits: nextHabits };
         });
+
+        // Step 2 + Step 7: after completion, cancel old reminder and schedule a new one
+        // using the freshly-updated completionHistory.
+        if (typeof window !== "undefined") {
+          import("./scheduler").then(({ scheduleHabitReminder }) => {
+            const h = get().habits.find((x) => x.id === habitId);
+            if (!h) return;
+            scheduleHabitReminder(h).then((r) => {
+              if (r.nextFireAt || r.externalId) {
+                set((s) => ({
+                  habits: s.habits.map((x) =>
+                    x.id === habitId
+                      ? {
+                          ...x,
+                          scheduledReminderAt: r.nextFireAt ?? undefined,
+                          scheduledReminderId: r.externalId ?? undefined,
+                        }
+                      : x
+                  ),
+                }));
+              }
+            });
+          });
+        }
       },
 
-      addTodo: (todo) =>
+      addTodo: (todo) => {
+        const newId = crypto.randomUUID();
         set((state) => ({
           todos: [
             ...state.todos,
             {
               ...todo,
-              id: crypto.randomUUID(),
+              id: newId,
               createdAt: new Date().toISOString(),
               pomodoroCount: 0,
             },
           ],
-        })),
+        }));
+        if (typeof window !== "undefined") {
+          import("./scheduler").then(({ scheduleTaskReminder }) => {
+            const t = get().todos.find((x) => x.id === newId);
+            if (!t || !t.dueAt) return;
+            scheduleTaskReminder(t).then((r) => {
+              if (r.nextFireAt || r.externalId) {
+                set((s) => ({
+                  todos: s.todos.map((x) =>
+                    x.id === newId
+                      ? { ...x, scheduledReminderAt: r.nextFireAt ?? undefined, scheduledReminderId: r.externalId ?? undefined }
+                      : x
+                  ),
+                }));
+              }
+            });
+          });
+        }
+      },
 
-      updateTodo: (id, updates) =>
+      updateTodo: (id, updates) => {
         set((state) => ({
           todos: state.todos.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-        })),
+        }));
+        const isSchedulerCommit =
+          "scheduledReminderId" in (updates || {}) || "scheduledReminderAt" in (updates || {});
+        if (!isSchedulerCommit && typeof window !== "undefined") {
+          import("./scheduler").then(({ scheduleTaskReminder }) => {
+            const t = get().todos.find((x) => x.id === id);
+            if (!t) return;
+            scheduleTaskReminder(t).then((r) => {
+              if (r.nextFireAt || r.externalId) {
+                set((s) => ({
+                  todos: s.todos.map((x) =>
+                    x.id === id
+                      ? { ...x, scheduledReminderAt: r.nextFireAt ?? undefined, scheduledReminderId: r.externalId ?? undefined }
+                      : x
+                  ),
+                }));
+              }
+            });
+          });
+        }
+      },
 
-      deleteTodo: (id) =>
+      deleteTodo: (id) => {
+        const beingDeleted = get().todos.find((t) => t.id === id);
         set((state) => ({
           todos: state.todos.filter((t) => t.id !== id),
-        })),
+        }));
+        if (beingDeleted && typeof window !== "undefined") {
+          import("./scheduler").then(({ cancelTaskReminder }) => {
+            cancelTaskReminder(beingDeleted);
+          });
+        }
+      },
 
       incrementPomodoro: (id) =>
         set((state) => ({

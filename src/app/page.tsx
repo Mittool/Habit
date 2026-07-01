@@ -11,6 +11,7 @@ import InsightsPage from "@/components/pages/InsightsPage";
 import SettingsPage from "@/components/pages/SettingsPage";
 import { initMobilePushScheduler } from "@/lib/pwa";
 import { setupWebViewNavigationBridge } from "@/lib/median-webview";
+import { refreshAllReminders, scheduleMidnightRefresh } from "@/lib/scheduler";
 
 export default function MainApp() {
   const { isAuthenticated, onboardingDone, habits, todos } = useAppStore();
@@ -42,6 +43,19 @@ export default function MainApp() {
     const cleanup = initMobilePushScheduler(habits, todos);
     return cleanup;
   }, [hydrated, habits, todos]);
+
+  // Step 8 — Daily refresh: recalculate every reminder on app open
+  // (guarded by localStorage so it only fires once per calendar day)
+  // plus a self-scheduling midnight timer for long-lived sessions.
+  useEffect(() => {
+    if (!hydrated || !isAuthenticated) return;
+    refreshAllReminders();
+    const cancelMidnight = scheduleMidnightRefresh();
+    return cancelMidnight;
+    // Intentionally only re-run on hydration/auth changes, not on habit edits
+    // (those already trigger their own reschedule via the store actions).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, isAuthenticated]);
 
   // Median WebView Hardware Back Button & Context Menu Bridge
   useEffect(() => {

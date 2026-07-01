@@ -5,6 +5,7 @@ import { User, Mail, Lock, Eye, EyeOff, ChevronRight } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { useAppStore } from "@/lib/store";
 import { restoreFromCloudDatabase } from "@/lib/cloud";
+import { setOneSignalExternalUserId } from "@/lib/onesignal";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -88,6 +89,7 @@ export default function AuthPage() {
             isAuthenticated: true,
             onboardingDone: false,
           });
+          setOneSignalExternalUserId(data.user.id);
           router.push("/onboarding");
         } else {
           setError("Account created! Please check your email inbox to confirm registration.");
@@ -112,6 +114,7 @@ export default function AuthPage() {
             name: data.user.user_metadata?.name || email.split("@")[0],
           });
           setAuthenticated(true);
+          setOneSignalExternalUserId(data.user.id);
           await restoreFromCloudDatabase();
           router.push(onboardingDone ? "/" : "/onboarding");
         } else {

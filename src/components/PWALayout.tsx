@@ -2,9 +2,10 @@
 
 import React, { useEffect } from "react";
 import { registerServiceWorker } from "@/lib/pwa";
-import { initOneSignal } from "@/lib/onesignal";
+import { initOneSignal, setOneSignalExternalUserId } from "@/lib/onesignal";
 import { restoreFromCloudDatabase } from "@/lib/cloud";
 import { initFirebaseAnalytics } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 
 export default function PWALayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -12,6 +13,15 @@ export default function PWALayout({ children }: { children: React.ReactNode }) {
     initOneSignal();
     initFirebaseAnalytics();
     restoreFromCloudDatabase();
+
+    // Re-link OneSignal external_user_id on cold start if the user is already
+    // signed into Supabase. This runs after OneSignal.init because the SDK
+    // queues deferred calls internally.
+    if (supabase) {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user?.id) setOneSignalExternalUserId(data.user.id);
+      }).catch(() => {});
+    }
 
     // Tell Median.co native iOS & Android app shell to draw Fullscreen Edge-to-Edge!
     if (typeof window !== "undefined") {

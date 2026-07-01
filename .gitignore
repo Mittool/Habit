@@ -8,3 +8,4 @@ build/
 .env.local.bak
 tsconfig.tsbuildinfo
 .npm/
+.env.local

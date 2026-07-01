@@ -67,3 +67,43 @@ export async function promptOneSignalPush(): Promise<boolean> {
     });
   });
 }
+
+// Link the current device to a Supabase user so /api/notifications can target
+// it by external_user_id. Call from your auth flow immediately after login,
+// and after Supabase auth-state resume on cold app start.
+export function setOneSignalExternalUserId(userId: string | null | undefined) {
+  if (typeof window === "undefined") return;
+  if (!userId) return;
+  try {
+    localStorage.setItem("trac-one-signal-external-id", userId);
+  } catch {}
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(async function (OneSignal: any) {
+    try {
+      if (OneSignal?.login) {
+        await OneSignal.login(userId);
+        console.log("[OneSignal] linked external_user_id:", userId);
+      }
+    } catch (err) {
+      console.error("[OneSignal] login error:", err);
+    }
+  });
+}
+
+export function clearOneSignalExternalUserId() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem("trac-one-signal-external-id");
+  } catch {}
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(async function (OneSignal: any) {
+    try {
+      if (OneSignal?.logout) {
+        await OneSignal.logout();
+        console.log("[OneSignal] logged out");
+      }
+    } catch (err) {
+      console.error("[OneSignal] logout error:", err);
+    }
+  });
+}
