@@ -103,9 +103,11 @@ export async function scheduleHabitReminder(habit: Habit): Promise<ScheduleResul
     sendAt: fireAt.toISOString(),
   });
 
+  const externalId = scheduled?.notificationId ?? null;
+  if (externalId) recordScheduled("habit", habit.id, externalId);
   return {
     nextFireAt: fireAt.toISOString(),
-    externalId: scheduled?.notificationId ?? null,
+    externalId,
     reason: result.reason,
   };
 }
@@ -114,6 +116,15 @@ export async function cancelHabitReminder(habit: Habit): Promise<void> {
   if (habit.scheduledReminderId) {
     await apiCall("cancel", { notificationId: habit.scheduledReminderId });
   }
+  // Also cancel any ledger entries for this habit (belt-and-braces:
+  // scheduledReminderId may be stale if the last successful schedule was
+  // on a different device or an earlier session).
+  const ledger = readLedger();
+  const orphaned = ledger.filter((e) => e.targetType === "habit" && e.targetId === habit.id && e.notificationId !== habit.scheduledReminderId);
+  for (const e of orphaned) {
+    await apiCall("cancel", { notificationId: e.notificationId });
+  }
+  forgetScheduled("habit", habit.id);
 }
 
 // ─── Tasks (todos) ───────────────────────────────────────────
@@ -139,9 +150,11 @@ export async function scheduleTaskReminder(todo: TodoItem): Promise<ScheduleResu
     sendAt: fireAt.toISOString(),
   });
 
+  const externalId = scheduled?.notificationId ?? null;
+  if (externalId) recordScheduled("todo", todo.id, externalId);
   return {
     nextFireAt: fireAt.toISOString(),
-    externalId: scheduled?.notificationId ?? null,
+    externalId,
     reason: "task-fixed-lead",
   };
 }
@@ -150,6 +163,12 @@ export async function cancelTaskReminder(todo: TodoItem): Promise<void> {
   if (todo.scheduledReminderId) {
     await apiCall("cancel", { notificationId: todo.scheduledReminderId });
   }
+  const ledger = readLedger();
+  const orphaned = ledger.filter((e) => e.targetType === "todo" && e.targetId === todo.id && e.notificationId !== todo.scheduledReminderId);
+  for (const e of orphaned) {
+    await apiCall("cancel", { notificationId: e.notificationId });
+  }
+  forgetScheduled("todo", todo.id);
 }
 
 // ─── Time blocks (planner) ───────────────────────────────
@@ -194,9 +213,11 @@ export async function scheduleTimeBlockReminder(block: TimeBlock): Promise<Sched
     sendAt: fireAt.toISOString(),
   });
 
+  const externalId = scheduled?.notificationId ?? null;
+  if (externalId) recordScheduled("timeblock", block.id, externalId);
   return {
     nextFireAt: fireAt.toISOString(),
-    externalId: scheduled?.notificationId ?? null,
+    externalId,
     reason: "timeblock-fixed-lead",
   };
 }
@@ -205,12 +226,80 @@ export async function cancelTimeBlockReminder(block: TimeBlock): Promise<void> {
   if (block.scheduledReminderId) {
     await apiCall("cancel", { notificationId: block.scheduledReminderId });
   }
+  const ledger = readLedger();
+  const orphaned = ledger.filter((e) => e.targetType === "timeblock" && e.targetId === block.id && e.notificationId !== block.scheduledReminderId);
+  for (const e of orphaned) {
+    await apiCall("cancel", { notificationId: e.notificationId });
+  }
+  forgetScheduled("timeblock", block.id);
+}
+
+// ─── Reminder ledger ────────────────────────────────────────
+// Every time we schedule a reminder we also record its OneSignal
+// notificationId in a persistent per-user ledger. On daily refresh we
+// reconcile the ledger against the live state and cancel any leftover
+// reminder whose habit/todo/timeblock was deleted (possibly from a
+// different device) so ghost pushes never fire.
+
+interface LedgerEntry {
+  notificationId: string;
+  targetType: "habit" | "todo" | "timeblock";
+  targetId: string;
+  scheduledAt: number; // Date.now() when we recorded it
+}
+
+function ledgerKey(): string | null {
+  const uid = getExternalUserId();
+  return uid ? `trac-reminder-ledger-${uid}` : null;
+}
+
+function readLedger(): LedgerEntry[] {
+  if (typeof window === "undefined") return [];
+  const key = ledgerKey();
+  if (!key) return [];
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as LedgerEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLedger(entries: LedgerEntry[]) {
+  if (typeof window === "undefined") return;
+  const key = ledgerKey();
+  if (!key) return;
+  try {
+    // Prune anything older than 30 days that we've never re-touched, so the
+    // ledger doesn't grow unbounded.
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const cleaned = entries.filter((e) => e.scheduledAt > cutoff);
+    localStorage.setItem(key, JSON.stringify(cleaned));
+  } catch {}
+}
+
+function recordScheduled(targetType: LedgerEntry["targetType"], targetId: string, notificationId: string | null) {
+  if (!notificationId) return;
+  const entries = readLedger().filter(
+    (e) => !(e.targetType === targetType && e.targetId === targetId)
+  );
+  entries.push({ notificationId, targetType, targetId, scheduledAt: Date.now() });
+  writeLedger(entries);
+}
+
+function forgetScheduled(targetType: LedgerEntry["targetType"], targetId: string) {
+  const entries = readLedger().filter(
+    (e) => !(e.targetType === targetType && e.targetId === targetId)
+  );
+  writeLedger(entries);
 }
 
 // ─── Daily refresh (step 8) ─────────────────────────────────
 // Called from src/app/page.tsx once on mount and again at local midnight.
 // Recomputes every habit & task reminder so timezone changes, edits, and
-// updated rolling averages all take effect without manual action.
+// updated rolling averages all take effect without manual action. Also
+// prunes ghost reminders (whose target no longer exists locally, e.g.
+// because it was deleted from a different device).
 
 const REFRESH_KEY = "trac-last-daily-refresh";
 
@@ -223,8 +312,31 @@ export async function refreshAllReminders(): Promise<void> {
   const { useAppStore } = await import("./store");
   const state = useAppStore.getState();
 
+  // 1. Prune orphans — cancel any tracked reminder whose target is no
+  //    longer in the store (means it was deleted here or on another device).
+  const liveHabitIds = new Set(state.habits.map((h) => h.id));
+  const liveTodoIds = new Set(state.todos.map((t) => t.id));
+  const liveBlockIds = new Set(state.timeBlocks.map((b) => b.id));
+  const ledger = readLedger();
+  const surviving: LedgerEntry[] = [];
+  for (const entry of ledger) {
+    const live =
+      (entry.targetType === "habit" && liveHabitIds.has(entry.targetId)) ||
+      (entry.targetType === "todo" && liveTodoIds.has(entry.targetId)) ||
+      (entry.targetType === "timeblock" && liveBlockIds.has(entry.targetId));
+    if (live) {
+      surviving.push(entry);
+    } else {
+      // Ghost — cancel on OneSignal
+      await apiCall("cancel", { notificationId: entry.notificationId });
+    }
+  }
+  writeLedger(surviving);
+
+  // 2. Recompute reminders for everything still alive
   for (const habit of state.habits) {
     const result = await scheduleHabitReminder(habit);
+    if (result.externalId) recordScheduled("habit", habit.id, result.externalId);
     state.updateHabit(habit.id, {
       scheduledReminderAt: result.nextFireAt ?? undefined,
       scheduledReminderId: result.externalId ?? undefined,
@@ -233,19 +345,19 @@ export async function refreshAllReminders(): Promise<void> {
   for (const todo of state.todos) {
     if (todo.completed || !todo.dueAt) continue;
     const result = await scheduleTaskReminder(todo);
+    if (result.externalId) recordScheduled("todo", todo.id, result.externalId);
     state.updateTodo(todo.id, {
       scheduledReminderAt: result.nextFireAt ?? undefined,
       scheduledReminderId: result.externalId ?? undefined,
     });
   }
-  // Time blocks — only reschedule future ones (past blocks are skipped in
-  // scheduleTimeBlockReminder anyway, this just avoids REST spam)
   const now = Date.now();
   for (const block of state.timeBlocks) {
     const startIso = `${block.date}T${block.startTime || "00:00"}`;
     const startTs = new Date(startIso).getTime();
     if (isNaN(startTs) || startTs <= now) continue;
     const result = await scheduleTimeBlockReminder(block);
+    if (result.externalId) recordScheduled("timeblock", block.id, result.externalId);
     state.updateTimeBlock(block.id, {
       scheduledReminderAt: result.nextFireAt ?? undefined,
       scheduledReminderId: result.externalId ?? undefined,

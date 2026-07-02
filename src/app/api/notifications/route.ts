@@ -77,11 +77,15 @@ export async function POST(req: NextRequest) {
       contents: { en: msgBody },
       // OneSignal accepts ISO8601 with timezone offset; more reliable than RFC 2822
       send_after: new Date(sendAt).toISOString(),
-      // OneSignal collapses same-id notifications so we never stack duplicates:
-      android_group: `trac-${targetType}-${targetId}`,
-      collapse_id: `trac-${targetType}-${targetId}`,
-      // Custom data lets the client route to the right screen when tapped
-      data: { targetType, targetId, kind: "reminder" },
+      // Collapse id is USER-SCOPED so two different users can never merge
+      // notifications for coincidentally-identical target ids. Same-user
+      // duplicate schedules still collapse and never stack.
+      android_group: `trac-${externalUserId}-${targetType}-${targetId}`,
+      collapse_id: `trac-${externalUserId}-${targetType}-${targetId}`,
+      // Custom data lets the client route to the right screen when tapped.
+      // Also carries the intended recipient's external_id so the receiving
+      // client can drop the notification if it belongs to a different user.
+      data: { targetType, targetId, kind: "reminder", forExternalId: externalUserId },
     };
 
     try {

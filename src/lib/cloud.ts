@@ -287,7 +287,34 @@ export async function performIsolatedSignOut(): Promise<void> {
   if (syncTimeout) clearTimeout(syncTimeout);
   const state = useAppStore.getState();
 
-  // Save current user partition to disk before logging out
+  // Cancel every currently-scheduled OneSignal reminder for this user's
+  // habits / todos / timeblocks BEFORE we log out. Otherwise those pushes
+  // remain in OneSignal's queue and — because the next user to sign in on
+  // this same device will inherit the push subscription — would end up
+  // delivered to the wrong person.
+  try {
+    const { cancelHabitReminder, cancelTaskReminder, cancelTimeBlockReminder } = await import("./scheduler");
+    await Promise.allSettled([
+      ...state.habits.map((h) => cancelHabitReminder(h)),
+      ...state.todos.map((t) => cancelTaskReminder(t)),
+      ...state.timeBlocks.map((b) => cancelTimeBlockReminder(b)),
+    ]);
+  } catch (err) {
+    console.warn("[Sign Out] Reminder cleanup error:", err);
+  }
+
+  // Unlink the OneSignal external_user_id from this device so any future
+  // pushes targeted at the previous user's id do NOT arrive on this device.
+  try {
+    const { clearOneSignalExternalUserId } = await import("./onesignal");
+    clearOneSignalExternalUserId();
+  } catch (err) {
+    console.warn("[Sign Out] OneSignal logout error:", err);
+  }
+
+  // Save current user partition to disk before logging out (so re-login
+  // restores the user's data). We do this AFTER the reminder cleanup so
+  // the ids we just cancelled are not lingering in the saved partition.
   saveLocalUserPartition(state);
 
   if (typeof window !== "undefined" && supabase) {
@@ -312,5 +339,19 @@ export async function performIsolatedSignOut(): Promise<void> {
 
   if (typeof window !== "undefined") {
     localStorage.removeItem("habitflow-storage");
+    // Also blow away the daily-refresh guard, the per-day sent markers, and
+    // the reminder ledger keys so the NEXT signed-in user starts fresh.
+    localStorage.removeItem("trac-last-daily-refresh");
+    Object.keys(localStorage).forEach((k) => {
+      if (
+        k.startsWith("trac-intel-remind-") ||
+        k.startsWith("trac-intel-follow-") ||
+        k.startsWith("trac-intel-sum-") ||
+        k.startsWith("trac-intel-rev-") ||
+        k.startsWith("trac-reminder-ledger-")
+      ) {
+        localStorage.removeItem(k);
+      }
+    });
   }
 }
