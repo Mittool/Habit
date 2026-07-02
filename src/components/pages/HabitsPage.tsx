@@ -14,6 +14,9 @@ import {
   Check,
   TrendingUp,
   Search,
+  Sparkles,
+  RefreshCw,
+  Loader,
 } from "lucide-react";
 
 const COLORS = [
@@ -28,8 +31,15 @@ interface HabitFormData {
   iconKey: string;
 }
 
+interface AiSuggestion {
+  name: string;
+  description: string;
+  timeOfDay?: "morning" | "day" | "evening" | "night";
+  selected: boolean; // whether the user has ticked it in the modal
+}
+
 export default function HabitsPage() {
-  const { habits, addHabit, deleteHabit, toggleHabitCompletion, updateHabit, addAiNotification, aiEnabled } =
+  const { habits, addHabit, deleteHabit, toggleHabitCompletion, updateHabit, addAiNotification, aiEnabled, user } =
     useAppStore();
   const today = getTodayStr();
   const [showForm, setShowForm] = useState(false);
@@ -37,6 +47,88 @@ export default function HabitsPage() {
   const [form, setForm] = useState<HabitFormData>({ name: "", color: COLORS[0], goal: "", iconKey: "Heart" });
   const [loadingTip, setLoadingTip] = useState<string | null>(null);
   const [completedToastId, setCompletedToastId] = useState<string | null>(null);
+
+  // ─── AI-suggest modal state ───
+  const [showAiSuggest, setShowAiSuggest] = useState(false);
+  const [aiGoalInput, setAiGoalInput] = useState("");
+  const [aiFetching, setAiFetching] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
+  const [aiFetchError, setAiFetchError] = useState<string | null>(null);
+
+  async function fetchAiSuggestions(regenerate = false) {
+    if (!aiGoalInput.trim()) {
+      setAiFetchError("Type a goal first (e.g. 'Learn Spanish' or 'Get fit').");
+      return;
+    }
+    setAiFetching(true);
+    setAiFetchError(null);
+    try {
+      const res = await fetch("/api/ai/setup-habits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          goals: [aiGoalInput.trim()],
+          userName: user?.name || "",
+          regenerate,
+          nonce: regenerate ? Date.now() : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (Array.isArray(data.habits) && data.habits.length > 0) {
+        // Filter out habits whose name already exists (case-insensitive)
+        const existingNames = new Set(habits.map((h) => h.name.toLowerCase()));
+        const fresh: AiSuggestion[] = data.habits
+          .filter((h: any) => h?.name && !existingNames.has(String(h.name).toLowerCase()))
+          .map((h: any) => ({
+            name: String(h.name).trim(),
+            description: String(h.description || "").trim(),
+            timeOfDay: h.timeOfDay,
+            selected: true,
+          }));
+        if (fresh.length === 0) {
+          setAiFetchError("All suggested habits are already in your list. Try a different goal.");
+          setAiSuggestions([]);
+        } else {
+          setAiSuggestions(fresh);
+        }
+      } else {
+        setAiFetchError("AI didn't return any habits. Try 'Regenerate'.");
+      }
+    } catch (err) {
+      console.error("[HabitsPage] AI suggest fetch failed:", err);
+      setAiFetchError("Couldn't reach the AI. Check your connection and try again.");
+    } finally {
+      setAiFetching(false);
+    }
+  }
+
+  function toggleSuggestion(idx: number) {
+    setAiSuggestions((s) => s.map((h, i) => i === idx ? { ...h, selected: !h.selected } : h));
+  }
+
+  function commitAiSuggestions() {
+    let addedCount = 0;
+    aiSuggestions.forEach((h, idx) => {
+      if (!h.selected) return;
+      const cleanName = h.name.trim().split(/\s+/).slice(0, 5).join(" ");
+      if (!cleanName) return;
+      addHabit({
+        name: cleanName,
+        color: COLORS[(habits.length + addedCount) % COLORS.length],
+        goal: (h.description || "").trim(),
+        iconKey: "Target",
+      });
+      addedCount++;
+    });
+    // Close and reset
+    setShowAiSuggest(false);
+    setAiSuggestions([]);
+    setAiGoalInput("");
+    setAiFetchError(null);
+    if (addedCount > 0) {
+      addAiNotification(`Added ${addedCount} AI-suggested habit${addedCount === 1 ? "" : "s"} to your list.`);
+    }
+  }
 
   const last7 = Array.from({ length: 7 }, (_, i) => {
     const d = subDays(new Date(), 6 - i);
@@ -105,17 +197,162 @@ export default function HabitsPage() {
             Manage routines and icon badges
           </p>
         </div>
-        <button
-          className="btn-primary cursor-pointer"
-          onClick={() => {
-            setEditId(null);
-            setForm({ name: "", color: COLORS[0], goal: "", iconKey: "Heart" });
-            setShowForm(true);
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {aiEnabled && (
+            <button
+              className="btn-secondary cursor-pointer"
+              onClick={() => {
+                setAiGoalInput("");
+                setAiSuggestions([]);
+                setAiFetchError(null);
+                setShowAiSuggest(true);
+              }}
+              title="Ask Trac AI to suggest new habits for a goal"
+            >
+              <Sparkles size={16} /> Suggest with AI
+            </button>
+          )}
+          <button
+            className="btn-primary cursor-pointer"
+            onClick={() => {
+              setEditId(null);
+              setForm({ name: "", color: COLORS[0], goal: "", iconKey: "Heart" });
+              setShowForm(true);
+            }}
+          >
+            <Plus size={16} /> New Habit
+          </button>
+        </div>
+      </div>
+
+      {/* ─── AI Suggest Modal ─── */}
+      {showAiSuggest && (
+        <div
+          onClick={() => setShowAiSuggest(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 100,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex", alignItems: "flex-start", justifyContent: "center",
+            padding: "40px 16px", overflowY: "auto",
           }}
         >
-          <Plus size={16} /> New Habit
-        </button>
-      </div>
+          <div
+            className="card fade-in"
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "100%", maxWidth: "560px", padding: "24px", backgroundColor: "var(--bg-card)" }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ padding: "8px", borderRadius: "10px", backgroundColor: "var(--accent-light)", color: "var(--accent)" }}>
+                  <Sparkles size={18} />
+                </div>
+                <h3 style={{ fontSize: "17px", fontWeight: "600", margin: 0, color: "var(--text-primary)" }}>
+                  Suggest Habits with AI
+                </h3>
+              </div>
+              <button onClick={() => setShowAiSuggest(false)} className="cursor-pointer" style={{ background: "none", border: "none", color: "var(--text-muted)" }}>
+                <X size={20} />
+              </button>
+            </div>
+            <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "0 0 16px" }}>
+              Type any goal and Trac AI will suggest daily habits you can add to your list. Your existing habits stay untouched.
+            </p>
+
+            <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
+              <input
+                type="text"
+                value={aiGoalInput}
+                onChange={(e) => setAiGoalInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && fetchAiSuggestions(false)}
+                placeholder="e.g. Learn Spanish, Get fit, Sleep better..."
+                autoFocus
+                style={{ flex: 1 }}
+              />
+              <button
+                onClick={() => fetchAiSuggestions(false)}
+                disabled={aiFetching || !aiGoalInput.trim()}
+                className="btn-primary cursor-pointer"
+                style={{ padding: "10px 14px" }}
+              >
+                {aiFetching ? <Loader size={16} className="spin" /> : <Sparkles size={16} />}
+                Generate
+              </button>
+            </div>
+
+            {aiFetchError && (
+              <div style={{ padding: "10px 12px", borderRadius: "8px", backgroundColor: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.25)", color: "#DC2626", fontSize: "12.5px", fontWeight: "500", marginBottom: "12px" }}>
+                {aiFetchError}
+              </div>
+            )}
+
+            {aiSuggestions.length > 0 && (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)" }}>
+                    {aiSuggestions.filter((s) => s.selected).length} of {aiSuggestions.length} selected
+                  </span>
+                  <button
+                    onClick={() => fetchAiSuggestions(true)}
+                    disabled={aiFetching}
+                    className="btn-secondary cursor-pointer"
+                    style={{ padding: "6px 10px", fontSize: "11.5px", display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <RefreshCw size={12} className={aiFetching ? "spin" : ""} />
+                    Regenerate
+                  </button>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "18px", maxHeight: "340px", overflowY: "auto" }}>
+                  {aiSuggestions.map((h, idx) => (
+                    <label
+                      key={idx}
+                      className="cursor-pointer"
+                      style={{
+                        display: "flex", alignItems: "flex-start", gap: "10px",
+                        padding: "12px 14px", borderRadius: "10px",
+                        border: `1px solid ${h.selected ? "var(--accent)" : "var(--border)"}`,
+                        backgroundColor: h.selected ? "var(--accent-light)" : "var(--bg-secondary)",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={h.selected}
+                        onChange={() => toggleSuggestion(idx)}
+                        style={{ marginTop: "2px", flexShrink: 0, cursor: "pointer" }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "14px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "2px" }}>
+                          {h.name}
+                        </div>
+                        {h.description && (
+                          <div style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: "1.5" }}>
+                            {h.description}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button onClick={() => setShowAiSuggest(false)} className="btn-secondary cursor-pointer" style={{ flex: 1 }}>
+                    Cancel
+                  </button>
+                  <button
+                    onClick={commitAiSuggestions}
+                    disabled={aiSuggestions.filter((s) => s.selected).length === 0}
+                    className="btn-primary cursor-pointer"
+                    style={{ flex: 2 }}
+                  >
+                    <Plus size={16} /> Add {aiSuggestions.filter((s) => s.selected).length || ""} Habit{aiSuggestions.filter((s) => s.selected).length === 1 ? "" : "s"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Form Card with Vector Icon Picker */}
       {showForm && (

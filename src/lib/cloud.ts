@@ -64,44 +64,66 @@ export function triggerCloudSync() {
   if (syncTimeout) clearTimeout(syncTimeout);
 
   syncTimeout = setTimeout(async () => {
-    try {
-      const { data: { session } } = await supabase!.auth.getSession();
-      if (!session?.user || session.user.id !== state.user?.id) return;
+    await performCloudSync();
+  }, 1500);
+}
 
-      const cloudPayload = {
-        habits: state.habits,
-        todos: state.todos,
-        timeBlocks: state.timeBlocks,
-        moodEntries: state.moodEntries,
-        sleepEntries: state.sleepEntries,
-        focusSessions: state.focusSessions,
-        pomodoroSettings: state.pomodoroSettings,
-        theme: state.theme,
-        notificationsEnabled: state.notificationsEnabled,
-        userName: state.user.name,
-        userUpdatedAt: state.user.updatedAt || Date.now(),
-        cloudSyncEnabled: true,
-        onboardingDone: state.onboardingDone,
-        cloudUpdatedAt: new Date().toISOString(),
-      };
+// Flush pending sync IMMEDIATELY, bypassing the debounce, and wait for it
+// to complete. Use this before any navigation that would cause the next
+// restore-from-cloud to overwrite unsynced local state (e.g. finishing
+// onboarding).
+export async function flushCloudSync(): Promise<void> {
+  if (typeof window === "undefined" || !supabase) return;
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+    syncTimeout = null;
+  }
+  await performCloudSync();
+}
 
-      const { error } = await supabase!.auth.updateUser({
-        data: { 
-          trac_cloud_backup: cloudPayload,
-          name: state.user.name,
-          profileUpdatedAt: state.user.updatedAt || Date.now()
-        }
-      });
+async function performCloudSync(): Promise<void> {
+  const state = useAppStore.getState();
+  if (!state.isAuthenticated || !state.user?.id || state.user.id === "local") return;
+  // Always mirror to local partition even if we bail on cloud below
+  saveLocalUserPartition(state);
+  if (!supabase) return;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user || session.user.id !== state.user?.id) return;
 
-      if (error) {
-        console.error("[Cloud Database] Sync transmission failed:", error.message);
-      } else {
-        console.log("[Cloud Database] State & profile secured for UID:", session.user.id);
+    const cloudPayload = {
+      habits: state.habits,
+      todos: state.todos,
+      timeBlocks: state.timeBlocks,
+      moodEntries: state.moodEntries,
+      sleepEntries: state.sleepEntries,
+      focusSessions: state.focusSessions,
+      pomodoroSettings: state.pomodoroSettings,
+      theme: state.theme,
+      notificationsEnabled: state.notificationsEnabled,
+      userName: state.user.name,
+      userUpdatedAt: state.user.updatedAt || Date.now(),
+      cloudSyncEnabled: state.cloudSyncEnabled,
+      onboardingDone: state.onboardingDone,
+      cloudUpdatedAt: new Date().toISOString(),
+    };
+
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        trac_cloud_backup: cloudPayload,
+        name: state.user.name,
+        profileUpdatedAt: state.user.updatedAt || Date.now(),
       }
-    } catch (err) {
-      console.error("[Cloud Database] Runtime sync exception:", err);
+    });
+
+    if (error) {
+      console.error("[Cloud Database] Sync transmission failed:", error.message);
+    } else {
+      console.log("[Cloud Database] State & profile secured for UID:", session.user.id);
     }
-  }, 1200);
+  } catch (err) {
+    console.error("[Cloud Database] Sync exception:", err);
+  }
 }
 
 // Helper: Save local disk cache partitioned strictly by UID

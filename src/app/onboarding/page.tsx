@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { useAppStore, Theme } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
-import { triggerCloudSync } from "@/lib/cloud";
+import { triggerCloudSync, flushCloudSync } from "@/lib/cloud";
 import { LogoLoadingScreen } from "@/components/LogoAnimation";
 
 const THEMES: { id: Theme; name: string; desc: string; icon: React.ReactNode; colors: string[] }[] = [
@@ -200,6 +200,12 @@ export default function OnboardingPage() {
     });
 
     setOnboardingDone(true);
+
+    // Give the store a tick to flush the addHabit/setOnboardingDone updates
+    // BEFORE we push anything to Supabase (otherwise the cloud payload
+    // built from getState() would still be the pre-addHabit snapshot).
+    await new Promise((r) => setTimeout(r, 0));
+
     const storeState = useAppStore.getState();
     if (supabase && storeState.isAuthenticated && storeState.user?.id && storeState.user.id !== "local") {
       try {
@@ -209,10 +215,23 @@ export default function OnboardingPage() {
             selected_goals: selectedGoals,
           }
         });
-        triggerCloudSync();
+        // CRITICAL: we must FLUSH (not just trigger) the cloud sync so the
+        // newly-added AI habits are persisted to Supabase before the router
+        // sends us to '/'. The main page runs restoreFromCloudDatabase()
+        // on mount which would otherwise overwrite our fresh habits with
+        // the OLD backup (from before this onboarding run) — because the
+        // debounced trigger hasn't fired yet.
+        await flushCloudSync();
       } catch (err) {
         console.error("[Onboarding] Sync error:", err);
+        // Fall through — still navigate. Local partition is already saved
+        // by flushCloudSync's saveLocalUserPartition inside performCloudSync,
+        // so the habits survive at least in localStorage.
       }
+    } else {
+      // No cloud user — at least mirror to local partition so the state
+      // isn't lost on the router.replace() rerender.
+      triggerCloudSync();
     }
     router.replace("/");
   }
