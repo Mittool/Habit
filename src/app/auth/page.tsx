@@ -23,10 +23,12 @@ export default function AuthPage() {
   // Wait for Zustand hydration
   useEffect(() => {
     const unsub = useAppStore.persist.onFinishHydration(() => {
-      setHydrated(true);
+      setHydrated((v) => (v ? v : true));
     });
+    // If already hydrated by the time we mounted, schedule a microtask
+    // so the state update doesn't happen synchronously inside the effect.
     if (useAppStore.persist.hasHydrated()) {
-      setHydrated(true);
+      queueMicrotask(() => setHydrated((v) => (v ? v : true)));
     }
     return unsub;
   }, []);

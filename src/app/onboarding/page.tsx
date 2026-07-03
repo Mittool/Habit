@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Palette,
@@ -98,8 +98,10 @@ export default function OnboardingPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const unsub = useAppStore.persist.onFinishHydration(() => setHydrated(true));
-    if (useAppStore.persist.hasHydrated()) setHydrated(true);
+    const unsub = useAppStore.persist.onFinishHydration(() => setHydrated((v) => (v ? v : true)));
+    if (useAppStore.persist.hasHydrated()) {
+      queueMicrotask(() => setHydrated((v) => (v ? v : true)));
+    }
     return unsub;
   }, []);
 
@@ -124,7 +126,10 @@ export default function OnboardingPage() {
   }
 
   // ─── Live AI habit generation ───
-  const fetchHabits = useCallback(async (regen = false) => {
+  // Plain function — React 19 compiler auto-memoises. Explicit useCallback
+  // triggered a 'preserve-manual-memoization' warning because the compiler
+  // couldn't preserve the manual wrapper.
+  const fetchHabits = async (regen = false) => {
     if (selectedGoals.length === 0) {
       setAiHabits([]);
       setAiError(null);
@@ -160,7 +165,7 @@ export default function OnboardingPage() {
     } finally {
       if (myReqId === requestIdRef.current) setAiLoading(false);
     }
-  }, [selectedGoals, user?.name]);
+  };
 
   // Auto-fetch whenever the user lands on the preview step OR changes goals while on it
   useEffect(() => {

@@ -3,6 +3,11 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
+// NOTE: Firebase Web API keys are designed to be public. They are not
+// authentication secrets — they only identify the Firebase project to the
+// SDK. Access control lives in Firebase Security Rules, App Check, and
+// (for messaging) OneSignal's server-side APNs / FCM credentials. See:
+// https://firebase.google.com/docs/projects/api-keys
 export const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCScoBlDSQV6RMkvShx5gsfUiYdV-7P3FE",
   authDomain: "trac-notifications.firebaseapp.com",

@@ -186,34 +186,12 @@ export default function AnalyticsPage() {
     }
   }
 
-  // Custom tooltip component for consistent styling
-  function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; dataKey: string }>; label?: string }) {
-    if (!active || !payload || payload.length === 0) return null;
-    return (
-      <div
-        style={{
-          backgroundColor: c.cardBg,
-          border: `1px solid ${c.border}`,
-          borderRadius: "6px",
-          padding: "8px 12px",
-          fontSize: "12px",
-          color: c.text,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        }}
-      >
-        <div style={{ fontWeight: 600, marginBottom: "2px" }}>{label}</div>
-        {payload.map((entry) => (
-          <div key={entry.dataKey} style={{ color: entry.dataKey === "pct" ? c.accent : "#6366f1" }}>
-            {entry.dataKey === "pct"
-              ? `${entry.value}% completion`
-              : entry.dataKey === "minutes"
-              ? `${entry.value} min focus`
-              : `${entry.value}`}
-          </div>
-        ))}
-      </div>
-    );
-  }
+  // Tooltip content factory. Recharts calls the `content` prop as a
+  // function every render, so it's safe to inline a call here — but the
+  // ChartTooltip component itself lives at module scope (below the main
+  // export) so React 19 doesn't complain about a component being
+  // recreated during render.
+  const tooltipContent = (props: any) => <ChartTooltip {...props} c={c} />;
 
   return (
     <div style={{ padding: "24px", maxWidth: "720px" }}>
@@ -331,7 +309,7 @@ export default function AnalyticsPage() {
                 tickLine={false}
                 tickFormatter={(v: number) => `${v}%`}
               />
-              <Tooltip content={<ChartTooltip />} />
+              <Tooltip content={tooltipContent} />
               <Bar dataKey="pct" radius={[6, 6, 0, 0]} maxBarSize={40}>
                 {weekData.map((entry, idx) => (
                   <Cell
@@ -375,7 +353,7 @@ export default function AnalyticsPage() {
                 tickLine={false}
                 tickFormatter={(v: number) => `${v}%`}
               />
-              <Tooltip content={<ChartTooltip />} />
+              <Tooltip content={tooltipContent} />
               <Bar dataKey="pct" radius={[3, 3, 0, 0]} maxBarSize={14}>
                 {monthHabitData.map((entry, idx) => (
                   <Cell
@@ -414,7 +392,7 @@ export default function AnalyticsPage() {
                 tickLine={false}
                 tickFormatter={(v: number) => `${v}m`}
               />
-              <Tooltip content={<ChartTooltip />} />
+              <Tooltip content={tooltipContent} />
               <Bar dataKey="minutes" radius={[3, 3, 0, 0]} maxBarSize={14}>
                 {monthFocusData.map((entry, idx) => (
                   <Cell
@@ -492,6 +470,47 @@ export default function AnalyticsPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Module-scope Recharts tooltip so React 19 doesn't flag a component
+// being created inside another component's render. Colors come from `c`
+// which the parent passes in via a bound wrapper.
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  c,
+}: {
+  active?: boolean;
+  payload?: Array<{ value: number; dataKey: string }>;
+  label?: string;
+  c: ReturnType<typeof themeColors>;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div
+      style={{
+        backgroundColor: c.cardBg,
+        border: `1px solid ${c.border}`,
+        borderRadius: "6px",
+        padding: "8px 12px",
+        fontSize: "12px",
+        color: c.text,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+      }}
+    >
+      <div style={{ fontWeight: 600, marginBottom: "2px" }}>{label}</div>
+      {payload.map((entry) => (
+        <div key={entry.dataKey} style={{ color: entry.dataKey === "pct" ? c.accent : "#6366f1" }}>
+          {entry.dataKey === "pct"
+            ? `${entry.value}% completion`
+            : entry.dataKey === "minutes"
+            ? `${entry.value} min focus`
+            : `${entry.value}`}
+        </div>
+      ))}
     </div>
   );
 }

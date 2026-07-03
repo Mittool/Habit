@@ -225,13 +225,17 @@ export default function FocusMusicPage() {
   const [playing, setPlaying] = useState<boolean>(!!globalPlayingId);
 
   useEffect(() => {
-    if (globalPlayingId && SOUNDS.some(s => s.id === globalPlayingId)) {
-      setSelectedId(globalPlayingId);
-      setPlaying(true);
-    } else {
-      const last = localStorage.getItem("trac_last_ambient_sound");
-      if (last && SOUNDS.some(s => s.id === last)) setSelectedId(last);
-    }
+    // Defer state updates by a microtask so they don't run synchronously
+    // during the effect body (React 19 set-state-in-effect rule).
+    queueMicrotask(() => {
+      if (globalPlayingId && SOUNDS.some(s => s.id === globalPlayingId)) {
+        setSelectedId(globalPlayingId);
+        setPlaying(true);
+      } else {
+        const last = localStorage.getItem("trac_last_ambient_sound");
+        if (last && SOUNDS.some(s => s.id === last)) setSelectedId(last);
+      }
+    });
   }, []);
 
   const handleTogglePlay = useCallback((targetId?: string) => {

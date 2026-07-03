@@ -1,33 +1,32 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import { Play, Pause, RotateCcw, Settings, X, Check, Timer } from "lucide-react";
-
-type Phase = "focus" | "break" | "longBreak";
-
-// Global Runtime Singleton for continuous background timer ticking across page navigation
-let gTimer = {
-  inited: false,
-  secondsLeft: 25 * 60,
-  running: false,
-  phase: "focus" as Phase,
-  sessionCount: 0,
-  interval: null as any
-};
+import {
+  Phase,
+  getTimer,
+  initTimerOnce,
+  setTimerPhase,
+  setTimerSeconds,
+  setTimerRunning,
+  setTimerSessionCount,
+  decrementTimerSecond,
+  clearTimerInterval,
+  startTimerInterval,
+} from "@/lib/pomodoro-timer";
 
 export default function PomodoroPage() {
   const { pomodoroSettings, setPomodoroSettings, addFocusSession, todos, incrementPomodoro } =
     useAppStore();
 
-  if (!gTimer.inited) {
-    gTimer.secondsLeft = pomodoroSettings.focusMinutes * 60;
-    gTimer.inited = true;
-  }
+  // Initialise the singleton the first time this component ever mounts.
+  initTimerOnce(pomodoroSettings.focusMinutes * 60);
+  const g = getTimer();
 
-  const [phase, setPhase] = useState<Phase>(gTimer.phase);
-  const [secondsLeft, setSecondsLeft] = useState(gTimer.secondsLeft);
-  const [running, setRunning] = useState(gTimer.running);
-  const [sessionCount, setSessionCount] = useState(gTimer.sessionCount);
+  const [phase, setPhase] = useState<Phase>(g.phase);
+  const [secondsLeft, setSecondsLeft] = useState(g.secondsLeft);
+  const [running, setRunning] = useState(g.running);
+  const [sessionCount, setSessionCount] = useState(g.sessionCount);
   const [selectedTodo, setSelectedTodo] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [tempSettings, setTempSettings] = useState<any>(pomodoroSettings);
@@ -44,28 +43,28 @@ export default function PomodoroPage() {
   const circumference = 2 * Math.PI * radius;
 
   const handleComplete = useCallback(() => {
-    gTimer.running = false;
+    setTimerRunning(false);
     setRunning(false);
     if (phase === "focus") {
       const newCount = sessionCount + 1;
-      gTimer.sessionCount = newCount;
+      setTimerSessionCount(newCount);
       setSessionCount(newCount);
       addFocusSession(pomodoroSettings.focusMinutes);
       if (selectedTodo) incrementPomodoro(selectedTodo);
       if (newCount % pomodoroSettings.sessionsBeforeLongBreak === 0) {
-        gTimer.phase = "longBreak";
-        gTimer.secondsLeft = pomodoroSettings.longBreakMinutes * 60;
+        setTimerPhase("longBreak");
+        setTimerSeconds(pomodoroSettings.longBreakMinutes * 60);
         setPhase("longBreak");
         setSecondsLeft(pomodoroSettings.longBreakMinutes * 60);
       } else {
-        gTimer.phase = "break";
-        gTimer.secondsLeft = pomodoroSettings.breakMinutes * 60;
+        setTimerPhase("break");
+        setTimerSeconds(pomodoroSettings.breakMinutes * 60);
         setPhase("break");
         setSecondsLeft(pomodoroSettings.breakMinutes * 60);
       }
     } else {
-      gTimer.phase = "focus";
-      gTimer.secondsLeft = pomodoroSettings.focusMinutes * 60;
+      setTimerPhase("focus");
+      setTimerSeconds(pomodoroSettings.focusMinutes * 60);
       setPhase("focus");
       setSecondsLeft(pomodoroSettings.focusMinutes * 60);
     }
@@ -74,43 +73,44 @@ export default function PomodoroPage() {
   // Global background interval ticking
   useEffect(() => {
     if (running) {
-      gTimer.running = true;
-      if (gTimer.interval) clearInterval(gTimer.interval);
-      gTimer.interval = setInterval(() => {
-        gTimer.secondsLeft--;
-        setSecondsLeft(gTimer.secondsLeft);
-        if (gTimer.secondsLeft <= 0) {
+      setTimerRunning(true);
+      startTimerInterval(() => {
+        const remaining = decrementTimerSecond();
+        setSecondsLeft(remaining);
+        if (remaining <= 0) {
           handleComplete();
         }
-      }, 1000);
+      });
     } else {
-      gTimer.running = false;
-      if (gTimer.interval) clearInterval(gTimer.interval);
+      setTimerRunning(false);
+      clearTimerInterval();
     }
-    // DO NOT clear gTimer.interval on unmount! Keep ticking in background!
+    // DO NOT clear the singleton's interval on unmount — the timer must
+    // keep ticking while the user navigates to other tabs.
   }, [running, handleComplete]);
 
-  // Sync state back from gTimer on mount
+  // Sync state back from the singleton while another mount is running it
   useEffect(() => {
     const check = setInterval(() => {
-      if (gTimer.running) setSecondsLeft(gTimer.secondsLeft);
+      const t = getTimer();
+      if (t.running) setSecondsLeft(t.secondsLeft);
     }, 1000);
     return () => clearInterval(check);
   }, []);
 
   function reset() {
-    gTimer.running = false;
-    if (gTimer.interval) clearInterval(gTimer.interval);
+    setTimerRunning(false);
+    clearTimerInterval();
     setRunning(false);
-    gTimer.secondsLeft = totalSeconds;
+    setTimerSeconds(totalSeconds);
     setSecondsLeft(totalSeconds);
   }
 
   function switchPhase(p: Phase) {
-    gTimer.running = false;
-    if (gTimer.interval) clearInterval(gTimer.interval);
+    setTimerRunning(false);
+    clearTimerInterval();
     setRunning(false);
-    gTimer.phase = p;
+    setTimerPhase(p);
     setPhase(p);
     const secs =
       p === "focus"
@@ -118,7 +118,7 @@ export default function PomodoroPage() {
         : p === "break"
         ? pomodoroSettings.breakMinutes * 60
         : pomodoroSettings.longBreakMinutes * 60;
-    gTimer.secondsLeft = secs;
+    setTimerSeconds(secs);
     setSecondsLeft(secs);
   }
 
@@ -135,7 +135,7 @@ export default function PomodoroPage() {
       : phase === "break"
       ? cleanSettings.breakMinutes * 60
       : cleanSettings.longBreakMinutes * 60;
-    gTimer.secondsLeft = targetSecs;
+    setTimerSeconds(targetSecs);
     setSecondsLeft(targetSecs);
     setShowSettings(false);
   }

@@ -1,11 +1,21 @@
 // Shared AI Helper using Groq API with automatic model fallback.
 // When the primary model hits its daily token limit (429), we transparently
 // try the next model in the chain instead of dropping to canned text.
+//
+// GROQ_API_KEY MUST be set as a server-side environment variable
+// (Vercel → Settings → Environment Variables). Never hard-code the key in
+// this file: the repo is public and any committed key gets scraped and
+// abused within hours.
 
-const P1 = "gsk_nXlgEodDEVdWDB8LXiK8";
-const P2 = "WGdyb3FYT1vngtmBu8oChqEHJSFtCWTZ";
-const API_KEY = process.env.GROQ_API_KEY || (P1 + P2);
+const API_KEY = process.env.GROQ_API_KEY || "";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+if (!API_KEY && typeof window === "undefined") {
+  console.warn(
+    "[grok] GROQ_API_KEY env var is not set — AI calls will fail. " +
+      "Add it in the hosting provider's environment settings."
+  );
+}
 
 // Ordered by quality / size. Each model has its OWN daily quota on Groq,
 // so cycling through them when one is rate-limited keeps the app working.

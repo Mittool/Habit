@@ -35,7 +35,6 @@ function getDb(): NodePgDatabase {
   return instance;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyDb = NodePgDatabase<any>;
 
 /**
@@ -45,7 +44,6 @@ type AnyDb = NodePgDatabase<any>;
 export const db: AnyDb = new Proxy({} as AnyDb, {
   get(_target, prop) {
     const realDb = getDb();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const value = (realDb as any)[prop];
     if (typeof value === "function") {
       return value.bind(realDb);

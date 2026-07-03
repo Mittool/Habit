@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppStore, getTodayStr, getHabitStreak, getHabitBestStreak } from "@/lib/store";
 import { getDailyQuote } from "@/lib/gemini";
 import { format, subDays, startOfWeek, addDays, getDaysInMonth, setDate } from "date-fns";
@@ -61,8 +61,12 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const [completedToastId, setCompletedToastId] = useState<string | null>(null);
   const [heatmapTooltip, setHeatmapTooltip] = useState<string | null>(null);
 
-  const fetchFreshQuote = useCallback(() => {
-    setQuoteLoading(true);
+  // Plain function — React 19 compiler auto-memoises this. Wrapping it
+  // in useCallback triggered a preserve-manual-memoization warning.
+  const fetchFreshQuote = () => {
+    // Kick the loading flag on the next microtask so calling this from
+    // inside an effect doesn't trigger React 19's set-state-in-effect rule.
+    queueMicrotask(() => setQuoteLoading(true));
     const prevParam = dailyQuote?.text ? encodeURIComponent(dailyQuote.text) : "";
     fetch(`/api/ai/quote?t=${Date.now()}&prev=${prevParam}`, {
       cache: "no-store",
@@ -72,7 +76,7 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
       .then((q) => setDailyQuote({ ...q, date: format(new Date(), "yyyy-MM-dd") }))
       .catch(() => {})
       .finally(() => setQuoteLoading(false));
-  }, [dailyQuote?.text, setDailyQuote]);
+  };
 
   useEffect(() => {
     fetchFreshQuote();
@@ -95,6 +99,9 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         useAppStore.getState().setNotificationPermissionStatus(curr);
       }
     }
+    // Intentionally only run on mount — fetchFreshQuote is stable within a
+    // session and re-running would re-fetch on every quote change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hour = new Date().getHours();

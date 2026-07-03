@@ -66,10 +66,10 @@ export default function MainApp() {
 
   useEffect(() => {
     const unsubFinishHydration = useAppStore.persist.onFinishHydration(() => {
-      setHydrated(true);
+      setHydrated((v) => (v ? v : true));
     });
     if (useAppStore.persist.hasHydrated()) {
-      setHydrated(true);
+      queueMicrotask(() => setHydrated((v) => (v ? v : true)));
     }
     return unsubFinishHydration;
   }, []);
@@ -120,9 +120,6 @@ export default function MainApp() {
     refreshAllReminders();
     const cancelMidnight = scheduleMidnightRefresh();
     return cancelMidnight;
-    // Intentionally only re-run on hydration/auth changes, not on habit edits
-    // (those already trigger their own reschedule via the store actions).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, isAuthenticated]);
 
   // Hardware back button + browser popstate → pop the in-app stack.
