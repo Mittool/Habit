@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { callGrok } from "@/lib/grok";
+import { callGrok, MISSING_GROQ_KEY_MESSAGE } from "@/lib/grok";
 import { TRAC_RESPONSE_STYLE } from "@/lib/coach-prompts";
 
 export const dynamic = "force-dynamic";
@@ -437,7 +437,12 @@ Return STRICT JSON, no commentary, no markdown fences:
   } catch (err: any) {
     console.error("Setup habits AI error:", err?.message || err);
     const msg = String(err?.message || err);
-    const source = msg.includes("rate_limit") || msg.includes("429") ? "fallback-rate-limit" : "fallback-error";
-    return NextResponse.json({ habits: pickFallback(goals), source });
+    const missingKey = msg === MISSING_GROQ_KEY_MESSAGE;
+    const source = missingKey
+      ? "fallback-no-key"
+      : msg.includes("rate_limit") || msg.includes("429")
+      ? "fallback-rate-limit"
+      : "fallback-error";
+    return NextResponse.json({ habits: pickFallback(goals), source, aiUnavailable: missingKey || undefined });
   }
 }

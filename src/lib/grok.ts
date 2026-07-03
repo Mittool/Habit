@@ -10,10 +10,17 @@
 const API_KEY = process.env.GROQ_API_KEY || "";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
+// Sentinel error message returned when the key is missing. Client-side
+// callers check for this so they can show the user a friendly banner
+// instead of "Fetch failed".
+export const MISSING_GROQ_KEY_MESSAGE =
+  "AI is temporarily unavailable — the server operator needs to configure GROQ_API_KEY.";
+
 if (!API_KEY && typeof window === "undefined") {
-  console.warn(
-    "[grok] GROQ_API_KEY env var is not set — AI calls will fail. " +
-      "Add it in the hosting provider's environment settings."
+  console.error(
+    "[grok] GROQ_API_KEY env var is NOT SET on the server. All AI calls will fail. " +
+      "Fix: add GROQ_API_KEY in your host's environment variables (e.g. Vercel → " +
+      "Settings → Environment Variables), then redeploy."
   );
 }
 
@@ -63,6 +70,13 @@ async function callOne(model: string, prompt: string, temperature: number, maxTo
 export async function callGrok(prompt: string, temperature = 0.7, retries = 1): Promise<string> {
   const maxTokens = 1500;
   let lastErr = "";
+
+  if (!API_KEY) {
+    // Fail fast with a distinct message so /api/ai/* routes can detect
+    // this case and return a friendly 503 to the client instead of a
+    // generic 500 that looks like a network error.
+    throw new Error(MISSING_GROQ_KEY_MESSAGE);
+  }
 
   for (const model of MODEL_CHAIN) {
     for (let attempt = 0; attempt <= retries; attempt++) {
