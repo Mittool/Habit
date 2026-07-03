@@ -10,3 +10,4 @@ tsconfig.tsbuildinfo
 .npm/
 .env.local
 next-env.d.ts
+.env
