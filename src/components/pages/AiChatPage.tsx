@@ -95,7 +95,7 @@ export default function AiChatPage() {
       const data = await res.json();
       setMessages(prev => [...prev, { role: "ai", text: data.reply }]);
     } catch {
-      setMessages(prev => [...prev, { role: "ai", text: "**Offline Override:** Maintain focus on your top priority task today. Small daily efforts accumulate." }]);
+      setMessages(prev => [...prev, { role: "ai", text: "Couldn't reach the AI just now. Try again in a moment:\n• Check your internet\n• Or wait 30 seconds and retry" }]);
     } finally {
       setChatLoading(false);
     }

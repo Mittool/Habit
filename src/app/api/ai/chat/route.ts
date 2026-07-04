@@ -24,8 +24,8 @@ User: ${message}`;
     const isMissingKey = String(error?.message || "") === MISSING_GROQ_KEY_MESSAGE;
     return NextResponse.json({
       reply: isMissingKey
-        ? "**AI is offline**\n• The server operator needs to configure the AI provider key\n• Try again in a few minutes"
-        : "**Possible Cause**\n• Context switching overload\n\n**Try**\n• 25-minute focus session\n• Phone tucked away\n• Water replenishment\n\n**Best Time**\n• Next 2 hours",
+        ? "AI is offline right now — the server needs a key set up.\n• Try again in a few minutes\n• Your habits and tasks still work fine"
+        : "Something went wrong talking to the AI. Try again in a moment:\n• Check your internet\n• Or wait a few seconds and retry",
       aiUnavailable: isMissingKey || undefined,
     });
   }
