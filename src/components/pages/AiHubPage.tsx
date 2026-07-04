@@ -54,7 +54,10 @@ export default function AiHubPage() {
   const [activeTab, setActiveTab] = useState<"chat" | "generator" | "oracle">("chat");
 
   const displayName = (user?.name || "").trim().split(/\s+/)[0] || "";
-  const greeting = `Trac AI is Active, Ask your Productive companion!${displayName ? `, ${displayName}` : ""}`;
+  const greetingBody = `Ask me anything — habits, focus, sleep, motivation, or whatever's on your mind. A few things I'm good at:\n\n• Building a plan for your goals\n• Fixing a habit you keep missing\n• Getting unstuck when you're procrastinating\n• Quick answers to daily questions\n\nWhat's on your mind today?`;
+  const greeting = displayName
+    ? `Hey ${displayName}, I'm Trac — your personal coach.\n\n${greetingBody}`
+    : `Hey, I'm Trac — your personal coach.\n\n${greetingBody}`;
 
   // Chat State
   const [messages, setMessages] = useState<ChatMessage[]>([
