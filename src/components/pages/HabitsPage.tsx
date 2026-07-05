@@ -186,42 +186,42 @@ export default function HabitsPage() {
   }
 
   return (
-    <div style={{ padding: "32px 24px", maxWidth: "800px", margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
-        <div>
-          <h2 style={{ fontSize: "24px", fontWeight: "600", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
-            Habits
-          </h2>
-          <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "4px 0 0" }}>
-            Manage routines and icon badges
-          </p>
+    <div style={{ padding: "40px 22px 24px", maxWidth: "820px", margin: "0 auto" }}>
+      {/* Editorial hero header */}
+      <div className="fade-in" style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", letterSpacing: "0.02em", textTransform: "uppercase", marginBottom: 8 }}>
+          Your routines
         </div>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
-          {aiEnabled && (
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <h1 className="serif" style={{ fontSize: "clamp(38px, 8vw, 52px)", lineHeight: 1, margin: 0, color: "var(--text-primary)" }}>
+            Habits
+          </h1>
+          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+            {aiEnabled && (
+              <button
+                className="btn-secondary cursor-pointer"
+                onClick={() => {
+                  setAiGoalInput("");
+                  setAiSuggestions([]);
+                  setAiFetchError(null);
+                  setShowAiSuggest(true);
+                }}
+                title="Ask Trac AI to suggest new habits for a goal"
+              >
+                <Sparkles size={15} /> Suggest with AI
+              </button>
+            )}
             <button
-              className="btn-secondary cursor-pointer"
+              className="btn-accent cursor-pointer"
               onClick={() => {
-                setAiGoalInput("");
-                setAiSuggestions([]);
-                setAiFetchError(null);
-                setShowAiSuggest(true);
+                setEditId(null);
+                setForm({ name: "", color: COLORS[0], goal: "", iconKey: "Heart" });
+                setShowForm(true);
               }}
-              title="Ask Trac AI to suggest new habits for a goal"
             >
-              <Sparkles size={16} /> Suggest with AI
+              <Plus size={16} /> New
             </button>
-          )}
-          <button
-            className="btn-primary cursor-pointer"
-            onClick={() => {
-              setEditId(null);
-              setForm({ name: "", color: COLORS[0], goal: "", iconKey: "Heart" });
-              setShowForm(true);
-            }}
-          >
-            <Plus size={16} /> New Habit
-          </button>
+          </div>
         </div>
       </div>
 
@@ -459,15 +459,21 @@ export default function HabitsPage() {
 
       {/* Habits list */}
       {habits.length === 0 ? (
-        <div className="card fade-in" style={{ padding: "48px 24px", textAlign: "center", color: "var(--text-muted)" }}>
-          <CheckCircle2 size={40} strokeWidth={1} style={{ margin: "0 auto 12px", display: "block", opacity: 0.4 }} />
-          <p style={{ fontSize: "15px", margin: "0 0 6px", color: "var(--text-primary)" }}>No habits yet</p>
-          <p style={{ fontSize: "13px", margin: "0 0 16px" }}>Create your first habit to begin tracking your progress.</p>
-          <button className="btn-primary cursor-pointer" onClick={() => setShowForm(true)}><Plus size={16} /> New Habit</button>
+        <div className="card fade-in" style={{ padding: "56px 28px", textAlign: "center" }}>
+          <div style={{ width: 68, height: 68, borderRadius: 22, backgroundColor: "var(--accent-soft)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px" }}>
+            <CheckCircle2 size={30} strokeWidth={1.6} />
+          </div>
+          <p className="serif" style={{ fontSize: 22, margin: "0 0 6px", color: "var(--text-primary)" }}>No habits yet</p>
+          <p style={{ fontSize: 13.5, color: "var(--text-muted)", margin: "0 0 22px", lineHeight: 1.5 }}>
+            Add your first one and start building the routine you want.
+          </p>
+          <button className="btn-accent cursor-pointer" onClick={() => setShowForm(true)}>
+            <Plus size={16} /> Create habit
+          </button>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {habits.map((h) => {
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {habits.map((h, hIdx) => {
             const done = h.completions[today];
             const streak = getHabitStreak(h);
             const bestStreak = getHabitBestStreak(h);
@@ -475,13 +481,23 @@ export default function HabitsPage() {
             const missedYesterday = !h.completions[format(subDays(new Date(), 1), "yyyy-MM-dd")];
 
             return (
-              <div key={h.id} className={`card fade-in relative ${completedToastId === h.id ? "card-highlight-bloom" : ""}`} style={{ padding: "18px 20px" }}>
+              <div
+                key={h.id}
+                className={`card fade-in relative ${completedToastId === h.id ? "card-highlight-bloom" : ""}`}
+                style={{
+                  padding: "18px 20px",
+                  animationDelay: `${Math.min(hIdx * 40, 200)}ms`,
+                  borderLeft: `3px solid ${h.color}`,
+                }}
+              >
                 {completedToastId === h.id && (
-                  <div className="badge-float-up" style={{ padding: "3px 8px", borderRadius: "9999px", backgroundColor: "var(--text-primary)", color: "var(--bg-card)", fontSize: "11px", fontWeight: "600" }}>
-                    +1 Completed
+                  <div className="badge-float-up" style={{ padding: "4px 10px", borderRadius: 9999, backgroundColor: "var(--accent)", color: "#fff", fontSize: 11, fontWeight: 700 }}>
+                    +1 done
                   </div>
                 )}
-                <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "12px" }}>
+
+                {/* Top row: check + icon + name + actions */}
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
                   <button
                     onClick={() => {
                       if (!done) {
@@ -491,47 +507,80 @@ export default function HabitsPage() {
                       toggleHabitCompletion(h.id, today);
                     }}
                     className={`cursor-pointer ${done ? "animate-check" : ""}`}
-                    style={{ background: "none", border: "none", padding: 0, transition: "all 0.25s" }}
+                    style={{ background: "none", border: "none", padding: 0, flexShrink: 0 }}
+                    aria-label={done ? "Mark incomplete" : "Mark done"}
                   >
-                    {done ? <CheckCircle2 size={26} color={h.color} /> : <Circle size={26} color="var(--border)" />}
+                    {done ? <CheckCircle2 size={28} color={h.color} /> : <Circle size={28} color="var(--border-strong)" strokeWidth={1.8} />}
                   </button>
 
-                  <div style={{ padding: "8px", borderRadius: "10px", backgroundColor: h.color + "18", color: h.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ padding: 8, borderRadius: 12, backgroundColor: h.color + "1C", color: h.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     {renderHabitIcon(h.iconKey || "Target", 18, h.color)}
                   </div>
 
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "15px", fontWeight: "600", color: done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: done ? "line-through" : "none" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15.5, fontWeight: 600, color: done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: done ? "line-through" : "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {h.name}
                     </div>
-                    {h.goal && <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{h.goal}</div>}
+                    {h.goal && (
+                      <div style={{ fontSize: 12.5, color: "var(--text-muted)", marginTop: 3, lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {h.goal}
+                      </div>
+                    )}
                   </div>
 
-                  <div style={{ display: "flex", gap: "6px" }}>
+                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                     {aiEnabled && missedYesterday && !done && (
-                      <button onClick={() => getMissedTip(h.name)} disabled={loadingTip === h.name} className="cursor-pointer" style={{ background: "var(--bg-secondary)", border: "none", color: "var(--accent)", padding: "6px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }} title="Get AI Tip">
-                        <img src="/logo-inside.png" alt="" style={{ width: "14px", height: "14px", objectFit: "contain" }} />
+                      <button onClick={() => getMissedTip(h.name)} disabled={loadingTip === h.name} className="btn-ghost cursor-pointer" title="Get AI Tip" style={{ color: "var(--accent)" }}>
+                        <img src="/logo-inside.png" alt="" style={{ width: 14, height: 14, objectFit: "contain" }} />
                       </button>
                     )}
-                    <button onClick={() => startEdit(h)} className="cursor-pointer" style={{ background: "var(--bg-secondary)", border: "none", color: "var(--text-secondary)", padding: "6px", borderRadius: "8px" }} title="Edit"><Edit3 size={15} /></button>
-                    <button onClick={() => deleteHabit(h.id)} className="cursor-pointer" style={{ background: "var(--bg-secondary)", border: "none", color: "#EF4444", padding: "6px", borderRadius: "8px" }} title="Delete"><Trash2 size={15} /></button>
+                    <button onClick={() => startEdit(h)} className="btn-ghost cursor-pointer" title="Edit"><Edit3 size={14} /></button>
+                    <button onClick={() => deleteHabit(h.id)} className="btn-ghost cursor-pointer" title="Delete" style={{ color: "var(--danger)" }}><Trash2 size={14} /></button>
                   </div>
                 </div>
 
-                {/* Stats row */}
-                <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "var(--text-muted)", padding: "8px 12px", borderRadius: "8px", backgroundColor: "var(--bg-secondary)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px", color: streak > 0 ? "var(--accent)" : "inherit" }}>
-                    <Flame size={13} />
-                    <span>{streak}d streak</span>
+                {/* Bottom row: 7-day dots + stat pills */}
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  {/* 7-day dot strip */}
+                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                    {last7.map((d) => {
+                      const dayDone = h.completions[d.key];
+                      const isToday = d.key === today;
+                      return (
+                        <div
+                          key={d.key}
+                          title={`${d.label} ${d.day} — ${dayDone ? "done" : "not done"}`}
+                          style={{
+                            width: 12,
+                            height: 12,
+                            borderRadius: 4,
+                            backgroundColor: dayDone ? h.color : "var(--bg-secondary)",
+                            border: isToday ? `1.5px solid ${h.color}` : "1px solid var(--border)",
+                            opacity: dayDone ? 1 : 0.7,
+                          }}
+                        />
+                      );
+                    })}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <TrendingUp size={13} />
-                    <span>Peak: {bestStreak}d</span>
+
+                  <div style={{ flex: 1 }} />
+
+                  {/* Stat pills */}
+                  {streak > 0 && (
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 9999, backgroundColor: "var(--accent-soft)", fontSize: 11.5, fontWeight: 700, color: "var(--accent)" }}>
+                      <Flame size={11} />
+                      <span>{streak}d</span>
+                    </div>
+                  )}
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 9999, backgroundColor: "var(--bg-secondary)", fontSize: 11.5, fontWeight: 600, color: "var(--text-secondary)" }}>
+                    <TrendingUp size={11} />
+                    <span>{rate}%</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <span style={{ color: "var(--text-primary)", fontWeight: "600" }}>{rate}%</span>
-                    <span>30d rate</span>
-                  </div>
+                  {bestStreak > streak && (
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>
+                      Peak {bestStreak}d
+                    </div>
+                  )}
                 </div>
               </div>
             );
