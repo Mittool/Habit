@@ -89,62 +89,62 @@ export default function Navigation({ current, onChange }: NavProps) {
           />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
           {NAV_ITEMS.map((item) => {
             const isActive = activeParent === item.id;
             return (
               <button
                 key={item.id}
-                className={`nav-item cursor-pointer${isActive ? " active" : ""}`}
+                className="cursor-pointer"
                 onClick={() => onChange(item.id)}
                 style={{
                   position: "relative",
                   width: "100%",
-                  padding: "12px 0",
+                  padding: "14px 0 10px",
+                  borderRadius: "16px",
+                  border: "none",
+                  background: isActive ? "var(--accent-soft)" : "transparent",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 4,
+                  transition: "all 0.28s var(--spring)",
+                  fontFamily: "inherit",
                 }}
                 title={item.label}
               >
-                <div style={{ opacity: isActive ? 1 : 0.7, transition: "opacity 0.2s" }}>
+                <div style={{ color: isActive ? "var(--accent)" : "var(--text-muted)", opacity: isActive ? 1 : 0.85, transition: "color 0.2s" }}>
                   {item.icon}
                 </div>
-                <span style={{ fontSize: "10px", marginTop: "4px", fontWeight: isActive ? "800" : "600", color: isActive ? "var(--accent)" : "var(--text-secondary)" }}>
+                <span style={{ fontSize: 10, fontWeight: isActive ? 700 : 600, color: isActive ? "var(--accent)" : "var(--text-muted)", letterSpacing: "0.01em" }}>
                   {item.label}
                 </span>
-                {isActive && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      top: "15%",
-                      bottom: "15%",
-                      width: "3px",
-                      backgroundColor: "var(--accent)",
-                      borderRadius: "0 4px 4px 0",
-                    }}
-                  />
-                )}
               </button>
             );
           })}
         </div>
       </aside>
 
-      {/* Mobile fixed bottom nav (In-line 5 items flat inside nav bar) */}
+      {/* Mobile floating pill nav — hovers above content, feels app-native */}
       <nav
         style={{
           position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
+          bottom: "calc(14px + env(safe-area-inset-bottom))",
+          left: "50%",
+          transform: "translateX(-50%)",
           backgroundColor: "var(--bg-card)",
-          borderTop: "1px solid var(--border)",
+          border: "1px solid var(--border-strong)",
+          borderRadius: "9999px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-around",
-          padding: "8px 4px calc(8px + env(safe-area-inset-bottom))",
+          padding: "6px 8px",
+          gap: "2px",
           zIndex: 50,
-          boxShadow: "0 -4px 20px var(--shadow)",
-          backdropFilter: "blur(12px)",
+          boxShadow: "var(--shadow-lg)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          maxWidth: "calc(100vw - 24px)",
         }}
         className="mobile-nav"
       >
@@ -153,16 +153,30 @@ export default function Navigation({ current, onChange }: NavProps) {
           return (
             <button
               key={item.id}
-              className={`nav-item cursor-pointer${isActive ? " active" : ""}`}
+              className="cursor-pointer"
               onClick={() => onChange(item.id)}
-              style={{ flex: 1, padding: "8px 2px", position: "static" }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 2,
+                padding: isActive ? "10px 16px" : "10px 12px",
+                borderRadius: "9999px",
+                border: "none",
+                background: isActive ? "var(--accent-soft)" : "transparent",
+                color: isActive ? "var(--accent)" : "var(--text-muted)",
+                fontFamily: "inherit",
+                fontSize: 10,
+                fontWeight: isActive ? 700 : 600,
+                letterSpacing: "0.01em",
+                transition: "all 0.28s var(--spring)",
+                minWidth: 0,
+              }}
+              aria-label={item.label}
             >
-              <div style={{ color: isActive ? "var(--accent)" : "var(--text-muted)", opacity: isActive ? 1 : 0.75, transition: "opacity 0.2s", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {item.icon}
-              </div>
-              <span style={{ fontSize: "10.5px", marginTop: "2px", fontWeight: isActive ? "800" : "600", color: isActive ? "var(--accent)" : "var(--text-secondary)" }}>
-                {item.label}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{item.icon}</div>
+              {isActive && <span style={{ marginTop: 2 }}>{item.label}</span>}
             </button>
           );
         })}

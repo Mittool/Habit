@@ -176,7 +176,7 @@ export default function MainApp() {
         style={{
           flex: 1,
           marginLeft: "76px",
-          paddingBottom: "68px",
+          paddingBottom: "120px",
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
@@ -191,20 +191,13 @@ export default function MainApp() {
 
       <style jsx global>{`
         @media (max-width: 640px) {
-          .hidden-mobile {
-            display: none !important;
-          }
-          .mobile-nav {
-            display: flex !important;
-          }
-          main {
-            margin-left: 0 !important;
-          }
+          .hidden-mobile { display: none !important; }
+          .mobile-nav { display: flex !important; }
+          main { margin-left: 0 !important; padding-bottom: 110px !important; }
         }
         @media (min-width: 641px) {
-          .mobile-nav {
-            display: none !important;
-          }
+          .mobile-nav { display: none !important; }
+          main { padding-bottom: 40px !important; }
         }
       `}</style>
     </div>
