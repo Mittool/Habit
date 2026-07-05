@@ -1,88 +1,147 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
-import PageHeader from "@/components/PageHeader";
-import {
-  Sparkles,
-  Zap,
-  Send,
-  Loader,
-  Brain,
-  Terminal,
-} from "lucide-react";
+import { Send, Loader, ArrowUp, RotateCcw } from "lucide-react";
 
 interface ChatMessage {
   role: "user" | "ai";
   text: string;
 }
 
-const INSTANT_FLOWS = [
-  { id: "focus", title: "Initiate Deep Focus", prompt: "Give me a 3-step ritual to enter deep focus in the next 5 minutes." },
-  { id: "proc", title: "Beat Procrastination", prompt: "I am procrastinating on a hard task. Give me a practical reframe to start immediately." },
-  { id: "energy", title: "Energy Reset", prompt: "I feel mentally drained and distracted. How do I reset my focus right now?" },
-  { id: "morning", title: "Peak Morning Plan", prompt: "Design an ultra-minimalist 15-minute morning routine for high productivity." },
+/**
+ * Suggested prompts shown on the empty state.
+ * Curated so each one covers a different real user need.
+ */
+const STARTER_PROMPTS: { emoji: string; title: string; prompt: string }[] = [
+  { emoji: "🎯", title: "Plan my day",
+    prompt: "Look at my habits and tasks — what should I focus on today?" },
+  { emoji: "🔥", title: "Beat procrastination",
+    prompt: "I'm stuck on a task I've been avoiding. Give me a way to start in the next 5 minutes." },
+  { emoji: "🌱", title: "Fix a broken habit",
+    prompt: "One of my habits keeps failing. How do I figure out why and fix it?" },
+  { emoji: "😴", title: "Sleep better tonight",
+    prompt: "What can I do in the next hour to fall asleep faster and wake up sharper?" },
 ];
 
+/**
+ * Small follow-up chips shown under the most recent AI reply.
+ * Rotated so the user always has a way forward.
+ */
+const FOLLOW_UPS = [
+  "Tell me more",
+  "Give me a plan",
+  "Something else",
+  "Why?",
+];
+
+/**
+ * Render AI text with basic markdown-style **bold** and bullet support,
+ * without ever showing raw asterisks or hash chars.
+ */
 function FormattedAiText({ text }: { text: string }) {
   if (!text) return null;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {text.split("\n").map((line, idx) => {
-        if (!line.trim()) return <div key={idx} style={{ height: "4px" }} />;
+        if (!line.trim()) return <div key={idx} style={{ height: 4 }} />;
         let cleanLine = line.replace(/^[⚡🔥🚀🧘🌅🔋🛡️💬🔮🧠💡]+\s*/g, "");
         if (/^#{1,6}\s+/.test(cleanLine)) {
           cleanLine = "**" + cleanLine.replace(/^#{1,6}\s+/, "").replace(/\*\*$/, "") + "**";
         }
-        const parts = cleanLine.split(/(\*\*.*?\*\*)/g);
-        return (
-          <div key={idx} style={{ lineHeight: "1.6" }}>
-            {parts.map((part, pI) => {
-              if (part.startsWith("**") && part.endsWith("**")) {
-                return <strong key={pI} style={{ color: "inherit", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
-              }
-              return part;
-            })}
-          </div>
-        );
+        const isBullet = /^[•\-\*]\s/.test(cleanLine.trim());
+        const body = isBullet ? cleanLine.trim().replace(/^[•\-\*]\s/, "") : cleanLine;
+        const parts = body.split(/(\*\*.*?\*\*)/g);
+        const content = parts.map((part, pI) => {
+          if (part.startsWith("**") && part.endsWith("**")) {
+            return <strong key={pI} style={{ fontWeight: 700 }}>{part.slice(2, -2)}</strong>;
+          }
+          return <span key={pI}>{part}</span>;
+        });
+        if (isBullet) {
+          return (
+            <div key={idx} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6 }}>
+              <span style={{ color: "var(--accent)", flexShrink: 0, marginTop: 2, fontWeight: 700 }}>•</span>
+              <span>{content}</span>
+            </div>
+          );
+        }
+        return <div key={idx} style={{ lineHeight: 1.6 }}>{content}</div>;
       })}
+    </div>
+  );
+}
+
+/**
+ * Animated "thinking" dots — three dots that pulse in sequence.
+ * GPU-only (opacity), no layout thrash.
+ */
+function ThinkingDots() {
+  return (
+    <div style={{ display: "flex", gap: 5, alignItems: "center", padding: "4px 2px" }}>
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: 9999,
+            backgroundColor: "var(--text-muted)",
+            animation: `thinkingDot 1.2s ease-in-out ${i * 0.16}s infinite`,
+            display: "inline-block",
+          }}
+        />
+      ))}
+      <style jsx>{`
+        @keyframes thinkingDot {
+          0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+          30% { opacity: 1; transform: translateY(-3px); }
+        }
+      `}</style>
     </div>
   );
 }
 
 export default function AiChatPage() {
   const { habits, todos, focusSessions, aiEnabled, user } = useAppStore();
-  const [activeTab, setActiveTab] = useState<"chat" | "generator" | "oracle">("chat");
-
   const displayName = (user?.name || "").trim().split(/\s+/)[0] || "";
-  const greetingBody = `Ask me anything — habits, focus, sleep, motivation, or whatever's on your mind. A few things I'm good at:\n\n• Building a plan for your goals\n• Fixing a habit you keep missing\n• Getting unstuck when you're procrastinating\n• Quick answers to daily questions\n\nWhat's on your mind today?`;
-  const greeting = displayName
-    ? `Hey ${displayName}, I'm Trac — your personal coach.\n\n${greetingBody}`
-    : `Hey, I'm Trac — your personal coach.\n\n${greetingBody}`;
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "ai", text: greeting }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputVal, setInputVal] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
-  const [genLoading, setGenLoading] = useState<string | null>(null);
 
-  const [selectedHabit, setSelectedHabit] = useState(habits[0]?.name || "");
-  const [oracleTip, setOracleTip] = useState("");
-  const [oracleLoading, setOracleLoading] = useState(false);
+  const scrollAnchor = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const isEmpty = messages.length === 0;
 
   const statsSummary = {
     totalHabits: habits.length,
-    activeTodos: todos.filter(t => !t.completed).length,
+    activeTodos: todos.filter((t) => !t.completed).length,
     totalFocusMinutes: focusSessions.reduce((a, b) => a + b.minutes, 0),
   };
 
-  async function handleSendMessage(customMsg?: string) {
-    const query = customMsg || inputVal;
-    if (!query.trim() || chatLoading) return;
+  // Autoscroll to newest message whenever the list grows or thinking flips.
+  useEffect(() => {
+    if (scrollAnchor.current) {
+      scrollAnchor.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages.length, chatLoading]);
 
-    const userMsg = query.trim();
+  // Auto-grow the textarea up to 5 rows.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+  }, [inputVal]);
+
+  async function handleSendMessage(customMsg?: string) {
+    const query = (customMsg ?? inputVal).trim();
+    if (!query || chatLoading) return;
+
     if (!customMsg) setInputVal("");
-    setMessages(prev => [...prev, { role: "user", text: userMsg }]);
+    const nextHistory = [...messages, { role: "user" as const, text: query }];
+    setMessages(nextHistory);
     setChatLoading(true);
 
     try {
@@ -90,321 +149,462 @@ export default function AiChatPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: userMsg,
+          message: query,
           context: statsSummary,
           userName: displayName,
-          history: messages,
+          history: nextHistory,
         }),
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "ai", text: data.reply }]);
+      setMessages((prev) => [...prev, { role: "ai", text: data.reply }]);
     } catch {
-      setMessages(prev => [...prev, { role: "ai", text: "Couldn't reach the AI just now. Try again in a moment:\n• Check your internet\n• Or wait 30 seconds and retry" }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          text: "I couldn't reach the AI right now.\n• Check your internet\n• Try again in a moment",
+        },
+      ]);
     } finally {
       setChatLoading(false);
     }
   }
 
-  async function triggerInstantFlow(flow: typeof INSTANT_FLOWS[0]) {
-    setGenLoading(flow.id);
-    setActiveTab("chat");
-    await handleSendMessage(flow.prompt);
-    setGenLoading(null);
+  function resetConversation() {
+    setMessages([]);
+    setInputVal("");
   }
 
-  async function handleOracleConsult() {
-    if (!selectedHabit) return;
-    setOracleLoading(true);
-    setOracleTip("");
-    try {
-      const h = habits.find(hb => hb.name === selectedHabit);
-      const completionsArr = h ? Object.entries(h.completions || {}) : [];
-      const last30 = completionsArr.slice(-30);
-      const done30 = last30.filter(([, v]) => v).length;
-      const habitStats = h ? {
-        createdAt: h.createdAt,
-        totalDaysTracked: completionsArr.length,
-        completionsLast30Days: done30,
-        rateLast30Days: last30.length > 0 ? Math.round((done30 / last30.length) * 100) : 0,
-        recentMisses: last30.filter(([, v]) => !v).map(([d]) => d).slice(-5),
-        goal: h.goal || null,
-        reminderTime: h.reminderTime || null,
-      } : {};
-      const res = await fetch("/api/ai/habit-tip", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ missedHabit: selectedHabit, stats: habitStats, userName: displayName }),
-      });
-      const data = await res.json();
-      setOracleTip(data.tip);
-    } catch {
-      setOracleTip("**AI Tip:** Anchor this habit immediately after your morning coffee. Consistency builds through daily trigger pairing.");
-    } finally {
-      setOracleLoading(false);
-    }
-  }
-
+  // ── Disabled state ──────────────────────────────────────────────
   if (!aiEnabled) {
     return (
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", textAlign: "center" }}>
-        <div style={{ maxWidth: "400px" }}>
-          <img src="/logo-inside.png" alt="Trac AI" style={{ width: "64px", height: "64px", borderRadius: "50%", objectFit: "cover", margin: "0 auto 16px", opacity: 0.5 }} />
-          <h2 style={{ fontSize: "22px", fontWeight: "600", color: "var(--text-primary)" }}>AI Assistant Disabled</h2>
-          <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "8px 0 24px" }}>Enable AI features in Settings to unlock your productivity companion.</p>
+      <div style={{ padding: "80px 24px", textAlign: "center", maxWidth: 400, margin: "0 auto" }}>
+        <div className="serif" style={{ fontSize: 42, lineHeight: 1, color: "var(--text-primary)", marginBottom: 12 }}>
+          AI is off
+        </div>
+        <p style={{ fontSize: 14, color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
+          Turn it on in Settings to chat with Trac.
+        </p>
+      </div>
+    );
+  }
+
+  // ── Empty state (first visit / after reset) ────────────────────
+  if (isEmpty) {
+    return (
+      <div
+        style={{
+          minHeight: "calc(100dvh - 140px)",
+          display: "flex",
+          flexDirection: "column",
+          padding: "56px 22px 20px",
+          maxWidth: 720,
+          margin: "0 auto",
+          width: "100%",
+          boxSizing: "border-box",
+        }}
+      >
+        {/* Hero greeting */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", paddingBottom: 24 }}>
+          <div
+            className="fade-in"
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "var(--text-muted)",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              marginBottom: 10,
+            }}
+          >
+            Trac AI · your coach
+          </div>
+          <h1
+            className="serif fade-in stagger-1"
+            style={{
+              fontSize: "clamp(38px, 9vw, 56px)",
+              lineHeight: 1.03,
+              margin: "0 0 40px",
+              color: "var(--text-primary)",
+            }}
+          >
+            {displayName ? (
+              <>
+                Hey <em style={{ fontStyle: "italic", color: "var(--accent)" }}>{displayName}</em>,
+                <br />
+                what&rsquo;s on your mind?
+              </>
+            ) : (
+              <>
+                Hey, what&rsquo;s
+                <br />
+                on your mind?
+              </>
+            )}
+          </h1>
+
+          {/* Starter prompt cards */}
+          <div
+            className="fade-in stagger-2"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: 10,
+            }}
+          >
+            {STARTER_PROMPTS.map((s) => (
+              <button
+                key={s.title}
+                onClick={() => handleSendMessage(s.prompt)}
+                className="cursor-pointer"
+                style={{
+                  padding: "16px 16px",
+                  borderRadius: 18,
+                  border: "1px solid var(--border)",
+                  backgroundColor: "var(--bg-card)",
+                  textAlign: "left",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  fontFamily: "inherit",
+                  transition: "border-color 0.18s var(--ease), background-color 0.18s var(--ease)",
+                }}
+                onMouseDown={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-secondary)")}
+                onMouseUp={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-card)")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-card)")}
+              >
+                <span style={{ fontSize: 22, lineHeight: 1 }}>{s.emoji}</span>
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.35 }}>
+                  {s.title}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Composer pill — always visible at bottom */}
+        <div
+          className="fade-in stagger-3"
+          style={{
+            position: "sticky",
+            bottom: "calc(env(safe-area-inset-bottom) + 8px)",
+            zIndex: 10,
+            paddingTop: 12,
+            background:
+              "linear-gradient(to bottom, transparent 0%, var(--bg-primary) 20px, var(--bg-primary) 100%)",
+          }}
+        >
+          <Composer
+            value={inputVal}
+            setValue={setInputVal}
+            onSend={() => handleSendMessage()}
+            disabled={chatLoading}
+            textareaRef={textareaRef}
+          />
         </div>
       </div>
     );
   }
 
+  // ── Conversation state ─────────────────────────────────────────
+  const lastAi = [...messages].reverse().find((m) => m.role === "ai");
+  const showFollowUps = !chatLoading && lastAi && messages.length >= 2;
+
   return (
-    <div style={{ padding: "40px 22px 10px", maxWidth: "820px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
-      {/* Standard PageHeader — same shape as every other top-level page */}
-      <PageHeader
-        eyebrow="Your personal coach"
-        title="AI"
-        right={
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 9999, backgroundColor: "var(--success-soft)", color: "var(--success)", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-            <div style={{ width: 6, height: 6, borderRadius: 9999, backgroundColor: "var(--success)" }} />
-            Online
-          </div>
-        }
-      />
-
-      {/* Segment tabs — same pill style as Planner / Focus / Insights */}
-      <div style={{ display: "flex", gap: 4, backgroundColor: "var(--bg-secondary)", padding: 4, borderRadius: 9999, border: "1px solid var(--border)", width: "fit-content", marginBottom: 18 }}>
-        {[
-          { id: "chat", label: "Chat", icon: <Terminal size={13} /> },
-          { id: "generator", label: "Tips", icon: <Zap size={13} /> },
-          { id: "oracle", label: "Habits", icon: <Brain size={13} /> },
-        ].map(tab => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className="cursor-pointer"
-              style={{
-                padding: "8px 16px",
-                borderRadius: 9999,
-                border: "none",
-                backgroundColor: isActive ? "var(--bg-card)" : "transparent",
-                color: isActive ? "var(--text-primary)" : "var(--text-muted)",
-                fontWeight: isActive ? 700 : 600,
-                fontSize: 12.5,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                boxShadow: isActive ? "var(--shadow-sm)" : "none",
-                transition: "all 0.15s var(--ease)",
-                fontFamily: "inherit",
-              }}
-            >
-              {tab.icon}
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* TAB 1: Chat — flows inline with the page like every other tab,
-          input row is position:sticky so it always sits at the bottom of
-          the scrolling page (which is naturally at the visible bottom
-          when the keyboard closes it, and rises with it when open). */}
-      {activeTab === "chat" && (
-        <div style={{ position: "relative" }}>
-          {/* Conversation Stream */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 20, minHeight: 320 }}>
-            {messages.map((m, i) => {
-              const isAi = m.role === "ai";
-              return (
-                <div
-                  key={i}
-                  className="fade-in"
-                  style={{
-                    alignSelf: isAi ? "flex-start" : "flex-end",
-                    maxWidth: "88%",
-                    padding: "14px 18px",
-                    borderRadius: isAi ? "6px 20px 20px 20px" : "20px 6px 20px 20px",
-                    backgroundColor: isAi ? "var(--bg-card)" : "var(--accent)",
-                    color: isAi ? "var(--text-primary)" : "#ffffff",
-                    border: isAi ? "1px solid var(--border)" : "none",
-                    boxShadow: isAi ? "var(--shadow-sm)" : "var(--shadow-accent)",
-                    fontSize: 14.5,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {isAi && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10.5, fontWeight: 700, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
-                      <img src="/logo-inside.png" alt="" style={{ width: 14, height: 14, borderRadius: 9999, objectFit: "cover" }} />
-                      <span>Trac</span>
-                    </div>
-                  )}
-                  {isAi ? <FormattedAiText text={m.text} /> : <div>{m.text}</div>}
-                </div>
-              );
-            })}
-            {chatLoading && (
-              <div className="fade-in" style={{ alignSelf: "flex-start", padding: "14px 18px", borderRadius: "6px 20px 20px 20px", backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, color: "var(--accent)", fontSize: 13, fontWeight: 600, boxShadow: "var(--shadow-sm)" }}>
-                <Loader size={16} className="spin" />
-                <span>Trac AI is thinking...</span>
-              </div>
-            )}
-          </div>
-
-          {/* Sticky footer: chips + input pill.
-              position:sticky pins this to the bottom of the visible viewport
-              while chat messages scroll behind it. When the keyboard opens,
-              the visible viewport shrinks and the sticky footer naturally
-              rises with it — so the input is always visible above the keyboard. */}
+    <div
+      style={{
+        padding: "20px 22px 10px",
+        maxWidth: 720,
+        margin: "0 auto",
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Slim conversation header */}
+      <div
+        className="fade-in"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 24,
+          padding: "6px 4px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
-              position: "sticky",
-              bottom: "calc(env(safe-area-inset-bottom) + 8px)",
-              zIndex: 10,
-              paddingTop: 8,
-              // Backdrop fade so scrolling messages don't visually clash with the input
-              background: "linear-gradient(to bottom, transparent 0%, var(--bg-primary) 24px, var(--bg-primary) 100%)",
-              marginLeft: -22,
-              marginRight: -22,
-              paddingLeft: 22,
-              paddingRight: 22,
-              paddingBottom: 4,
+              width: 28,
+              height: 28,
+              borderRadius: 9999,
+              backgroundColor: "var(--accent)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 700,
             }}
           >
-            {/* Quick prompt chips */}
-            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginLeft: -4, marginRight: -4, paddingLeft: 4, paddingRight: 4 }}>
-              {["Beat procrastination", "Morning plan", "Focus tips", "Reduce stress"].map((chip, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSendMessage(chip)}
-                  disabled={chatLoading}
-                  className="cursor-pointer"
-                  style={{ padding: "7px 14px", borderRadius: 9999, fontSize: 12, whiteSpace: "nowrap", flexShrink: 0, fontWeight: 600, backgroundColor: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border)", fontFamily: "inherit" }}
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
+            T
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>Trac</div>
+            <div style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, marginTop: 2 }}>Online</div>
+          </div>
+        </div>
+        <button
+          onClick={resetConversation}
+          className="btn-ghost cursor-pointer"
+          title="New conversation"
+          aria-label="New conversation"
+          style={{ padding: 8, borderRadius: 9999 }}
+        >
+          <RotateCcw size={16} />
+        </button>
+      </div>
 
-            {/* Input pill */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "var(--bg-card)", borderRadius: 9999, padding: "4px 4px 4px 18px", border: "1px solid var(--border-strong)", boxShadow: "var(--shadow-md)" }}>
-              <input
-                type="text"
-                placeholder="Message Trac…"
-                value={inputVal}
-                onChange={e => setInputVal(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleSendMessage()}
-                style={{ flex: 1, background: "transparent", border: "none", padding: "10px 0", fontSize: 14.5, boxShadow: "none", borderRadius: 0 }}
-              />
+      {/* Message stream */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 20, paddingBottom: 28 }}>
+        {messages.map((m, i) => (
+          <MessageRow key={i} message={m} />
+        ))}
+        {chatLoading && (
+          <div className="fade-in" style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 2px" }}>
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 9999,
+                backgroundColor: "var(--accent-soft)",
+                color: "var(--accent)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 11,
+                fontWeight: 800,
+                flexShrink: 0,
+              }}
+            >
+              T
+            </div>
+            <ThinkingDots />
+          </div>
+        )}
+        <div ref={scrollAnchor} />
+      </div>
+
+      {/* Sticky composer with contextual follow-ups */}
+      <div
+        style={{
+          position: "sticky",
+          bottom: "calc(env(safe-area-inset-bottom) + 8px)",
+          zIndex: 10,
+          paddingTop: 8,
+          background:
+            "linear-gradient(to bottom, transparent 0%, var(--bg-primary) 24px, var(--bg-primary) 100%)",
+        }}
+      >
+        {showFollowUps && (
+          <div
+            className="fade-in"
+            style={{
+              display: "flex",
+              gap: 8,
+              overflowX: "auto",
+              paddingBottom: 10,
+              marginLeft: -4,
+              paddingLeft: 4,
+              paddingRight: 4,
+            }}
+          >
+            {FOLLOW_UPS.map((f) => (
               <button
-                onClick={() => handleSendMessage()}
-                disabled={!inputVal.trim() || chatLoading}
+                key={f}
+                onClick={() => handleSendMessage(f)}
+                disabled={chatLoading}
                 className="cursor-pointer"
                 style={{
-                  width: 40, height: 40, borderRadius: 9999, border: "none",
-                  backgroundColor: inputVal.trim() ? "var(--accent)" : "var(--bg-secondary)",
-                  color: inputVal.trim() ? "#fff" : "var(--text-muted)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  transition: "background-color 0.15s ease, color 0.15s ease",
+                  padding: "6px 12px",
+                  borderRadius: 9999,
+                  fontSize: 12,
+                  whiteSpace: "nowrap",
                   flexShrink: 0,
+                  fontWeight: 600,
+                  backgroundColor: "var(--bg-secondary)",
+                  color: "var(--text-secondary)",
+                  border: "1px solid var(--border)",
+                  fontFamily: "inherit",
                 }}
-                aria-label="Send"
               >
-                <Send size={16} />
+                {f}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: Quick Tips Full View */}
-      {activeTab === "generator" && (
-        <div style={{ flex: 1, padding: "24px", overflowY: "auto" }}>
-          <div className="fade-in stagger-1" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
-            {INSTANT_FLOWS.map((flow) => (
-              <div
-                key={flow.id}
-                className="card card-interactive cursor-pointer fade-in"
-                style={{ padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "16px" }}
-                onClick={() => triggerInstantFlow(flow)}
-              >
-                <div>
-                  <div style={{ padding: "10px", width: "fit-content", borderRadius: "12px", backgroundColor: "var(--accent-light)", color: "var(--accent)", marginBottom: "14px" }}>
-                    <Zap size={22} />
-                  </div>
-                  <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 8px" }}>
-                    {flow.title}
-                  </h3>
-                  <p style={{ fontSize: "14px", color: "var(--text-secondary)", margin: 0, lineHeight: "1.5" }}>
-                    Get instant AI coaching and smart habit advice.
-                  </p>
-                </div>
-
-                <button disabled={genLoading === flow.id} className="btn-primary cursor-pointer" style={{ width: "100%", padding: "12px", fontSize: "13.5px" }}>
-                  {genLoading === flow.id ? <><Loader size={16} className="spin" /> Getting Advice...</> : <><Sparkles size={16} /> Get Advice</>}
-                </button>
-              </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+        <Composer
+          value={inputVal}
+          setValue={setInputVal}
+          onSend={() => handleSendMessage()}
+          disabled={chatLoading}
+          textareaRef={textareaRef}
+        />
+      </div>
+    </div>
+  );
+}
 
-      {/* TAB 3: Habit Help Full View */}
-      {activeTab === "oracle" && (
-        <div style={{ flex: 1, padding: "24px", overflowY: "auto" }}>
-          <div className="card fade-in stagger-1" style={{ padding: "28px", maxWidth: "600px", margin: "0 auto" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-              <img src="/logo-inside.png" alt="AI Chat" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
-              <div>
-                <h3 style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
-                  Habit Help & Recovery
-                </h3>
-                <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: "4px 0 0" }}>
-                  Select any missed habit to get practical AI advice on getting back on track.
-                </p>
-              </div>
-            </div>
-
-            {habits.length === 0 ? (
-              <div style={{ padding: "36px", textAlign: "center", color: "var(--text-muted)", backgroundColor: "var(--bg-secondary)", borderRadius: "14px" }}>
-                No active habits tracked. Add habits first.
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-                <div>
-                  <label style={{ fontSize: "13.5px", fontWeight: "600", color: "var(--text-secondary)", display: "block", marginBottom: "8px" }}>
-                    Select Habit:
-                  </label>
-                  <select
-                    value={selectedHabit}
-                    onChange={e => setSelectedHabit(e.target.value)}
-                    style={{ width: "100%", padding: "12px 14px" }}
-                    className="cursor-pointer"
-                  >
-                    {habits.map(h => (
-                      <option key={h.id} value={h.name}>{h.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <button onClick={handleOracleConsult} disabled={oracleLoading || !selectedHabit} className="btn-primary cursor-pointer" style={{ width: "100%", padding: "14px", fontSize: "14.5px" }}>
-                  {oracleLoading ? <><Loader size={18} className="spin" /> Getting Tips...</> : <><Sparkles size={18} /> Get AI Tip</>}
-                </button>
-
-                {oracleTip && (
-                  <div className="fade-in" style={{ padding: "20px", backgroundColor: "var(--accent-light)", borderRadius: "14px", borderLeft: "4px solid var(--accent)", fontSize: "14.5px", fontWeight: "500", color: "var(--text-primary)", lineHeight: "1.6" }}>
-                    <div style={{ fontWeight: "600", color: "var(--accent)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <img src="/logo-inside.png" alt="" style={{ width: "18px", height: "18px", borderRadius: "50%", objectFit: "cover" }} />
-                      <span>AI Tip:</span>
-                    </div>
-                    <FormattedAiText text={oracleTip} />
-                  </div>
-                )}
-              </div>
-            )}
+// ── MessageRow ───────────────────────────────────────────────────
+// Design choice: AI messages are UNBUBBLED. Left-aligned raw text with a
+// small monogram avatar above. This makes the app feel like it's TALKING
+// to you, not showing you a chat log. It's what Claude / Perplexity do.
+// User messages stay as an amber pill on the right so they stand out.
+function MessageRow({ message }: { message: ChatMessage }) {
+  const isAi = message.role === "ai";
+  if (isAi) {
+    return (
+      <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 9999,
+              backgroundColor: "var(--accent-soft)",
+              color: "var(--accent)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: "0.02em",
+            }}
+          >
+            T
           </div>
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              color: "var(--text-muted)",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+            }}
+          >
+            Trac
+          </span>
         </div>
-      )}
+        <div style={{ fontSize: 15, lineHeight: 1.6, color: "var(--text-primary)" }}>
+          <FormattedAiText text={message.text} />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="fade-in" style={{ display: "flex", justifyContent: "flex-end" }}>
+      <div
+        style={{
+          maxWidth: "84%",
+          padding: "12px 16px",
+          borderRadius: "22px 22px 6px 22px",
+          backgroundColor: "var(--accent)",
+          color: "#ffffff",
+          fontSize: 14.5,
+          lineHeight: 1.5,
+          fontWeight: 500,
+          boxShadow: "var(--shadow-accent)",
+        }}
+      >
+        {message.text}
+      </div>
+    </div>
+  );
+}
+
+// ── Composer ─────────────────────────────────────────────────────
+// Auto-growing textarea inside a soft card. Send button lives INSIDE
+// on the right; turns amber when there's content. Enter sends,
+// Shift+Enter inserts a newline.
+function Composer({
+  value,
+  setValue,
+  onSend,
+  disabled,
+  textareaRef,
+}: {
+  value: string;
+  setValue: (v: string) => void;
+  onSend: () => void;
+  disabled: boolean;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+}) {
+  const hasContent = value.trim().length > 0;
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-end",
+        gap: 8,
+        backgroundColor: "var(--bg-card)",
+        borderRadius: 24,
+        padding: "8px 8px 8px 18px",
+        border: "1px solid var(--border-strong)",
+        boxShadow: "var(--shadow-md)",
+        transition: "border-color 0.2s var(--ease)",
+      }}
+      onFocusCapture={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+      onBlurCapture={(e) => (e.currentTarget.style.borderColor = "var(--border-strong)")}
+    >
+      <textarea
+        ref={textareaRef}
+        rows={1}
+        placeholder="Ask Trac anything…"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            onSend();
+          }
+        }}
+        style={{
+          flex: 1,
+          background: "transparent",
+          border: "none",
+          padding: "10px 0",
+          fontSize: 15,
+          lineHeight: 1.4,
+          resize: "none",
+          outline: "none",
+          fontFamily: "inherit",
+          color: "var(--text-primary)",
+          boxShadow: "none",
+          borderRadius: 0,
+          maxHeight: 160,
+          overflowY: "auto",
+        }}
+      />
+      <button
+        onClick={onSend}
+        disabled={!hasContent || disabled}
+        className="cursor-pointer"
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 9999,
+          border: "none",
+          backgroundColor: hasContent ? "var(--accent)" : "var(--bg-secondary)",
+          color: hasContent ? "#fff" : "var(--text-muted)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background-color 0.18s var(--ease), color 0.18s var(--ease), transform 0.15s var(--ease)",
+          flexShrink: 0,
+        }}
+        aria-label="Send message"
+      >
+        {disabled ? <Loader size={16} className="spin" /> : hasContent ? <ArrowUp size={18} strokeWidth={2.5} /> : <Send size={16} />}
+      </button>
     </div>
   );
 }
