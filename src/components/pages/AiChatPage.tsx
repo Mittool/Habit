@@ -156,32 +156,31 @@ export default function AiChatPage() {
   }
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "calc(100vh - 68px)", boxSizing: "border-box" }}>
-      {/* Sleek Minimalist App Bar Header */}
-      <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "var(--bg-card)", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <img src="/logo-inside.png" alt="Trac AI" style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", boxShadow: "0 2px 6px rgba(0,0,0,0.06)" }} />
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <h1 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: 0, letterSpacing: "-0.02em" }}>
-                AI Chat
-              </h1>
-              <span style={{ padding: "2px 8px", borderRadius: "9999px", backgroundColor: "var(--accent-light)", color: "var(--accent)", fontSize: "10px", fontWeight: "600", textTransform: "none" }}>
-                Active
-              </span>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "calc(100vh - 110px)", boxSizing: "border-box" }}>
+      {/* Warm hero header */}
+      <div style={{ padding: "22px 22px 14px", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: "var(--accent-soft)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <img src="/logo-inside.png" alt="" style={{ width: 28, height: 28, borderRadius: 9999, objectFit: "cover" }} />
             </div>
-            <p style={{ fontSize: "12px", fontWeight: "500", color: "var(--text-muted)", margin: "2px 0 0" }}>
-              Primary Productivity Companion
-            </p>
+            <div style={{ minWidth: 0 }}>
+              <h1 className="serif" style={{ fontSize: 26, fontWeight: 400, color: "var(--text-primary)", margin: 0, lineHeight: 1 }}>Trac</h1>
+              <p style={{ fontSize: 12, fontWeight: 500, color: "var(--text-muted)", margin: "3px 0 0" }}>Your personal coach</p>
+            </div>
+          </div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 9999, backgroundColor: "var(--success-soft)", color: "var(--success)", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+            <div style={{ width: 6, height: 6, borderRadius: 9999, backgroundColor: "var(--success)" }} />
+            Online
           </div>
         </div>
 
-        {/* Minimal Segment Tabs */}
-        <div style={{ display: "flex", gap: "4px", backgroundColor: "var(--bg-secondary)", padding: "4px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+        {/* Segment tabs — pill container */}
+        <div style={{ display: "flex", gap: 4, backgroundColor: "var(--bg-secondary)", padding: 4, borderRadius: 9999, border: "1px solid var(--border)", width: "fit-content" }}>
           {[
-            { id: "chat", label: "Chat", icon: <Terminal size={14} /> },
-            { id: "generator", label: "Tips", icon: <Zap size={14} /> },
-            { id: "oracle", label: "Habits", icon: <Brain size={14} /> },
+            { id: "chat", label: "Chat", icon: <Terminal size={13} /> },
+            { id: "generator", label: "Tips", icon: <Zap size={13} /> },
+            { id: "oracle", label: "Habits", icon: <Brain size={13} /> },
           ].map(tab => {
             const isActive = activeTab === tab.id;
             return (
@@ -190,18 +189,19 @@ export default function AiChatPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className="cursor-pointer"
                 style={{
-                  padding: "6px 12px",
-                  borderRadius: "8px",
+                  padding: "7px 14px",
+                  borderRadius: 9999,
                   border: "none",
                   backgroundColor: isActive ? "var(--bg-card)" : "transparent",
-                  color: isActive ? "var(--accent)" : "var(--text-secondary)",
-                  fontWeight: isActive ? "800" : "600",
-                  fontSize: "12px",
+                  color: isActive ? "var(--text-primary)" : "var(--text-muted)",
+                  fontWeight: isActive ? 700 : 600,
+                  fontSize: 12.5,
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
-                  boxShadow: isActive ? "0 1px 3px var(--shadow)" : "none",
-                  transition: "all 0.15s",
+                  gap: 6,
+                  boxShadow: isActive ? "var(--shadow-sm)" : "none",
+                  transition: "all 0.2s var(--ease)",
+                  fontFamily: "inherit",
                 }}
               >
                 {tab.icon}
@@ -227,18 +227,19 @@ export default function AiChatPage() {
                     alignSelf: isAi ? "flex-start" : "flex-end",
                     maxWidth: "85%",
                     padding: "14px 18px",
-                    borderRadius: isAi ? "4px 18px 18px 18px" : "18px 4px 18px 18px",
-                    backgroundColor: isAi ? "var(--bg-card)" : "var(--text-primary)",
-                    color: isAi ? "var(--text-primary)" : "var(--bg-card)",
+                    borderRadius: isAi ? "6px 20px 20px 20px" : "20px 6px 20px 20px",
+                    backgroundColor: isAi ? "var(--bg-card)" : "var(--accent)",
+                    color: isAi ? "var(--text-primary)" : "#ffffff",
                     border: isAi ? "1px solid var(--border)" : "none",
-                    boxShadow: "0 2px 8px var(--shadow)",
-                    fontSize: "14px",
+                    boxShadow: isAi ? "var(--shadow-sm)" : "var(--shadow-accent)",
+                    fontSize: 14.5,
+                    lineHeight: 1.5,
                   }}
                 >
                   {isAi && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11px", fontWeight: "600", color: "var(--accent)", textTransform: "none", marginBottom: "6px" }}>
-                      <img src="/logo-inside.png" alt="" style={{ width: "16px", height: "16px", borderRadius: "50%", objectFit: "cover" }} />
-                      <span>Trac AI</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10.5, fontWeight: 700, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>
+                      <img src="/logo-inside.png" alt="" style={{ width: 14, height: 14, borderRadius: 9999, objectFit: "cover" }} />
+                      <span>Trac</span>
                     </div>
                   )}
                   {isAi ? <FormattedAiText text={m.text} /> : <div>{m.text}</div>}
@@ -246,46 +247,57 @@ export default function AiChatPage() {
               );
             })}
             {chatLoading && (
-              <div className="fade-in" style={{ alignSelf: "flex-start", padding: "12px 18px", borderRadius: "16px", backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "10px", color: "var(--accent)", fontSize: "13px", fontWeight: "600" }}>
+              <div className="fade-in" style={{ alignSelf: "flex-start", padding: "14px 18px", borderRadius: "6px 20px 20px 20px", backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10, color: "var(--accent)", fontSize: 13, fontWeight: 600, boxShadow: "var(--shadow-sm)" }}>
                 <Loader size={16} className="spin" />
                 <span>Trac AI is thinking...</span>
               </div>
             )}
           </div>
 
-          {/* Quick Prompt Chips Bar right above input */}
-          <div style={{ padding: "10px 16px", backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border)", display: "flex", gap: "8px", overflowX: "auto", flexShrink: 0 }}>
-            {["Max Focus Tips", "Reduce Burnout", "Morning Plan", "Time Strategy"].map((chip, idx) => (
+          {/* Quick prompt chips */}
+          <div style={{ padding: "12px 18px 6px", backgroundColor: "var(--bg-secondary)", display: "flex", gap: 8, overflowX: "auto", flexShrink: 0 }}>
+            {["Beat procrastination", "Morning plan", "Focus tips", "Reduce stress"].map((chip, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSendMessage(chip)}
                 disabled={chatLoading}
-                className="btn-secondary cursor-pointer"
-                style={{ padding: "6px 12px", borderRadius: "8px", fontSize: "11px", whiteSpace: "nowrap", flexShrink: 0, fontWeight: "600" }}
+                className="cursor-pointer"
+                style={{ padding: "8px 14px", borderRadius: 9999, fontSize: 12, whiteSpace: "nowrap", flexShrink: 0, fontWeight: 600, backgroundColor: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border)", fontFamily: "inherit", transition: "all 0.2s var(--ease)" }}
               >
                 {chip}
               </button>
             ))}
           </div>
 
-          {/* Message Input pinned to bottom */}
-          <div style={{ padding: "14px 16px calc(14px + env(safe-area-inset-bottom))", backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border)", display: "flex", gap: "10px", flexShrink: 0 }}>
-            <input
-              type="text"
-              placeholder="Ask AI anything..."
-              value={inputVal}
-              onChange={e => setInputVal(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleSendMessage()}
-              style={{ flex: 1 }}
-            />
-            <button
-              onClick={() => handleSendMessage()}
-              disabled={!inputVal.trim() || chatLoading}
-              className="btn-primary cursor-pointer"
-              style={{ padding: "12px 20px" }}
-            >
-              <Send size={16} />
-            </button>
+          {/* Message input — floating pill */}
+          <div style={{ padding: "12px 16px calc(14px + env(safe-area-inset-bottom))", backgroundColor: "var(--bg-secondary)", display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, backgroundColor: "var(--bg-card)", borderRadius: 9999, padding: "4px 4px 4px 18px", border: "1px solid var(--border-strong)", boxShadow: "var(--shadow-sm)" }}>
+              <input
+                type="text"
+                placeholder="Message Trac…"
+                value={inputVal}
+                onChange={e => setInputVal(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSendMessage()}
+                style={{ flex: 1, background: "transparent", border: "none", padding: "10px 0", fontSize: 14.5, boxShadow: "none", borderRadius: 0 }}
+              />
+              <button
+                onClick={() => handleSendMessage()}
+                disabled={!inputVal.trim() || chatLoading}
+                className="cursor-pointer"
+                style={{
+                  width: 40, height: 40, borderRadius: 9999, border: "none",
+                  backgroundColor: inputVal.trim() ? "var(--accent)" : "var(--bg-secondary)",
+                  color: inputVal.trim() ? "#fff" : "var(--text-muted)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all 0.2s var(--spring)",
+                  boxShadow: inputVal.trim() ? "var(--shadow-accent)" : "none",
+                  flexShrink: 0,
+                }}
+                aria-label="Send"
+              >
+                <Send size={16} />
+              </button>
+            </div>
           </div>
         </div>
       )}

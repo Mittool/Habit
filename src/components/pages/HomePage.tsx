@@ -1,14 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useAppStore, getTodayStr, getHabitStreak, getHabitBestStreak } from "@/lib/store";
-import { getDailyQuote } from "@/lib/gemini";
-import { format, subDays, startOfWeek, addDays, getDaysInMonth, setDate } from "date-fns";
+import { useAppStore, getTodayStr, getHabitStreak } from "@/lib/store";
+import { format, startOfWeek, addDays, getDaysInMonth, setDate } from "date-fns";
 import { renderHabitIcon } from "@/lib/icons";
 import {
   Flame,
-  Zap,
   CalendarDays,
-  TrendingUp,
   Clock,
   CheckSquare,
   RefreshCw,
@@ -34,7 +31,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   const pendingTodosCount = todos.filter((t) => !t.completed).length;
 
   const todayCompletionRate = habits.length > 0 ? Math.round((completedTodayCount / habits.length) * 100) : 0;
-  const bestStreak = habits.length > 0 ? Math.max(0, ...habits.map((h) => getHabitBestStreak(h))) : 0;
   const currentStreak = habits.length > 0 ? Math.max(0, ...habits.map((h) => getHabitStreak(h))) : 0;
 
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -44,18 +40,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
     return habits.filter((h) => h.completions && h.completions[key]).length;
   });
   const weeklyAveragePct = habits.length > 0 ? Math.round((weekData.reduce((a, b) => a + b, 0) / (7 * habits.length)) * 100) : 0;
-  
-  const monthlyHabitAveragePct = habits.length > 0
-    ? Math.round(
-        Array.from({ length: 30 }, (_, i) => {
-          const d = subDays(new Date(), 29 - i);
-          const key = format(d, "yyyy-MM-dd");
-          return habits.filter((h) => h.completions && h.completions[key]).length;
-        }).reduce((a, b) => a + b, 0) / (30 * habits.length) * 100
-      )
-    : 0;
-
-  const totalFocusTimeMins = focusSessions.reduce((sum, s) => sum + s.minutes, 0);
 
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [completedToastId, setCompletedToastId] = useState<string | null>(null);
@@ -105,7 +89,8 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   }, []);
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const firstName = (user?.name || "there").trim().split(/\s+/)[0];
 
   const daysInCurrentMonth = getDaysInMonth(new Date());
   const currentMonthHeatmap = Array.from({ length: daysInCurrentMonth }, (_, i) => {
@@ -117,191 +102,170 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
   });
 
   return (
-    <div style={{ padding: "32px 24px", maxWidth: "800px", margin: "0 auto" }}>
-      {/* 1. Studio Header (No Top Right Buttons!) */}
-      <div className="fade-in" style={{ marginBottom: "24px" }}>
-        <span style={{ fontSize: "14px", fontWeight: "500", color: "var(--text-secondary)", display: "block" }}>{greeting},</span>
-        <h1 className="shimmer-name" style={{ fontSize: "30px", fontWeight: "700", margin: "2px 0 4px", letterSpacing: "-0.02em" }}>
-          {user?.name || "Mittool"}
-        </h1>
-        <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: 0 }}>
-          {format(new Date(), "EEEE, MMMM d, yyyy")}
-        </p>
-      </div>
-
-      {/* 2. Daily Motivation Quote AT TOP AS REQUESTED */}
-      <div className="card fade-in stagger-1" style={{ padding: "20px 24px", marginBottom: "20px", borderLeft: "3px solid var(--accent)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-          <span style={{ fontSize: "11.5px", fontWeight: "600", color: "var(--text-muted)" }}>Daily Motivation</span>
-          <button onClick={fetchFreshQuote} disabled={quoteLoading} className="cursor-pointer" style={{ background: "none", border: "none", color: "var(--text-muted)", padding: 0 }}>
-            <RefreshCw size={14} className={quoteLoading ? "spin" : ""} />
-          </button>
+    <div style={{ padding: "40px 22px 24px", maxWidth: "820px", margin: "0 auto" }}>
+      {/* ═══ Hero header — serif greeting + big ring ═══ */}
+      <div className="fade-in" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 20, marginBottom: 28 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", letterSpacing: "0.02em", textTransform: "uppercase", marginBottom: 8 }}>
+            {format(new Date(), "EEEE · MMMM d")}
+          </div>
+          <h1 className="serif" style={{ fontSize: "clamp(38px, 8vw, 52px)", lineHeight: 1.02, margin: 0, color: "var(--text-primary)" }}>
+            {greeting},<br />
+            <em style={{ fontStyle: "italic", color: "var(--accent)" }}>{firstName}</em>
+          </h1>
         </div>
-        <p style={{ fontSize: "14.5px", color: "var(--text-primary)", fontStyle: "italic", lineHeight: "1.5", margin: "0 0 6px" }}>
-          &ldquo;{dailyQuote?.text || "Excellence is not an act, but a daily habit."}&rdquo;
-        </p>
-        <span style={{ fontSize: "12.5px", color: "var(--text-secondary)", fontWeight: "500" }}>
-          &mdash; {dailyQuote?.author || "Aristotle"}
-        </span>
-      </div>
 
-      {/* 3. Daily Progress Ring Banner */}
-      <div className="card fade-in stagger-1" style={{ padding: "20px 24px", marginBottom: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
-        <div>
-          <h2 style={{ fontSize: "18px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 4px" }}>Today&rsquo;s Progress</h2>
-          <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0 }}>{completedTodayCount} of {habits.length} priority routines completed</p>
-        </div>
-        <div style={{ position: "relative", width: "56px", height: "56px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="56" height="56" viewBox="0 0 56 56" style={{ transform: "rotate(-90deg)" }}>
-            <circle cx="28" cy="28" r="23" fill="none" stroke="var(--border)" strokeWidth="5" />
+        {/* Oversized progress ring */}
+        <div style={{ position: "relative", width: 96, height: 96, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="96" height="96" viewBox="0 0 96 96" style={{ transform: "rotate(-90deg)" }}>
+            <circle cx="48" cy="48" r="40" fill="none" stroke="var(--border-strong)" strokeWidth="6" opacity="0.5" />
             <circle
-              cx="28"
-              cy="28"
-              r="23"
-              fill="none"
-              stroke="var(--accent)"
-              strokeWidth="5"
-              strokeLinecap="round"
-              strokeDasharray={2 * Math.PI * 23}
-              strokeDashoffset={2 * Math.PI * 23 * (1 - todayCompletionRate / 100)}
-              style={{ transition: "stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)" }}
+              cx="48" cy="48" r="40" fill="none"
+              stroke="var(--accent)" strokeWidth="6" strokeLinecap="round"
+              strokeDasharray={2 * Math.PI * 40}
+              strokeDashoffset={2 * Math.PI * 40 * (1 - todayCompletionRate / 100)}
+              style={{ transition: "stroke-dashoffset 0.8s var(--spring)" }}
             />
           </svg>
-          <span style={{ position: "absolute", fontSize: "13px", fontWeight: "700", color: "var(--text-primary)" }}>{todayCompletionRate}%</span>
+          <div style={{ position: "absolute", textAlign: "center", lineHeight: 1 }}>
+            <div className="serif" style={{ fontSize: 28, color: "var(--text-primary)" }}>{todayCompletionRate}<span style={{ fontSize: 14, opacity: 0.6 }}>%</span></div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 3 }}>Today</div>
+          </div>
         </div>
       </div>
 
-      {/* 4. Quick Stats Grid (Four Cards) */}
-      <div className="fade-in stagger-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "24px" }}>
-        <div onClick={() => onNavigate("habits")} className="card card-interactive cursor-pointer" style={{ padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>Habits Completed</div>
-            <div style={{ fontSize: "22px", fontWeight: "600", color: "var(--text-primary)" }}>{completedTodayCount} / {habits.length}</div>
-          </div>
-          <CheckSquare size={20} color="var(--accent)" />
-        </div>
-
-        <div onClick={() => onNavigate("pomodoro")} className="card card-interactive cursor-pointer" style={{ padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>Focus Time</div>
-            <div style={{ fontSize: "22px", fontWeight: "600", color: "var(--text-primary)" }}>{todayFocus}m</div>
-          </div>
-          <Clock size={20} color="#3B82F6" />
-        </div>
-
-        <div onClick={() => onNavigate("todo")} className="card card-interactive cursor-pointer" style={{ padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>Tasks Remaining</div>
-            <div style={{ fontSize: "22px", fontWeight: "600", color: "var(--text-primary)" }}>{pendingTodosCount}</div>
-          </div>
-          <CalendarDays size={20} color="#8B5CF6" />
-        </div>
-
-        <div onClick={() => onNavigate("insights")} className="card card-interactive cursor-pointer" style={{ padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>Current Streak</div>
-            <div style={{ fontSize: "22px", fontWeight: "600", color: "var(--text-primary)" }}>{currentStreak}d</div>
-          </div>
-          <Zap size={20} color="#F59E0B" />
+      {/* ═══ Warm quote card — no left stripe, larger serif pull-quote ═══ */}
+      <div className="card-hero fade-in stagger-1" style={{ padding: "28px 26px", marginBottom: 22, position: "relative" }}>
+        <button onClick={fetchFreshQuote} disabled={quoteLoading} className="btn-ghost cursor-pointer" style={{ position: "absolute", top: 14, right: 14 }} aria-label="Refresh quote">
+          <RefreshCw size={15} className={quoteLoading ? "spin" : ""} />
+        </button>
+        <div style={{ fontSize: 40, lineHeight: 0.9, color: "var(--accent)", fontFamily: "'Instrument Serif', Georgia, serif", marginBottom: 4 }}>&ldquo;</div>
+        <p className="serif" style={{ fontSize: "clamp(19px, 4.2vw, 24px)", lineHeight: 1.35, color: "var(--text-primary)", margin: "0 0 12px", fontStyle: "italic" }}>
+          {dailyQuote?.text || "Excellence is not an act, but a daily habit."}
+        </p>
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--text-muted)", letterSpacing: "0.03em", textTransform: "uppercase" }}>
+          — {dailyQuote?.author || "Aristotle"}
         </div>
       </div>
 
-      {/* 6. Split Consistency Card (Half 7-Day Old View & Half 30-Day Heatmap) */}
-      <div className="card fade-in stagger-3" style={{ padding: "24px", marginBottom: "24px" }}>
-        {heatmapTooltip && (
-          <div style={{ padding: "6px 10px", borderRadius: "6px", backgroundColor: "var(--text-primary)", color: "var(--bg-card)", fontSize: "11.5px", fontWeight: "600", marginBottom: "14px", width: "fit-content" }}>
-            {heatmapTooltip}
-          </div>
-        )}
+      {/* ═══ Quick stats grid ═══ */}
+      <div className="fade-in stagger-2" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 24 }}>
+        <StatTile onClick={() => onNavigate("habits")} label="Habits Done" value={`${completedTodayCount}/${habits.length}`} tint="#d97706" icon={<CheckSquare size={18} />} />
+        <StatTile onClick={() => onNavigate("pomodoro")} label="Focus Today" value={`${todayFocus}m`} tint="#3B82F6" icon={<Clock size={18} />} />
+        <StatTile onClick={() => onNavigate("todo")} label="Tasks Left" value={String(pendingTodosCount)} tint="#8B5CF6" icon={<CalendarDays size={18} />} />
+        <StatTile onClick={() => onNavigate("insights")} label="Current Streak" value={`${currentStreak}d`} tint="#059669" icon={<Flame size={18} />} />
+      </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-          {/* Left Column: 7-Day Graph View (Old View) */}
-          <div style={{ borderRight: "1px solid var(--border)", paddingRight: "12px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-              <h3 style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>7-Day Graph</h3>
-              <span style={{ fontSize: "12px", color: "var(--accent)", fontWeight: "600" }}>{weeklyAveragePct}% Avg</span>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", height: "56px" }}>
-              {weekData.map((count, i) => {
-                const pct = habits.length > 0 ? Math.round((count / habits.length) * 100) : 0;
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      flex: 1,
-                      height: `${Math.max(pct, 12)}%`,
-                      borderRadius: "4px",
-                      backgroundColor: pct >= 70 ? "var(--accent)" : pct >= 40 ? "#F59E0B" : pct > 0 ? "#EF4444" : "var(--bg-secondary)",
-                      transition: "height 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                    }}
-                    title={`${pct}% completed`}
-                  />
-                );
-              })}
-            </div>
-            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => (
-                <span key={i} style={{ flex: 1, textAlign: "center", fontSize: "10px", fontWeight: "600", color: "var(--text-muted)" }}>
-                  {d}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Column: Heatmap */}
+      {/* ═══ Consistency card — cleaner split, unified visual language ═══ */}
+      <div className="card fade-in stagger-3" style={{ padding: "24px 24px 22px", marginBottom: 22 }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 18 }}>
           <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-              <h3 style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>{format(new Date(), "MMMM")} Heatmap</h3>
-            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>This week</div>
+            <div className="serif" style={{ fontSize: 30, color: "var(--text-primary)", lineHeight: 1 }}>{weeklyAveragePct}<span style={{ fontSize: 16, opacity: 0.5 }}>%</span></div>
+          </div>
+          <button onClick={() => onNavigate("insights")} className="btn-ghost cursor-pointer" style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", padding: "6px 10px" }}>
+            View trends <ChevronRight size={13} />
+          </button>
+        </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}>
-              {currentMonthHeatmap.map((hd, idx) => {
-                const bgAlpha = hd.pct === 0 ? "var(--bg-secondary)" : hd.pct < 0.4 ? "rgba(13, 148, 136, 0.3)" : hd.pct < 0.8 ? "rgba(13, 148, 136, 0.65)" : "var(--accent)";
-                return (
+        {/* 7-day bar row */}
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 68 }}>
+          {weekData.map((count, i) => {
+            const pct = habits.length > 0 ? Math.round((count / habits.length) * 100) : 0;
+            const isToday = i === (new Date().getDay() + 6) % 7;
+            return (
+              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <div style={{ width: "100%", height: 48, display: "flex", alignItems: "flex-end" }}>
                   <div
-                    key={idx}
                     style={{
                       width: "100%",
-                      aspectRatio: "1/1",
-                      borderRadius: "3px",
-                      backgroundColor: bgAlpha,
-                      border: hd.pct === 0 ? "1px solid var(--border)" : "none",
+                      height: `${Math.max(pct, 8)}%`,
+                      borderRadius: "8px 8px 4px 4px",
+                      backgroundColor: pct >= 70 ? "var(--accent)" : pct >= 40 ? "var(--accent-light)" : pct > 0 ? "var(--accent-soft)" : "var(--bg-secondary)",
+                      border: isToday ? "1px solid var(--accent)" : "none",
+                      transition: "height 0.5s var(--spring)",
                     }}
+                    title={`${pct}%`}
                   />
-                );
-              })}
+                </div>
+                <span style={{ fontSize: 10, fontWeight: isToday ? 700 : 600, color: isToday ? "var(--accent)" : "var(--text-muted)" }}>
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Month heatmap — tucked under the week bar */}
+        <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{format(new Date(), "MMMM")}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "var(--text-muted)" }}>
+              <span>less</span>
+              {[0.15, 0.4, 0.7, 1].map((a, i) => (
+                <div key={i} style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: `rgba(217, 119, 6, ${a})` }} />
+              ))}
+              <span>more</span>
             </div>
           </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(14px, 1fr))", gap: 5 }}>
+            {currentMonthHeatmap.map((hd, idx) => {
+              const bg = hd.pct === 0 ? "var(--bg-secondary)" : `rgba(217, 119, 6, ${0.15 + hd.pct * 0.85})`;
+              return (
+                <div
+                  key={idx}
+                  onMouseEnter={() => setHeatmapTooltip(`${hd.date}: ${hd.count}/${habits.length}`)}
+                  onMouseLeave={() => setHeatmapTooltip(null)}
+                  style={{ width: "100%", aspectRatio: "1/1", borderRadius: 4, backgroundColor: bg, border: hd.pct === 0 ? "1px solid var(--border)" : "none", cursor: "pointer" }}
+                />
+              );
+            })}
+          </div>
+          {heatmapTooltip && (
+            <div style={{ marginTop: 8, fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{heatmapTooltip}</div>
+          )}
         </div>
       </div>
 
-      {/* 7. Today's Priority Habits List */}
+      {/* ═══ Today's habits card ═══ */}
       <div className="card fade-in stagger-4" style={{ padding: "24px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Today&rsquo;s Priority Habits</h3>
-          <button onClick={() => onNavigate("habits")} className="cursor-pointer" style={{ background: "none", border: "none", color: "var(--accent)", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", gap: "4px" }}>
-            Manage <ChevronRight size={14} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+          <h3 className="serif" style={{ fontSize: 22, fontWeight: 400, color: "var(--text-primary)", margin: 0 }}>Today&rsquo;s habits</h3>
+          <button onClick={() => onNavigate("habits")} className="btn-ghost cursor-pointer" style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)" }}>
+            Manage <ChevronRight size={13} />
           </button>
         </div>
 
         {habits.length === 0 ? (
-          <div style={{ padding: "32px", textAlign: "center", color: "var(--text-muted)", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
-            No habits yet. Create your first habit to begin tracking.
+          <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--text-muted)", backgroundColor: "var(--bg-secondary)", borderRadius: "var(--radius-lg)" }}>
+            No habits yet — create your first one to begin.
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {habits.slice(0, 5).map((h) => {
               const done = h.completions && h.completions[today];
               const streak = getHabitStreak(h);
               return (
-                <div key={h.id} className={`card fade-in relative ${completedToastId === h.id ? "card-highlight-bloom" : ""}`} style={{ padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div
+                  key={h.id}
+                  className={`fade-in relative ${completedToastId === h.id ? "card-highlight-bloom" : ""}`}
+                  style={{
+                    padding: "14px 16px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    borderRadius: "var(--radius-lg)",
+                    backgroundColor: done ? "var(--bg-secondary)" : "var(--bg-card)",
+                    border: "1px solid var(--border)",
+                    transition: "background-color 0.3s var(--ease)",
+                  }}
+                >
                   {completedToastId === h.id && (
-                    <div className="badge-float-up" style={{ padding: "3px 8px", borderRadius: "9999px", backgroundColor: "var(--text-primary)", color: "var(--bg-card)", fontSize: "11px", fontWeight: "600" }}>
-                      +1 Completed
+                    <div className="badge-float-up" style={{ padding: "4px 10px", borderRadius: 9999, backgroundColor: "var(--accent)", color: "#fff", fontSize: 11, fontWeight: 700 }}>
+                      +1 done
                     </div>
                   )}
-                  <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 0 }}>
                     <button
                       onClick={() => {
                         if (!done) {
@@ -311,22 +275,23 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
                         toggleHabitCompletion(h.id, today);
                       }}
                       className={`cursor-pointer ${done ? "animate-check" : ""}`}
-                      style={{ background: "none", border: "none", padding: 0 }}
+                      style={{ background: "none", border: "none", padding: 0, flexShrink: 0 }}
+                      aria-label={done ? "Mark incomplete" : "Mark done"}
                     >
-                      {done ? <CheckCircle2 size={24} color={h.color} /> : <Circle size={24} color="var(--border)" />}
+                      {done ? <CheckCircle2 size={26} color={h.color} /> : <Circle size={26} color="var(--border-strong)" strokeWidth={1.8} />}
                     </button>
-                    <div style={{ padding: "6px", borderRadius: "8px", backgroundColor: h.color + "18", color: h.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      {renderHabitIcon(h.iconKey || "Target", 16, h.color)}
+                    <div style={{ padding: 7, borderRadius: 10, backgroundColor: h.color + "1C", color: h.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {renderHabitIcon(h.iconKey || "Target", 15, h.color)}
                     </div>
-                    <div>
-                      <div style={{ fontSize: "14px", fontWeight: "600", color: done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: done ? "line-through" : "none" }}>{h.name}</div>
+                    <div style={{ fontSize: 14.5, fontWeight: 600, color: done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: done ? "line-through" : "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {h.name}
                     </div>
                   </div>
 
                   {streak > 0 && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "3px 8px", borderRadius: "6px", backgroundColor: "var(--bg-secondary)", fontSize: "11.5px", fontWeight: "600", color: "var(--accent)" }}>
-                      <Flame size={12} />
-                      <span>{streak}d</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 9999, backgroundColor: "var(--accent-soft)", fontSize: 11.5, fontWeight: 700, color: "var(--accent)", flexShrink: 0, marginLeft: 8 }}>
+                      <Flame size={11} />
+                      <span>{streak}</span>
                     </div>
                   )}
                 </div>
@@ -336,5 +301,33 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
         )}
       </div>
     </div>
+  );
+}
+
+// ─── Stat tile helper ─────────────────────────────────────────────
+function StatTile({ label, value, tint, icon, onClick }: { label: string; value: string; tint: string; icon: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="card card-interactive cursor-pointer"
+      style={{
+        padding: "18px 18px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 10,
+        textAlign: "left",
+        fontFamily: "inherit",
+        border: "1px solid var(--border)",
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
+        <div className="serif" style={{ fontSize: 26, color: "var(--text-primary)", lineHeight: 1 }}>{value}</div>
+      </div>
+      <div style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: tint + "1C", color: tint, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        {icon}
+      </div>
+    </button>
   );
 }
