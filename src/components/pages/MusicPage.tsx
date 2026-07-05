@@ -338,11 +338,8 @@ export default function FocusMusicPage() {
             border: "none",
             marginTop: "32px",
             boxShadow: "0 8px 24px var(--shadow)",
-            transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
           title={playing ? "Pause Sound" : "Play Sound"}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.06)")}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
           {playing ? <Pause size={30} /> : <Play size={30} style={{ marginLeft: "4px" }} />}
         </button>

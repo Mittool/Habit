@@ -267,11 +267,8 @@ export default function AiChatPage() {
                   flexDirection: "column",
                   gap: 8,
                   fontFamily: "inherit",
-                  transition: "border-color 0.18s var(--ease), background-color 0.18s var(--ease)",
+                  transition: "border-color 0.18s var(--ease)",
                 }}
-                onMouseDown={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-secondary)")}
-                onMouseUp={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-card)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-card)")}
               >
                 <span style={{ fontSize: 22, lineHeight: 1 }}>{s.emoji}</span>
                 <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.35 }}>

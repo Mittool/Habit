@@ -214,11 +214,15 @@ input, textarea, select, [contenteditable="true"] {
   cursor: pointer;
 }
 
-.card-interactive:hover {
-  border-color: var(--border-strong);
-  background-color: var(--bg-elevated);
+/* Hover only on real pointer devices (desktop). Phones don't have hover;
+   a tapped element with a :hover rule would stay "stuck" until the user
+   tapped somewhere else, which felt broken. */
+@media (hover: hover) {
+  .card-interactive:hover {
+    border-color: var(--border-strong);
+    background-color: var(--bg-elevated);
+  }
 }
-
 .card-interactive:active {
   background-color: var(--bg-secondary);
 }
@@ -250,8 +254,10 @@ input, textarea, select, [contenteditable="true"] {
   gap: 8px;
   letter-spacing: -0.01em;
 }
-.btn-primary:hover:not(:disabled) {
-  background-color: var(--text-secondary);
+@media (hover: hover) {
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--text-secondary);
+  }
 }
 .btn-primary:active:not(:disabled) {
   transform: scale(0.98);
@@ -281,8 +287,10 @@ input, textarea, select, [contenteditable="true"] {
   gap: 8px;
   letter-spacing: -0.01em;
 }
-.btn-accent:hover:not(:disabled) {
-  background-color: var(--accent-hover);
+@media (hover: hover) {
+  .btn-accent:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+  }
 }
 .btn-accent:active:not(:disabled) { transform: scale(0.98); }
 .btn-accent:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
@@ -303,10 +311,12 @@ input, textarea, select, [contenteditable="true"] {
   justify-content: center;
   gap: 8px;
 }
-.btn-secondary:hover:not(:disabled) {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border-color: var(--text-muted);
+@media (hover: hover) {
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--text-muted);
+  }
 }
 .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -324,9 +334,11 @@ input, textarea, select, [contenteditable="true"] {
   align-items: center;
   justify-content: center;
 }
-.btn-ghost:hover {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
+@media (hover: hover) {
+  .btn-ghost:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+  }
 }
 
 /* ═══ Form controls ═══ */
@@ -363,7 +375,9 @@ input:focus, textarea:focus, select:focus {
   transition: all 0.18s var(--ease);
   cursor: pointer;
 }
-.chip:hover { color: var(--text-primary); }
+@media (hover: hover) {
+  .chip:hover { color: var(--text-primary); }
+}
 .chip-active {
   background-color: var(--accent);
   color: #ffffff;
@@ -514,8 +528,10 @@ input:focus, textarea:focus, select:focus {
   background: transparent;
   position: relative;
 }
-.nav-item:hover {
-  color: var(--text-primary);
+@media (hover: hover) {
+  .nav-item:hover {
+    color: var(--text-primary);
+  }
 }
 
 /* ─── Mobile floating nav pills ───

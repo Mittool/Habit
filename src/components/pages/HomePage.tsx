@@ -44,7 +44,6 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
 
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [completedToastId, setCompletedToastId] = useState<string | null>(null);
-  const [heatmapTooltip, setHeatmapTooltip] = useState<string | null>(null);
 
   // Plain function — React 19 compiler auto-memoises this. Wrapping it
   // in useCallback triggered a preserve-manual-memoization warning.
@@ -215,16 +214,11 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
               return (
                 <div
                   key={idx}
-                  onMouseEnter={() => setHeatmapTooltip(`${hd.date}: ${hd.count}/${habits.length}`)}
-                  onMouseLeave={() => setHeatmapTooltip(null)}
-                  style={{ width: "100%", aspectRatio: "1/1", borderRadius: 4, backgroundColor: bg, border: hd.pct === 0 ? "1px solid var(--border)" : "none", cursor: "pointer" }}
+                  style={{ width: "100%", aspectRatio: "1/1", borderRadius: 4, backgroundColor: bg, border: hd.pct === 0 ? "1px solid var(--border)" : "none" }}
                 />
               );
             })}
           </div>
-          {heatmapTooltip && (
-            <div style={{ marginTop: 8, fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{heatmapTooltip}</div>
-          )}
         </div>
       </div>
 

@@ -293,11 +293,8 @@ export default function PomodoroPage() {
               justifyContent: "center",
               color: "#FFFFFF",
               boxShadow: `0 8px 28px ${phaseColor}55`,
-              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
             title={running ? "Pause Focus" : "Start Focus"}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
           >
             {running ? <Pause size={34} /> : <Play size={34} style={{ marginLeft: "4px" }} />}
           </button>
