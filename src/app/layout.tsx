@@ -42,7 +42,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        {/* interactive-widget=resizes-content tells the browser to SHRINK
+            the layout viewport when the on-screen keyboard opens. Without
+            it, position:sticky bottom elements stay pinned to the pre-
+            keyboard bottom (which the keyboard then covers). With it,
+            the layout viewport tracks the visible viewport so sticky
+            bottoms sit correctly above the keyboard. */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" sizes="180x180" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />

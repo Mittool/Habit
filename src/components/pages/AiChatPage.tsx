@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
+import PageHeader from "@/components/PageHeader";
 import {
   Sparkles,
   Zap,
@@ -156,67 +157,63 @@ export default function AiChatPage() {
   }
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", width: "100%", height: "calc(100vh - 110px)", boxSizing: "border-box" }}>
-      {/* Warm hero header */}
-      <div style={{ padding: "22px 22px 14px", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: "var(--accent-soft)", color: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <img src="/logo-inside.png" alt="" style={{ width: 28, height: 28, borderRadius: 9999, objectFit: "cover" }} />
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <h1 className="serif" style={{ fontSize: 26, fontWeight: 400, color: "var(--text-primary)", margin: 0, lineHeight: 1 }}>Trac</h1>
-              <p style={{ fontSize: 12, fontWeight: 500, color: "var(--text-muted)", margin: "3px 0 0" }}>Your personal coach</p>
-            </div>
-          </div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 9999, backgroundColor: "var(--success-soft)", color: "var(--success)", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+    <div style={{ padding: "40px 22px 10px", maxWidth: "820px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+      {/* Standard PageHeader — same shape as every other top-level page */}
+      <PageHeader
+        eyebrow="Your personal coach"
+        title="AI"
+        right={
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 9999, backgroundColor: "var(--success-soft)", color: "var(--success)", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>
             <div style={{ width: 6, height: 6, borderRadius: 9999, backgroundColor: "var(--success)" }} />
             Online
           </div>
-        </div>
+        }
+      />
 
-        {/* Segment tabs — pill container */}
-        <div style={{ display: "flex", gap: 4, backgroundColor: "var(--bg-secondary)", padding: 4, borderRadius: 9999, border: "1px solid var(--border)", width: "fit-content" }}>
-          {[
-            { id: "chat", label: "Chat", icon: <Terminal size={13} /> },
-            { id: "generator", label: "Tips", icon: <Zap size={13} /> },
-            { id: "oracle", label: "Habits", icon: <Brain size={13} /> },
-          ].map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className="cursor-pointer"
-                style={{
-                  padding: "7px 14px",
-                  borderRadius: 9999,
-                  border: "none",
-                  backgroundColor: isActive ? "var(--bg-card)" : "transparent",
-                  color: isActive ? "var(--text-primary)" : "var(--text-muted)",
-                  fontWeight: isActive ? 700 : 600,
-                  fontSize: 12.5,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  boxShadow: isActive ? "var(--shadow-sm)" : "none",
-                  transition: "all 0.2s var(--ease)",
-                  fontFamily: "inherit",
-                }}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+      {/* Segment tabs — same pill style as Planner / Focus / Insights */}
+      <div style={{ display: "flex", gap: 4, backgroundColor: "var(--bg-secondary)", padding: 4, borderRadius: 9999, border: "1px solid var(--border)", width: "fit-content", marginBottom: 18 }}>
+        {[
+          { id: "chat", label: "Chat", icon: <Terminal size={13} /> },
+          { id: "generator", label: "Tips", icon: <Zap size={13} /> },
+          { id: "oracle", label: "Habits", icon: <Brain size={13} /> },
+        ].map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className="cursor-pointer"
+              style={{
+                padding: "8px 16px",
+                borderRadius: 9999,
+                border: "none",
+                backgroundColor: isActive ? "var(--bg-card)" : "transparent",
+                color: isActive ? "var(--text-primary)" : "var(--text-muted)",
+                fontWeight: isActive ? 700 : 600,
+                fontSize: 12.5,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: isActive ? "var(--shadow-sm)" : "none",
+                transition: "all 0.15s var(--ease)",
+                fontFamily: "inherit",
+              }}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* TAB 1: Immersive Full Screen Chat Stream */}
+      {/* TAB 1: Chat — flows inline with the page like every other tab,
+          input row is position:sticky so it always sits at the bottom of
+          the scrolling page (which is naturally at the visible bottom
+          when the keyboard closes it, and rises with it when open). */}
       {activeTab === "chat" && (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", backgroundColor: "var(--bg-secondary)", position: "relative" }}>
-          {/* Conversation Stream expanding to fill space */}
-          <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ position: "relative" }}>
+          {/* Conversation Stream */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 20, minHeight: 320 }}>
             {messages.map((m, i) => {
               const isAi = m.role === "ai";
               return (
@@ -225,7 +222,7 @@ export default function AiChatPage() {
                   className="fade-in"
                   style={{
                     alignSelf: isAi ? "flex-start" : "flex-end",
-                    maxWidth: "85%",
+                    maxWidth: "88%",
                     padding: "14px 18px",
                     borderRadius: isAi ? "6px 20px 20px 20px" : "20px 6px 20px 20px",
                     backgroundColor: isAi ? "var(--bg-card)" : "var(--accent)",
@@ -254,24 +251,43 @@ export default function AiChatPage() {
             )}
           </div>
 
-          {/* Quick prompt chips */}
-          <div style={{ padding: "12px 18px 6px", backgroundColor: "var(--bg-secondary)", display: "flex", gap: 8, overflowX: "auto", flexShrink: 0 }}>
-            {["Beat procrastination", "Morning plan", "Focus tips", "Reduce stress"].map((chip, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleSendMessage(chip)}
-                disabled={chatLoading}
-                className="cursor-pointer"
-                style={{ padding: "8px 14px", borderRadius: 9999, fontSize: 12, whiteSpace: "nowrap", flexShrink: 0, fontWeight: 600, backgroundColor: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border)", fontFamily: "inherit", transition: "all 0.2s var(--ease)" }}
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
+          {/* Sticky footer: chips + input pill.
+              position:sticky pins this to the bottom of the visible viewport
+              while chat messages scroll behind it. When the keyboard opens,
+              the visible viewport shrinks and the sticky footer naturally
+              rises with it — so the input is always visible above the keyboard. */}
+          <div
+            style={{
+              position: "sticky",
+              bottom: "calc(env(safe-area-inset-bottom) + 8px)",
+              zIndex: 10,
+              paddingTop: 8,
+              // Backdrop fade so scrolling messages don't visually clash with the input
+              background: "linear-gradient(to bottom, transparent 0%, var(--bg-primary) 24px, var(--bg-primary) 100%)",
+              marginLeft: -22,
+              marginRight: -22,
+              paddingLeft: 22,
+              paddingRight: 22,
+              paddingBottom: 4,
+            }}
+          >
+            {/* Quick prompt chips */}
+            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginLeft: -4, marginRight: -4, paddingLeft: 4, paddingRight: 4 }}>
+              {["Beat procrastination", "Morning plan", "Focus tips", "Reduce stress"].map((chip, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendMessage(chip)}
+                  disabled={chatLoading}
+                  className="cursor-pointer"
+                  style={{ padding: "7px 14px", borderRadius: 9999, fontSize: 12, whiteSpace: "nowrap", flexShrink: 0, fontWeight: 600, backgroundColor: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border)", fontFamily: "inherit" }}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
 
-          {/* Message input — floating pill */}
-          <div style={{ padding: "12px 16px calc(14px + env(safe-area-inset-bottom))", backgroundColor: "var(--bg-secondary)", display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
-            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, backgroundColor: "var(--bg-card)", borderRadius: 9999, padding: "4px 4px 4px 18px", border: "1px solid var(--border-strong)", boxShadow: "var(--shadow-sm)" }}>
+            {/* Input pill */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "var(--bg-card)", borderRadius: 9999, padding: "4px 4px 4px 18px", border: "1px solid var(--border-strong)", boxShadow: "var(--shadow-md)" }}>
               <input
                 type="text"
                 placeholder="Message Trac…"
@@ -289,8 +305,7 @@ export default function AiChatPage() {
                   backgroundColor: inputVal.trim() ? "var(--accent)" : "var(--bg-secondary)",
                   color: inputVal.trim() ? "#fff" : "var(--text-muted)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  transition: "all 0.2s var(--spring)",
-                  boxShadow: inputVal.trim() ? "var(--shadow-accent)" : "none",
+                  transition: "background-color 0.15s ease, color 0.15s ease",
                   flexShrink: 0,
                 }}
                 aria-label="Send"

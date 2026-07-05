@@ -10,35 +10,57 @@ import {
 
 /**
  * Detects when the on-screen keyboard is open on mobile.
- * We hide the floating nav in that case so the pill doesn't
- * ride up on top of whatever the user is typing.
- * Uses the VisualViewport API (iOS Safari 13+, Android Chrome 61+).
+ *
+ * Two signals combined for zero-latency hide:
+ *   1) VisualViewport shrink > 150px  (the reliable but async signal)
+ *   2) Any input / textarea / contenteditable is currently focused
+ *      (fires the instant a user taps to type, before the OS animates
+ *      the keyboard up — so the nav pill vanishes BEFORE the keyboard
+ *      arrives, and the input row is never covered)
+ *
+ * Also detects the keyboard height so callers (like AI Chat) can push
+ * their sticky footer up by that amount.
  */
-function useKeyboardOpen(): boolean {
+function useKeyboard(): { open: boolean } {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const vv = window.visualViewport;
-    if (!vv) return;
+
     let raf = 0;
     const check = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        // Keyboard is up when the visual viewport is meaningfully shorter
-        // than the layout viewport (allow 150px slack for OS bars).
-        setOpen(window.innerHeight - vv.height > 150);
+        const el = document.activeElement as HTMLElement | null;
+        const focused = !!(el && (
+          el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.isContentEditable
+        ));
+        const viewportShrunk = vv ? window.innerHeight - vv.height > 150 : false;
+        setOpen(focused || viewportShrunk);
       });
     };
-    vv.addEventListener("resize", check);
-    vv.addEventListener("scroll", check);
+
+    if (vv) {
+      vv.addEventListener("resize", check);
+      vv.addEventListener("scroll", check);
+    }
+    document.addEventListener("focusin", check, true);
+    document.addEventListener("focusout", check, true);
     check();
+
     return () => {
       cancelAnimationFrame(raf);
-      vv.removeEventListener("resize", check);
-      vv.removeEventListener("scroll", check);
+      if (vv) {
+        vv.removeEventListener("resize", check);
+        vv.removeEventListener("scroll", check);
+      }
+      document.removeEventListener("focusin", check, true);
+      document.removeEventListener("focusout", check, true);
     };
   }, []);
-  return open;
+  return { open };
 }
 
 export type NavPage =
@@ -73,7 +95,7 @@ const NAV_ITEMS: { id: NavPage; label: string; icon: React.ReactNode }[] = [
 ];
 
 export default function Navigation({ current, onChange }: NavProps) {
-  const keyboardOpen = useKeyboardOpen();
+  const { open: keyboardOpen } = useKeyboard();
   const activeParent = (() => {
     if (["habits", "todo", "timebox"].includes(current)) return "planner";
     if (["pomodoro", "music"].includes(current)) return "focus";
@@ -161,14 +183,16 @@ export default function Navigation({ current, onChange }: NavProps) {
       </aside>
 
       {/* Mobile floating pill nav — hovers above content, feels app-native.
-          Hidden while the OS keyboard is open so the pill doesn't ride up
-          on top of whatever the user is typing. */}
+          Hidden the instant an input is focused (before the keyboard even
+          finishes opening) so it can never cover the field the user just
+          tapped. Show animation is smooth (220ms), hide is INSTANT so the
+          pill never briefly appears on top of the keyboard row. */}
       <nav
         style={{
           position: "fixed",
           bottom: "calc(14px + env(safe-area-inset-bottom))",
           left: "50%",
-          transform: `translateX(-50%) translateY(${keyboardOpen ? "140%" : "0"})`,
+          transform: `translateX(-50%) translateY(${keyboardOpen ? "160%" : "0"})`,
           backgroundColor: "var(--bg-card)",
           border: "1px solid var(--border-strong)",
           borderRadius: "9999px",
@@ -184,7 +208,12 @@ export default function Navigation({ current, onChange }: NavProps) {
           maxWidth: "calc(100vw - 24px)",
           opacity: keyboardOpen ? 0 : 1,
           pointerEvents: keyboardOpen ? "none" : "auto",
-          transition: "transform 0.22s ease, opacity 0.22s ease",
+          visibility: keyboardOpen ? "hidden" : "visible",
+          // Instant hide, animated show — prevents any flash of the pill
+          // over the keyboard row.
+          transition: keyboardOpen
+            ? "transform 0s, opacity 0s, visibility 0s"
+            : "transform 0.24s var(--spring), opacity 0.2s ease, visibility 0s 0s",
         }}
         className="mobile-nav"
         aria-hidden={keyboardOpen}
