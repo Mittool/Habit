@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
-import { Send, Loader, ArrowUp, RotateCcw } from "lucide-react";
+import { Send, Loader, ArrowUp, RotateCcw, X } from "lucide-react";
 
 interface ChatMessage {
   role: "user" | "ai";
@@ -9,16 +9,27 @@ interface ChatMessage {
 }
 
 /**
+ * Special sentinel — starter cards with `action: "pick-habit"` don't send
+ * a prompt directly. They open the habit-picker sheet instead so the
+ * user tells us which habit they want help with first.
+ */
+type StarterAction = "pick-habit";
+
+/**
  * Suggested prompts shown on the empty state.
  * Curated so each one covers a different real user need.
  */
-const STARTER_PROMPTS: { emoji: string; title: string; prompt: string }[] = [
+const STARTER_PROMPTS: {
+  emoji: string;
+  title: string;
+  prompt?: string;
+  action?: StarterAction;
+}[] = [
+  { emoji: "🧭", title: "Help me with a habit", action: "pick-habit" },
   { emoji: "🎯", title: "Plan my day",
     prompt: "Look at my habits and tasks — what should I focus on today?" },
   { emoji: "🔥", title: "Beat procrastination",
     prompt: "I'm stuck on a task I've been avoiding. Give me a way to start in the next 5 minutes." },
-  { emoji: "🌱", title: "Fix a broken habit",
-    prompt: "One of my habits keeps failing. How do I figure out why and fix it?" },
   { emoji: "😴", title: "Sleep better tonight",
     prompt: "What can I do in the next hour to fall asleep faster and wake up sharper?" },
 ];
@@ -108,6 +119,7 @@ export default function AiChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputVal, setInputVal] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const [habitPickerOpen, setHabitPickerOpen] = useState(false);
 
   const scrollAnchor = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -175,6 +187,25 @@ export default function AiChatPage() {
     setInputVal("");
   }
 
+  /**
+   * Called when the user picks a habit from the picker sheet.
+   * Composes a rich coaching prompt (name + goal + recent 14-day rate) so
+   * the AI has real context to work with, then sends it.
+   */
+  function handlePickHabit(habitId: string) {
+    const h = habits.find((x) => x.id === habitId);
+    setHabitPickerOpen(false);
+    if (!h) return;
+    const rate14 = computeRecentCompletionRate(h.completions, 14);
+    const streak = computeCurrentStreak(h.completions);
+    const goalLine = h.goal ? ` My goal with it is: "${h.goal}".` : "";
+    const statsLine =
+      ` Over the last 14 days I've hit it ${rate14}% of the time and my current streak is ${streak} day${streak === 1 ? "" : "s"}.`;
+    const prompt =
+      `I need help with my habit "${h.name}".${goalLine}${statsLine} What's the one thing I should change this week to actually stick with it?`;
+    handleSendMessage(prompt);
+  }
+
   // ── Disabled state ──────────────────────────────────────────────
   if (!aiEnabled) {
     return (
@@ -204,6 +235,12 @@ export default function AiChatPage() {
           boxSizing: "border-box",
         }}
       >
+        <HabitPickerSheet
+          open={habitPickerOpen}
+          habits={habits}
+          onPick={handlePickHabit}
+          onClose={() => setHabitPickerOpen(false)}
+        />
         {/* Hero greeting */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", paddingBottom: 24 }}>
           <div
@@ -255,7 +292,13 @@ export default function AiChatPage() {
             {STARTER_PROMPTS.map((s) => (
               <button
                 key={s.title}
-                onClick={() => handleSendMessage(s.prompt)}
+                onClick={() => {
+                  if (s.action === "pick-habit") {
+                    setHabitPickerOpen(true);
+                  } else if (s.prompt) {
+                    handleSendMessage(s.prompt);
+                  }
+                }}
                 className="cursor-pointer"
                 style={{
                   padding: "16px 16px",
@@ -317,6 +360,12 @@ export default function AiChatPage() {
         boxSizing: "border-box",
       }}
     >
+      <HabitPickerSheet
+        open={habitPickerOpen}
+        habits={habits}
+        onPick={handlePickHabit}
+        onClose={() => setHabitPickerOpen(false)}
+      />
       {/* Slim conversation header */}
       <div
         className="fade-in"
@@ -398,6 +447,31 @@ export default function AiChatPage() {
               paddingRight: 4,
             }}
           >
+            {habits.length > 0 && (
+              <button
+                onClick={() => setHabitPickerOpen(true)}
+                disabled={chatLoading}
+                className="cursor-pointer"
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 9999,
+                  fontSize: 12,
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  fontWeight: 600,
+                  backgroundColor: "var(--bg-secondary)",
+                  color: "var(--text-secondary)",
+                  border: "1px solid var(--border)",
+                  fontFamily: "inherit",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                }}
+              >
+                <span aria-hidden>🧭</span>
+                Pick a habit
+              </button>
+            )}
             {FOLLOW_UPS.map((f) => (
               <button
                 key={f}
@@ -575,4 +649,298 @@ function Composer({
       </button>
     </div>
   );
+}
+
+// ── Habit-picker sheet ───────────────────────────────────────────
+// Bottom sheet listing every habit the user has. Tapping one fires
+// onPick(habitId) so the parent can compose a rich coaching prompt
+// and send it to the AI. If the user has no habits, we show a
+// friendly nudge instead of an empty list.
+import type { Habit } from "@/lib/store";
+
+function HabitPickerSheet({
+  open,
+  habits,
+  onPick,
+  onClose,
+}: {
+  open: boolean;
+  habits: Habit[];
+  onPick: (habitId: string) => void;
+  onClose: () => void;
+}) {
+  // Lock body scroll while the sheet is open (mobile UX).
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Pick a habit to get help with"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+      }}
+    >
+      {/* Backdrop */}
+      <button
+        aria-label="Close"
+        onClick={onClose}
+        className="cursor-pointer"
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.44)",
+          border: "none",
+          padding: 0,
+          animation: "sheetFade 0.18s var(--ease) both",
+        }}
+      />
+      {/* Sheet */}
+      <div
+        style={{
+          position: "relative",
+          backgroundColor: "var(--bg-card)",
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          padding: "10px 20px calc(24px + env(safe-area-inset-bottom))",
+          maxHeight: "82dvh",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 -20px 60px rgba(0,0,0,0.18)",
+          animation: "sheetSlideUp 0.28s var(--spring) both",
+        }}
+      >
+        {/* Grab handle */}
+        <div
+          aria-hidden
+          style={{
+            width: 44,
+            height: 5,
+            borderRadius: 9999,
+            backgroundColor: "var(--border-strong)",
+            margin: "6px auto 14px",
+          }}
+        />
+
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 14,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: "var(--text-muted)",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                marginBottom: 4,
+              }}
+            >
+              Ask Trac
+            </div>
+            <div
+              className="serif"
+              style={{
+                fontSize: 26,
+                lineHeight: 1.1,
+                color: "var(--text-primary)",
+              }}
+            >
+              Which habit do you need help with?
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="btn-ghost cursor-pointer"
+            aria-label="Close"
+            style={{
+              padding: 8,
+              borderRadius: 9999,
+              flexShrink: 0,
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Habit list OR empty state */}
+        {habits.length === 0 ? (
+          <div
+            style={{
+              padding: "36px 8px 20px",
+              textAlign: "center",
+              color: "var(--text-muted)",
+            }}
+          >
+            <div style={{ fontSize: 40, marginBottom: 10 }}>🌱</div>
+            <div
+              style={{
+                fontSize: 15,
+                color: "var(--text-primary)",
+                fontWeight: 600,
+                marginBottom: 6,
+              }}
+            >
+              No habits yet
+            </div>
+            <div style={{ fontSize: 13.5, lineHeight: 1.55 }}>
+              Add a habit first, then come back and I&rsquo;ll help you stick with it.
+            </div>
+          </div>
+        ) : (
+          <div
+            style={{
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              paddingBottom: 4,
+              marginRight: -4,
+              paddingRight: 4,
+            }}
+          >
+            {habits.map((h) => {
+              const rate = computeRecentCompletionRate(h.completions, 14);
+              const streak = computeCurrentStreak(h.completions);
+              return (
+                <button
+                  key={h.id}
+                  onClick={() => onPick(h.id)}
+                  className="cursor-pointer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "12px 14px",
+                    borderRadius: 16,
+                    border: "1px solid var(--border)",
+                    backgroundColor: "var(--bg-primary)",
+                    textAlign: "left",
+                    fontFamily: "inherit",
+                    width: "100%",
+                    transition: "border-color 0.15s var(--ease), transform 0.1s var(--ease)",
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 9999,
+                      backgroundColor: h.color || "var(--accent)",
+                      flexShrink: 0,
+                      boxShadow: `0 0 0 3px ${(h.color || "var(--accent)")}22`,
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 14.5,
+                        fontWeight: 600,
+                        color: "var(--text-primary)",
+                        lineHeight: 1.3,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {h.name}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11.5,
+                        color: "var(--text-muted)",
+                        marginTop: 3,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {streak > 0
+                        ? `${streak}-day streak · ${rate}% last 14d`
+                        : `${rate}% last 14d`}
+                    </div>
+                  </div>
+                  <ArrowUp
+                    size={16}
+                    style={{
+                      color: "var(--text-muted)",
+                      transform: "rotate(90deg)",
+                      flexShrink: 0,
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <style jsx>{`
+        @keyframes sheetFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes sheetSlideUp {
+          from { transform: translateY(24px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ── Stat helpers (kept local — same math as HabitsPage cards) ───
+function computeCurrentStreak(completions: Record<string, boolean>): number {
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    if (completions[key]) {
+      streak++;
+    } else if (i === 0) {
+      // today not done yet — allow yesterday to start the streak
+      continue;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function computeRecentCompletionRate(
+  completions: Record<string, boolean>,
+  days: number,
+): number {
+  if (days <= 0) return 0;
+  let hits = 0;
+  const today = new Date();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    if (completions[key]) hits++;
+  }
+  return Math.round((hits / days) * 100);
 }
