@@ -349,79 +349,62 @@ export default function OnboardingPage() {
         {/* STEP 2: Define Goals */}
         {step === 2 && (
           <div className="fade-in">
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "24px" }}>
               <div style={{ padding: "10px", borderRadius: "14px", backgroundColor: "var(--accent)", color: "#FFFFFF" }}>
                 <Target size={24} />
               </div>
-              <div>
-                <h2 style={{ fontSize: "22px", fontWeight: "600", margin: 0, color: "var(--text-primary)" }}>
-                  Choose Your Goals
-                </h2>
-                <p style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                  Select 1 to 3 goals — the AI will design habits live in the next step
-                </p>
+              <h2 style={{ fontSize: "22px", fontWeight: "600", margin: 0, color: "var(--text-primary)" }}>
+                Choose Your Goals
+              </h2>
+            </div>
+
+            {/* Selected goals — pills only, no empty-state text */}
+            {selectedGoals.length > 0 && (
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
+                {selectedGoals.map((sg, sIdx) => (
+                  <div key={sIdx} className="fade-in" style={{ padding: "6px 12px", borderRadius: "9999px", backgroundColor: "var(--accent)", color: "#FFFFFF", fontSize: "12px", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <span>{sg}</span>
+                    <button onClick={() => toggleGoal(sg)} className="cursor-pointer" style={{ background: "none", border: "none", color: "#FFFFFF", padding: 0, display: "flex" }}>
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
               </div>
-            </div>
-
-            <p style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-secondary)", lineHeight: "1.5", margin: "0 0 16px" }}>
-              Pick from the presets or type your own. Trac AI will instantly generate the best habits for whatever you choose.
-            </p>
-
-            {/* Selected Goals */}
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "16px", minHeight: "36px" }}>
-              {selectedGoals.map((sg, sIdx) => (
-                <div key={sIdx} className="fade-in" style={{ padding: "6px 12px", borderRadius: "9999px", backgroundColor: "var(--accent)", color: "#FFFFFF", fontSize: "12px", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                  <span>{sg}</span>
-                  <button onClick={() => toggleGoal(sg)} className="cursor-pointer" style={{ background: "none", border: "none", color: "#FFFFFF", padding: 0, display: "flex" }}>
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-              {selectedGoals.length === 0 && (
-                <div style={{ fontSize: "12px", color: "var(--text-muted)", fontStyle: "italic", padding: "8px 0" }}>
-                  No goals selected — pick at least one below
-                </div>
-              )}
-            </div>
+            )}
 
             {/* Preset chips */}
-            <div style={{ marginBottom: "18px" }}>
-              <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-muted)", display: "block", marginBottom: "8px" }}>
-                Recommended Targets:
-              </label>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {PRESET_GOALS.map((preset, pI) => {
-                  const isChecked = selectedGoals.includes(preset);
-                  return (
-                    <button
-                      key={pI}
-                      onClick={() => toggleGoal(preset)}
-                      disabled={!isChecked && selectedGoals.length >= 3}
-                      className="cursor-pointer"
-                      style={{
-                        padding: "8px 14px",
-                        borderRadius: "10px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                        border: `1px solid ${isChecked ? "var(--accent)" : "var(--border)"}`,
-                        backgroundColor: isChecked ? "var(--accent-light)" : "var(--bg-secondary)",
-                        color: isChecked ? "var(--accent)" : "var(--text-secondary)",
-                        opacity: (!isChecked && selectedGoals.length >= 3) ? 0.4 : 1,
-                        transition: "all 0.2s"
-                      }}
-                    >
-                      {preset}
-                    </button>
-                  );
-                })}
-              </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
+              {PRESET_GOALS.map((preset, pI) => {
+                const isChecked = selectedGoals.includes(preset);
+                return (
+                  <button
+                    key={pI}
+                    onClick={() => toggleGoal(preset)}
+                    disabled={!isChecked && selectedGoals.length >= 3}
+                    className="cursor-pointer"
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: "10px",
+                      fontSize: "12px",
+                      fontWeight: "600",
+                      border: `1px solid ${isChecked ? "var(--accent)" : "var(--border)"}`,
+                      backgroundColor: isChecked ? "var(--accent-light)" : "var(--bg-secondary)",
+                      color: isChecked ? "var(--accent)" : "var(--text-secondary)",
+                      opacity: (!isChecked && selectedGoals.length >= 3) ? 0.4 : 1,
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    {preset}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Custom goal */}
             <div style={{ display: "flex", gap: "8px", marginBottom: "28px" }}>
               <input
                 type="text"
-                placeholder="Or input your own custom goal..."
+                placeholder="Add your own goal"
                 value={customGoal}
                 onChange={e => setCustomGoal(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && addCustomGoal()}
@@ -443,7 +426,7 @@ export default function OnboardingPage() {
                 onClick={() => setStep(3)}
                 style={{ flex: 2, padding: "14px", fontSize: "14px", opacity: selectedGoals.length === 0 ? 0.5 : 1 }}
               >
-                <Sparkles size={16} /> Preview AI Habits <ChevronRight size={18} />
+                <Sparkles size={16} /> Continue <ChevronRight size={18} />
               </button>
             </div>
           </div>
