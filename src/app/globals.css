@@ -148,6 +148,21 @@ html {
   overflow-y: scroll;
 }
 
+/* Nav clearance — the vertical space a sticky-bottom element must leave
+   for the floating nav pill. Toggled to 8px when the keyboard opens
+   (nav is hidden). Set from Navigation.tsx via a data-keyboard attribute
+   on <html>. */
+:root {
+  --nav-clearance: 76px;
+}
+html[data-keyboard-open="true"] {
+  --nav-clearance: 8px;
+}
+@media (min-width: 641px) {
+  /* Desktop uses the left rail; no bottom pill to avoid. */
+  :root { --nav-clearance: 16px; }
+}
+
 /* Median.co WebView Native Application Optimization Rules */
 div, span, p, h1, h2, h3, h4, h5, h6, button, a, img, svg, aside, nav, header, footer, section, table, td, tr, li, ul {
   -webkit-touch-callout: none !important;

@@ -287,7 +287,7 @@ export default function AiChatPage() {
           className="fade-in stagger-3"
           style={{
             position: "sticky",
-            bottom: "calc(env(safe-area-inset-bottom) + 8px)",
+            bottom: "calc(env(safe-area-inset-bottom) + var(--nav-clearance))",
             zIndex: 10,
             paddingTop: 12,
             background:
@@ -332,22 +332,17 @@ export default function AiChatPage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
+          <img
+            src="/logo-inside.png"
+            alt=""
             style={{
-              width: 28,
-              height: 28,
+              width: 32,
+              height: 32,
               borderRadius: 9999,
-              backgroundColor: "var(--accent)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              fontSize: 13,
-              fontWeight: 700,
+              objectFit: "cover",
+              flexShrink: 0,
             }}
-          >
-            T
-          </div>
+          />
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>Trac</div>
             <div style={{ fontSize: 11, color: "var(--success)", fontWeight: 600, marginTop: 2 }}>Online</div>
@@ -371,23 +366,11 @@ export default function AiChatPage() {
         ))}
         {chatLoading && (
           <div className="fade-in" style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 2px" }}>
-            <div
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: 9999,
-                backgroundColor: "var(--accent-soft)",
-                color: "var(--accent)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 11,
-                fontWeight: 800,
-                flexShrink: 0,
-              }}
-            >
-              T
-            </div>
+            <img
+              src="/logo-inside.png"
+              alt=""
+              style={{ width: 26, height: 26, borderRadius: 9999, objectFit: "cover", flexShrink: 0 }}
+            />
             <ThinkingDots />
           </div>
         )}
@@ -398,7 +381,7 @@ export default function AiChatPage() {
       <div
         style={{
           position: "sticky",
-          bottom: "calc(env(safe-area-inset-bottom) + 8px)",
+          bottom: "calc(env(safe-area-inset-bottom) + var(--nav-clearance))",
           zIndex: 10,
           paddingTop: 8,
           background:
@@ -465,23 +448,11 @@ function MessageRow({ message }: { message: ChatMessage }) {
     return (
       <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 9999,
-              backgroundColor: "var(--accent-soft)",
-              color: "var(--accent)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 10,
-              fontWeight: 800,
-              letterSpacing: "0.02em",
-            }}
-          >
-            T
-          </div>
+          <img
+            src="/logo-inside.png"
+            alt=""
+            style={{ width: 22, height: 22, borderRadius: 9999, objectFit: "cover", flexShrink: 0 }}
+          />
           <span
             style={{
               fontSize: 10.5,

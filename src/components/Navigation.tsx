@@ -96,6 +96,18 @@ const NAV_ITEMS: { id: NavPage; label: string; icon: React.ReactNode }[] = [
 
 export default function Navigation({ current, onChange }: NavProps) {
   const { open: keyboardOpen } = useKeyboard();
+
+  // Mirror keyboard state onto <html> so CSS can adjust the sticky-bottom
+  // clearance globally (see --nav-clearance in globals.css).
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (keyboardOpen) {
+      document.documentElement.setAttribute("data-keyboard-open", "true");
+    } else {
+      document.documentElement.removeAttribute("data-keyboard-open");
+    }
+  }, [keyboardOpen]);
+
   const activeParent = (() => {
     if (["habits", "todo", "timebox"].includes(current)) return "planner";
     if (["pomodoro", "music"].includes(current)) return "focus";

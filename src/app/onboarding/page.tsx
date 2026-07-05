@@ -501,24 +501,6 @@ export default function OnboardingPage() {
                           <span>{TIME_LABEL[tod]}</span>
                         </span>
                       </div>
-                      <textarea
-                        value={h.description}
-                        onChange={(e) => updateAiHabit(idx, { description: e.target.value })}
-                        rows={2}
-                        style={{
-                          fontSize: "12.5px",
-                          fontWeight: "500",
-                          color: "var(--text-secondary)",
-                          lineHeight: "1.45",
-                          background: "transparent",
-                          border: "none",
-                          padding: "2px 0",
-                          width: "100%",
-                          resize: "none",
-                          outline: "none",
-                          fontFamily: "inherit",
-                        }}
-                      />
                     </div>
                     <button
                       onClick={() => removeAiHabit(idx)}

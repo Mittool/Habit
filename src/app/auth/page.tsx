@@ -298,20 +298,6 @@ export default function AuthPage() {
             {!loading && <ChevronRight size={16} />}
           </button>
         </form>
-
-        <p
-          style={{
-            textAlign: "center",
-            fontSize: "12px",
-            color: "var(--text-muted)",
-            marginTop: "24px",
-            lineHeight: "1.5",
-          }}
-        >
-          Cloud account sync active.
-          <br />
-          Secure storage enabled.
-        </p>
       </div>
     </div>
   );
