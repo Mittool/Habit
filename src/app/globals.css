@@ -178,13 +178,17 @@ input, textarea, select, [contenteditable="true"] {
   letter-spacing: -0.02em;
 }
 
-/* ═══ Cards ═══ */
+/* ═══ Cards ═══
+   Kept intentionally light on transitions — repainting a big card's
+   shadow at 60fps on mobile is what caused the "laggy" feel users
+   reported. We only animate the cheap properties (border-color,
+   background-color) on hover; no transform, no shadow lerp. */
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  transition: transform 0.4s var(--spring), box-shadow 0.4s var(--spring), border-color 0.25s var(--ease);
+  transition: border-color 0.18s var(--ease), background-color 0.18s var(--ease);
 }
 
 .card-interactive {
@@ -192,21 +196,20 @@ input, textarea, select, [contenteditable="true"] {
 }
 
 .card-interactive:hover {
-  transform: translateY(-3px);
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-lg);
+  background-color: var(--bg-elevated);
 }
 
 .card-interactive:active {
-  transform: translateY(-1px);
+  background-color: var(--bg-secondary);
 }
 
-/* Featured / hero card — accented border and warm glow */
+/* Featured / hero card — accented border, kept flat for scroll perf */
 .card-hero {
-  background: linear-gradient(160deg, var(--bg-card) 0%, var(--bg-card) 60%, var(--accent-soft) 100%);
+  background-color: var(--bg-card);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ═══ Buttons ═══ */
@@ -229,11 +232,10 @@ input, textarea, select, [contenteditable="true"] {
   letter-spacing: -0.01em;
 }
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px) scale(1.015);
-  box-shadow: var(--shadow-lg);
+  background-color: var(--text-secondary);
 }
 .btn-primary:active:not(:disabled) {
-  transform: translateY(0) scale(0.99);
+  transform: scale(0.98);
 }
 .btn-primary:disabled {
   opacity: 0.45;
@@ -262,9 +264,8 @@ input, textarea, select, [contenteditable="true"] {
 }
 .btn-accent:hover:not(:disabled) {
   background-color: var(--accent-hover);
-  transform: translateY(-1px) scale(1.015);
 }
-.btn-accent:active:not(:disabled) { transform: translateY(0) scale(0.99); }
+.btn-accent:active:not(:disabled) { transform: scale(0.98); }
 .btn-accent:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 
 .btn-secondary {
@@ -366,17 +367,18 @@ input:focus, textarea:focus, select:focus {
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes entranceSpring {
-  0% { opacity: 0; transform: translateY(14px); }
+  0% { opacity: 0; transform: translateY(6px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
-.fade-in { animation: entranceSpring 0.55s var(--spring) forwards; }
-.stagger-1 { animation-delay: 60ms; }
-.stagger-2 { animation-delay: 120ms; }
-.stagger-3 { animation-delay: 180ms; }
-.stagger-4 { animation-delay: 240ms; }
-.stagger-5 { animation-delay: 300ms; }
+/* Deliberately short so pages feel snappy, not "animating in". */
+.fade-in { animation: entranceSpring 0.28s var(--ease) forwards; }
+.stagger-1 { animation-delay: 30ms; }
+.stagger-2 { animation-delay: 60ms; }
+.stagger-3 { animation-delay: 90ms; }
+.stagger-4 { animation-delay: 120ms; }
+.stagger-5 { animation-delay: 150ms; }
 
 /* Micro-interactions */
 @keyframes checkScaleFill {
@@ -442,7 +444,7 @@ input:focus, textarea:focus, select:focus {
   padding: 10px 14px;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: color 0.2s var(--ease), background-color 0.2s var(--ease), transform 0.25s var(--spring);
+  transition: color 0.15s var(--ease), background-color 0.15s var(--ease);
   color: var(--text-muted);
   font-size: 10.5px;
   font-weight: 600;
@@ -453,7 +455,6 @@ input:focus, textarea:focus, select:focus {
 }
 .nav-item:hover {
   color: var(--text-primary);
-  transform: translateY(-1px);
 }
 .nav-item.active {
   color: var(--accent);

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import PomodoroPage from "./PomodoroPage";
 import MusicPage from "./MusicPage";
+import PageHeader from "@/components/PageHeader";
 import { Timer, Music } from "lucide-react";
 
 interface FocusProps {
@@ -13,15 +14,13 @@ export default function FocusPage({ initialTab = "timer" }: FocusProps) {
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", width: "100%" }}>
-      <div style={{ padding: "32px 24px 12px", maxWidth: "800px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 16px", letterSpacing: "-0.03em" }}>
-          Focus
-        </h1>
+      <div style={{ padding: "40px 22px 10px", maxWidth: "820px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+        <PageHeader eyebrow="Deep work" title="Focus" />
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px", padding: "4px", borderRadius: "14px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 9999, backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", width: "fit-content" }}>
           {[
-            { id: "timer", label: "Timer", icon: <Timer size={16} /> },
-            { id: "music", label: "Music", icon: <Music size={16} /> },
+            { id: "timer", label: "Timer", icon: <Timer size={14} /> },
+            { id: "music", label: "Music", icon: <Music size={14} /> },
           ].map((seg) => {
             const isSel = tab === seg.id;
             return (
@@ -33,16 +32,17 @@ export default function FocusPage({ initialTab = "timer" }: FocusProps) {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "8px",
-                  padding: "10px 8px",
-                  borderRadius: "10px",
+                  gap: 6,
+                  padding: "8px 16px",
+                  borderRadius: 9999,
                   border: "none",
                   backgroundColor: isSel ? "var(--bg-card)" : "transparent",
-                  color: isSel ? "var(--accent)" : "var(--text-secondary)",
-                  fontWeight: isSel ? "600" : "500",
-                  fontSize: "13px",
-                  boxShadow: isSel ? "0 2px 8px var(--shadow)" : "none",
-                  transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                  color: isSel ? "var(--text-primary)" : "var(--text-muted)",
+                  fontWeight: isSel ? 700 : 600,
+                  fontSize: 12.5,
+                  boxShadow: isSel ? "var(--shadow-sm)" : "none",
+                  transition: "all 0.15s var(--ease)",
+                  fontFamily: "inherit",
                 }}
               >
                 {seg.icon}

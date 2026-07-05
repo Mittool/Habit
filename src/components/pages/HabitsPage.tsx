@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useAppStore, getTodayStr, getHabitStreak, getHabitBestStreak, getHabitCompletionRate } from "@/lib/store";
 import { format, subDays } from "date-fns";
 import { HABIT_ICON_LIBRARY, renderHabitIcon } from "@/lib/icons";
+import PageHeader from "@/components/PageHeader";
 import {
   Plus,
   Trash2,
@@ -187,16 +188,11 @@ export default function HabitsPage() {
 
   return (
     <div style={{ padding: "40px 22px 24px", maxWidth: "820px", margin: "0 auto" }}>
-      {/* Editorial hero header */}
-      <div className="fade-in" style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", letterSpacing: "0.02em", textTransform: "uppercase", marginBottom: 8 }}>
-          Your routines
-        </div>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-          <h1 className="serif" style={{ fontSize: "clamp(38px, 8vw, 52px)", lineHeight: 1, margin: 0, color: "var(--text-primary)" }}>
-            Habits
-          </h1>
-          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+      <PageHeader
+        eyebrow="Your routines"
+        title="Habits"
+        right={
+          <>
             {aiEnabled && (
               <button
                 className="btn-secondary cursor-pointer"
@@ -206,9 +202,9 @@ export default function HabitsPage() {
                   setAiFetchError(null);
                   setShowAiSuggest(true);
                 }}
-                title="Ask Trac AI to suggest new habits for a goal"
+                title="Ask Trac AI to suggest new habits"
               >
-                <Sparkles size={15} /> Suggest with AI
+                <Sparkles size={15} /> Suggest
               </button>
             )}
             <button
@@ -221,9 +217,9 @@ export default function HabitsPage() {
             >
               <Plus size={16} /> New
             </button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* ─── AI Suggest Modal ─── */}
       {showAiSuggest && (

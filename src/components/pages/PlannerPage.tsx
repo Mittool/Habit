@@ -3,6 +3,7 @@ import { useState } from "react";
 import HabitsPage from "./HabitsPage";
 import TodoPage from "./TodoPage";
 import TimeBoxPage from "./TimeBoxPage";
+import PageHeader from "@/components/PageHeader";
 import { CheckSquare, Clock, CalendarDays } from "lucide-react";
 
 interface PlannerProps {
@@ -14,17 +15,14 @@ export default function PlannerPage({ initialTab = "habits" }: PlannerProps) {
 
   return (
     <div>
-      {/* Planner Master Segment Header */}
-      <div style={{ padding: "32px 24px 12px", maxWidth: "800px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 16px", letterSpacing: "-0.03em" }}>
-          Planner
-        </h1>
+      <div style={{ padding: "40px 22px 10px", maxWidth: "820px", margin: "0 auto" }}>
+        <PageHeader eyebrow="Plan your day" title="Planner" />
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", padding: "4px", borderRadius: "14px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 9999, backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", width: "fit-content" }}>
           {[
-            { id: "habits", label: "Habits", icon: <CheckSquare size={16} /> },
-            { id: "todo", label: "Tasks", icon: <Clock size={16} /> },
-            { id: "timebox", label: "Calendar", icon: <CalendarDays size={16} /> },
+            { id: "habits", label: "Habits", icon: <CheckSquare size={14} /> },
+            { id: "todo", label: "Tasks", icon: <Clock size={14} /> },
+            { id: "timebox", label: "Calendar", icon: <CalendarDays size={14} /> },
           ].map((seg) => {
             const isSel = tab === seg.id;
             return (
@@ -36,16 +34,17 @@ export default function PlannerPage({ initialTab = "habits" }: PlannerProps) {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "8px",
-                  padding: "10px 8px",
-                  borderRadius: "10px",
+                  gap: 6,
+                  padding: "8px 16px",
+                  borderRadius: 9999,
                   border: "none",
                   backgroundColor: isSel ? "var(--bg-card)" : "transparent",
-                  color: isSel ? "var(--accent)" : "var(--text-secondary)",
-                  fontWeight: isSel ? "800" : "600",
-                  fontSize: "13px",
-                  boxShadow: isSel ? "0 2px 8px var(--shadow)" : "none",
-                  transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                  color: isSel ? "var(--text-primary)" : "var(--text-muted)",
+                  fontWeight: isSel ? 700 : 600,
+                  fontSize: 12.5,
+                  boxShadow: isSel ? "var(--shadow-sm)" : "none",
+                  transition: "all 0.15s var(--ease)",
+                  fontFamily: "inherit",
                 }}
               >
                 {seg.icon}

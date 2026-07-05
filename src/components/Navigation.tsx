@@ -1,11 +1,45 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Home,
   CalendarDays,
   Target,
   TrendingUp,
+  Sparkles,
 } from "lucide-react";
+
+/**
+ * Detects when the on-screen keyboard is open on mobile.
+ * We hide the floating nav in that case so the pill doesn't
+ * ride up on top of whatever the user is typing.
+ * Uses the VisualViewport API (iOS Safari 13+, Android Chrome 61+).
+ */
+function useKeyboardOpen(): boolean {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    let raf = 0;
+    const check = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        // Keyboard is up when the visual viewport is meaningfully shorter
+        // than the layout viewport (allow 150px slack for OS bars).
+        setOpen(window.innerHeight - vv.height > 150);
+      });
+    };
+    vv.addEventListener("resize", check);
+    vv.addEventListener("scroll", check);
+    check();
+    return () => {
+      cancelAnimationFrame(raf);
+      vv.removeEventListener("resize", check);
+      vv.removeEventListener("scroll", check);
+    };
+  }, []);
+  return open;
+}
 
 export type NavPage =
   | "home"
@@ -33,12 +67,13 @@ interface NavProps {
 const NAV_ITEMS: { id: NavPage; label: string; icon: React.ReactNode }[] = [
   { id: "home", label: "Home", icon: <Home size={20} /> },
   { id: "planner", label: "Planner", icon: <CalendarDays size={20} /> },
-  { id: "ai-chat", label: "AI Chat", icon: <img src="/logo-inside.png" alt="AI Chat" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover" }} /> },
+  { id: "ai-chat", label: "AI Chat", icon: <Sparkles size={20} /> },
   { id: "focus", label: "Focus", icon: <Target size={20} /> },
   { id: "insights", label: "Insights", icon: <TrendingUp size={20} /> },
 ];
 
 export default function Navigation({ current, onChange }: NavProps) {
+  const keyboardOpen = useKeyboardOpen();
   const activeParent = (() => {
     if (["habits", "todo", "timebox"].includes(current)) return "planner";
     if (["pomodoro", "music"].includes(current)) return "focus";
@@ -125,13 +160,15 @@ export default function Navigation({ current, onChange }: NavProps) {
         </div>
       </aside>
 
-      {/* Mobile floating pill nav — hovers above content, feels app-native */}
+      {/* Mobile floating pill nav — hovers above content, feels app-native.
+          Hidden while the OS keyboard is open so the pill doesn't ride up
+          on top of whatever the user is typing. */}
       <nav
         style={{
           position: "fixed",
           bottom: "calc(14px + env(safe-area-inset-bottom))",
           left: "50%",
-          transform: "translateX(-50%)",
+          transform: `translateX(-50%) translateY(${keyboardOpen ? "140%" : "0"})`,
           backgroundColor: "var(--bg-card)",
           border: "1px solid var(--border-strong)",
           borderRadius: "9999px",
@@ -145,8 +182,12 @@ export default function Navigation({ current, onChange }: NavProps) {
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
           maxWidth: "calc(100vw - 24px)",
+          opacity: keyboardOpen ? 0 : 1,
+          pointerEvents: keyboardOpen ? "none" : "auto",
+          transition: "transform 0.22s ease, opacity 0.22s ease",
         }}
         className="mobile-nav"
+        aria-hidden={keyboardOpen}
       >
         {NAV_ITEMS.map((item) => {
           const isActive = activeParent === item.id;

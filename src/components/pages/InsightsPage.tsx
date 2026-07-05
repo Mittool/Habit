@@ -3,6 +3,7 @@ import { useState } from "react";
 import AnalyticsPage from "./AnalyticsPage";
 import MoodPage from "./MoodPage";
 import SleepPage from "./SleepPage";
+import PageHeader from "@/components/PageHeader";
 import { TrendingUp, Smile, Moon, Settings } from "lucide-react";
 
 interface InsightsProps {
@@ -15,30 +16,28 @@ export default function InsightsPage({ initialTab = "stats", onNavigate }: Insig
 
   return (
     <div>
-      {/* Fixed Top Right Settings Button */}
-      {onNavigate && (
-        <div style={{ position: "fixed", top: "18px", right: "20px", zIndex: 999999 }}>
-          <button
-            onClick={() => onNavigate("settings")}
-            className="btn-secondary cursor-pointer"
-            style={{ padding: "10px", borderRadius: "12px" }}
-            title="Settings"
-          >
-            <Settings size={20} color="var(--text-primary)" />
-          </button>
-        </div>
-      )}
+      <div style={{ padding: "40px 22px 10px", maxWidth: "820px", margin: "0 auto" }}>
+        <PageHeader
+          eyebrow="Your patterns"
+          title="Insights"
+          right={onNavigate ? (
+            <button
+              onClick={() => onNavigate("settings")}
+              className="btn-ghost cursor-pointer"
+              title="Settings"
+              aria-label="Settings"
+              style={{ width: 40, height: 40, borderRadius: 9999, border: "1px solid var(--border-strong)" }}
+            >
+              <Settings size={18} />
+            </button>
+          ) : undefined}
+        />
 
-      <div style={{ padding: "32px 24px 12px", maxWidth: "800px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 16px", letterSpacing: "-0.03em" }}>
-          Insights
-        </h1>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", padding: "4px", borderRadius: "14px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 9999, backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)", width: "fit-content" }}>
           {[
-            { id: "stats", label: "Reports", icon: <TrendingUp size={16} /> },
-            { id: "mood", label: "Mood", icon: <Smile size={16} /> },
-            { id: "sleep", label: "Sleep", icon: <Moon size={16} /> },
+            { id: "stats", label: "Reports", icon: <TrendingUp size={14} /> },
+            { id: "mood", label: "Mood", icon: <Smile size={14} /> },
+            { id: "sleep", label: "Sleep", icon: <Moon size={14} /> },
           ].map((seg) => {
             const isSel = tab === seg.id;
             return (
@@ -50,16 +49,17 @@ export default function InsightsPage({ initialTab = "stats", onNavigate }: Insig
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "8px",
-                  padding: "10px 8px",
-                  borderRadius: "10px",
+                  gap: 6,
+                  padding: "8px 16px",
+                  borderRadius: 9999,
                   border: "none",
                   backgroundColor: isSel ? "var(--bg-card)" : "transparent",
-                  color: isSel ? "var(--accent)" : "var(--text-secondary)",
-                  fontWeight: isSel ? "800" : "600",
-                  fontSize: "13px",
-                  boxShadow: isSel ? "0 2px 8px var(--shadow)" : "none",
-                  transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                  color: isSel ? "var(--text-primary)" : "var(--text-muted)",
+                  fontWeight: isSel ? 700 : 600,
+                  fontSize: 12.5,
+                  boxShadow: isSel ? "var(--shadow-sm)" : "none",
+                  transition: "all 0.15s var(--ease)",
+                  fontFamily: "inherit",
                 }}
               >
                 {seg.icon}

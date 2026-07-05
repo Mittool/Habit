@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { performIsolatedSignOut, syncUserProfileName } from "@/lib/cloud";
 import { enableAndLinkPush, clearOneSignalExternalUserId } from "@/lib/onesignal";
+import PageHeader from "@/components/PageHeader";
 import {
   Sun,
   Moon,
@@ -93,15 +94,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div style={{ padding: "32px 24px", maxWidth: "720px", margin: "0 auto" }}>
-      <div className="fade-in" style={{ marginBottom: "28px" }}>
-        <h2 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 6px", letterSpacing: "-0.02em" }}>
-          Settings
-        </h2>
-        <p style={{ margin: 0, fontSize: "14px", fontWeight: "400", color: "var(--text-muted)" }}>
-          Manage account identity, cloud sync preferences, AI features, and aesthetics.
-        </p>
-      </div>
+    <div style={{ padding: "40px 22px 24px", maxWidth: "720px", margin: "0 auto" }}>
+      <PageHeader eyebrow="Preferences" title="Settings" />
 
       {/* Account */}
       <div className="card fade-in stagger-1" style={{ padding: "24px", marginBottom: "20px" }}>
@@ -179,7 +173,6 @@ export default function SettingsPage() {
             <Bell size={18} color="var(--accent)" />
             <div>
               <h3 style={{ fontSize: "16px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>Smart Notifications</h3>
-              <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "2px 0 0" }}>Adaptive habit reminders and task alerts</p>
             </div>
           </div>
           <Toggle
