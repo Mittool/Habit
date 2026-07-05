@@ -4,6 +4,7 @@ import { useAppStore, getTodayStr, getHabitStreak, getHabitBestStreak, getHabitC
 import { format, subDays } from "date-fns";
 import { HABIT_ICON_LIBRARY, renderHabitIcon } from "@/lib/icons";
 import PageHeader from "@/components/PageHeader";
+import CompletionBurst from "@/components/CompletionBurst";
 import {
   Plus,
   Trash2,
@@ -503,10 +504,11 @@ export default function HabitsPage() {
                       toggleHabitCompletion(h.id, today);
                     }}
                     className={`cursor-pointer ${done ? "animate-check" : ""}`}
-                    style={{ background: "none", border: "none", padding: 0, flexShrink: 0 }}
+                    style={{ background: "none", border: "none", padding: 0, flexShrink: 0, position: "relative", width: 28, height: 28 }}
                     aria-label={done ? "Mark incomplete" : "Mark done"}
                   >
                     {done ? <CheckCircle2 size={28} color={h.color} /> : <Circle size={28} color="var(--border-strong)" strokeWidth={1.8} />}
+                    {completedToastId === h.id && <CompletionBurst color={h.color} />}
                   </button>
 
                   <div style={{ padding: 8, borderRadius: 12, backgroundColor: h.color + "1C", color: h.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

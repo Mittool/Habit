@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Palette,
   CheckCircle2,
   ChevronRight,
   Sun,
@@ -28,23 +27,23 @@ const THEMES: { id: Theme; name: string; desc: string; icon: React.ReactNode; co
   {
     id: "white-paper",
     name: "White Paper",
-    desc: "Clean, minimal light mode",
+    desc: "Clean & bright",
     icon: <Sun size={20} />,
-    colors: ["#F8FAFC", "#FFFFFF", "#0D9488"],
-  },
-  {
-    id: "dark-paper",
-    name: "Dark Paper",
-    desc: "Easy on the eyes midnight dark mode",
-    icon: <Moon size={20} />,
-    colors: ["#0B0F19", "#161E2E", "#14B8A6"],
+    colors: ["#fafafa", "#ffffff", "#10b981"],
   },
   {
     id: "zen",
     name: "Zen",
-    desc: "Warm calming sand earth tones",
+    desc: "Warm & calm",
     icon: <Leaf size={20} />,
-    colors: ["#F6F4F0", "#FFFFFF", "#D97706"],
+    colors: ["#f2ede4", "#ffffff", "#b45309"],
+  },
+  {
+    id: "dark-paper",
+    name: "Dark Paper",
+    desc: "Easy at night",
+    icon: <Moon size={20} />,
+    colors: ["#131211", "#23211e", "#f59e0b"],
   },
 ];
 
@@ -254,32 +253,13 @@ export default function OnboardingPage() {
         {/* STEP 0: Welcome */}
         {step === 0 && (
           <div style={{ textAlign: "center" }}>
-            <img src="/logo-inside.png" alt="Trac" style={{ width: "72px", height: "72px", borderRadius: "22%", objectFit: "cover", boxShadow: "0 8px 24px rgba(13,148,136,0.2)", margin: "0 auto 20px", display: "block" }} />
-            <h2 style={{ fontSize: "28px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
-              Welcome to Trac, {user?.name || "there"}
+            <img src="/logo-inside.png" alt="Trac" style={{ width: 72, height: 72, borderRadius: "22%", objectFit: "cover", margin: "0 auto 22px", display: "block" }} />
+            <h2 className="serif" style={{ fontSize: 36, lineHeight: 1.05, margin: "0 0 32px", color: "var(--text-primary)" }}>
+              Welcome{user?.name ? `,\n${user.name.trim().split(/\s+/)[0]}` : ""}
             </h2>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "32px", lineHeight: "1.6", fontSize: "15px", fontWeight: "500" }}>
-              Habit tracking, smart daily reminders, and focus timer.
-            </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "32px", textAlign: "left" }}>
-              {[
-                "Adaptive daily reminders",
-                "Focus timer",
-                "Trac AI tips",
-                "Daily stats",
-                "Focus music",
-                "Time scheduling",
-              ].map((f) => (
-                <div key={f} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 14px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px", fontSize: "13px", fontWeight: "600", color: "var(--text-primary)" }}>
-                  <CheckCircle2 size={16} color="var(--accent)" />
-                  <span>{f}</span>
-                </div>
-              ))}
-            </div>
-
-            <button className="btn-primary cursor-pointer" onClick={() => setStep(1)} style={{ width: "100%", padding: "14px", fontSize: "15px" }}>
-              <span>Initiate Setup</span> <ChevronRight size={18} />
+            <button className="btn-accent cursor-pointer" onClick={() => setStep(1)} style={{ width: "100%", padding: "14px", fontSize: "15px" }}>
+              <span>Get started</span> <ChevronRight size={18} />
             </button>
           </div>
         )}
@@ -287,19 +267,9 @@ export default function OnboardingPage() {
         {/* STEP 1: Choose Theme */}
         {step === 1 && (
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "24px" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "14px", backgroundColor: "var(--accent-light)", border: "1px solid var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Palette size={24} color="var(--accent)" />
-              </div>
-              <div>
-                <h2 style={{ fontSize: "22px", fontWeight: "600", margin: 0, color: "var(--text-primary)" }}>
-                  Select Aesthetics
-                </h2>
-                <p style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                  Customize interface visual theme
-                </p>
-              </div>
-            </div>
+            <h2 className="serif" style={{ fontSize: 32, lineHeight: 1, margin: "0 0 24px", color: "var(--text-primary)" }}>
+              Pick a theme
+            </h2>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "28px" }}>
               {THEMES.map((t) => (

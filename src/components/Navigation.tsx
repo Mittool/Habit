@@ -67,7 +67,7 @@ interface NavProps {
 const NAV_ITEMS: { id: NavPage; label: string; icon: React.ReactNode }[] = [
   { id: "home", label: "Home", icon: <Home size={20} /> },
   { id: "planner", label: "Planner", icon: <CalendarDays size={20} /> },
-  { id: "ai-chat", label: "AI Chat", icon: <Sparkles size={20} /> },
+  { id: "ai-chat", label: "AI", icon: <Sparkles size={20} /> },
   { id: "focus", label: "Focus", icon: <Target size={20} /> },
   { id: "insights", label: "Insights", icon: <TrendingUp size={20} /> },
 ];
@@ -194,30 +194,28 @@ export default function Navigation({ current, onChange }: NavProps) {
           return (
             <button
               key={item.id}
-              className="cursor-pointer"
+              className="cursor-pointer nav-pill"
               onClick={() => onChange(item.id)}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 2,
-                padding: isActive ? "10px 16px" : "10px 12px",
-                borderRadius: "9999px",
-                border: "none",
-                background: isActive ? "var(--accent-soft)" : "transparent",
-                color: isActive ? "var(--accent)" : "var(--text-muted)",
-                fontFamily: "inherit",
-                fontSize: 10,
-                fontWeight: isActive ? 700 : 600,
-                letterSpacing: "0.01em",
-                transition: "all 0.28s var(--spring)",
-                minWidth: 0,
-              }}
+              data-active={isActive || undefined}
               aria-label={item.label}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{item.icon}</div>
-              {isActive && <span style={{ marginTop: 2 }}>{item.label}</span>}
+              {/* Background pill — animates via opacity + scale only (GPU) */}
+              <span
+                aria-hidden
+                className="nav-pill-bg"
+                style={{ opacity: isActive ? 1 : 0, transform: isActive ? "scale(1)" : "scale(0.85)" }}
+              />
+              <span className="nav-pill-icon">{item.icon}</span>
+              <span
+                className="nav-pill-label"
+                style={{
+                  maxWidth: isActive ? 60 : 0,
+                  opacity: isActive ? 1 : 0,
+                  marginLeft: isActive ? 6 : 0,
+                }}
+              >
+                {item.label}
+              </span>
             </button>
           );
         })}

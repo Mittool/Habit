@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppStore, getTodayStr, getHabitStreak } from "@/lib/store";
 import { format, startOfWeek, addDays, getDaysInMonth, setDate } from "date-fns";
+import CompletionBurst from "@/components/CompletionBurst";
 import { renderHabitIcon } from "@/lib/icons";
 import {
   Flame,
@@ -275,10 +276,11 @@ export default function HomePage({ onNavigate }: { onNavigate: (p: string) => vo
                         toggleHabitCompletion(h.id, today);
                       }}
                       className={`cursor-pointer ${done ? "animate-check" : ""}`}
-                      style={{ background: "none", border: "none", padding: 0, flexShrink: 0 }}
+                      style={{ background: "none", border: "none", padding: 0, flexShrink: 0, position: "relative", width: 26, height: 26 }}
                       aria-label={done ? "Mark incomplete" : "Mark done"}
                     >
                       {done ? <CheckCircle2 size={26} color={h.color} /> : <Circle size={26} color="var(--border-strong)" strokeWidth={1.8} />}
+                      {completedToastId === h.id && <CompletionBurst color={h.color} />}
                     </button>
                     <div style={{ padding: 7, borderRadius: 10, backgroundColor: h.color + "1C", color: h.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       {renderHabitIcon(h.iconKey || "Target", 15, h.color)}

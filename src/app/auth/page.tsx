@@ -134,35 +134,26 @@ export default function AuthPage() {
         className="card fade-in"
         style={{ width: "100%", maxWidth: "400px", padding: "40px 32px" }}
       >
-        {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+        {/* Logo + serif welcome */}
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
           <img
             src="/logo-inside.png"
             alt="Trac"
             style={{
-              width: "76px",
-              height: "76px",
+              width: 68,
+              height: 68,
               borderRadius: "22%",
               objectFit: "cover",
-              boxShadow: "0 8px 24px rgba(13,148,136,0.25)",
-              margin: "0 auto 16px",
+              margin: "0 auto 18px",
               display: "block",
             }}
           />
           <h1
-            style={{
-              fontSize: "24px",
-              fontWeight: "600",
-              color: "var(--text-primary)",
-              margin: "0 0 4px",
-              letterSpacing: "-0.5px",
-            }}
+            className="serif"
+            style={{ fontSize: 32, lineHeight: 1, margin: 0, color: "var(--text-primary)" }}
           >
-            Trac App
+            {mode === "signin" ? "Welcome back" : "Create account"}
           </h1>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: 0 }}>
-            {mode === "signin" ? "Cloud Account Sign In" : "Create Cloud Account"}
-          </p>
         </div>
 
         {/* Tab toggle */}

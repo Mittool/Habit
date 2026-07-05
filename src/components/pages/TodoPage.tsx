@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { Plus, Trash2, CheckCircle, Circle, Timer, X, Link, Calendar } from "lucide-react";
+import CompletionBurst from "@/components/CompletionBurst";
 
 export default function TodoPage({ onNavigate }: { onNavigate: (p: string) => void }) {
   const { todos, habits, addTodo, updateTodo, deleteTodo } = useAppStore();
@@ -9,6 +10,7 @@ export default function TodoPage({ onNavigate }: { onNavigate: (p: string) => vo
   const [linkedHabit, setLinkedHabit] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "done">("all");
+  const [justCompletedId, setJustCompletedId] = useState<string | null>(null);
 
   function handleAdd() {
     if (!text.trim()) return;
@@ -204,14 +206,22 @@ export default function TodoPage({ onNavigate }: { onNavigate: (p: string) => vo
                 }}
               >
                 <button
-                  onClick={() => updateTodo(todo.id, { completed: !todo.completed })}
-                  style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flexShrink: 0 }}
+                  onClick={() => {
+                    if (!todo.completed) {
+                      setJustCompletedId(todo.id);
+                      setTimeout(() => setJustCompletedId(null), 800);
+                    }
+                    updateTodo(todo.id, { completed: !todo.completed });
+                  }}
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: 0, flexShrink: 0, position: "relative", width: 20, height: 20 }}
+                  className={todo.completed ? "animate-check" : ""}
                 >
                   {todo.completed ? (
                     <CheckCircle size={20} color="var(--accent)" />
                   ) : (
                     <Circle size={20} color="var(--border)" />
                   )}
+                  {justCompletedId === todo.id && <CompletionBurst color="var(--accent)" />}
                 </button>
 
                 <div style={{ flex: 1 }}>

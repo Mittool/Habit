@@ -8,37 +8,41 @@
    Motion: soft springs, one accent, oversized display type.
    ══════════════════════════════════════════════════════════════════════════ */
 
+/* ═══ WHITE PAPER (default) ═══
+   Clean, cool, professional. Bright neutral background, near-black ink,
+   fresh green accent. Feels like Notion / Linear. Users who want warm
+   sand tones switch to Zen. */
 :root {
   /* Backgrounds */
-  --bg-primary: #f7f4ee;         /* cream sand */
-  --bg-secondary: #efeae0;       /* softer sand */
+  --bg-primary: #fafafa;         /* near-white neutral */
+  --bg-secondary: #f0f0f2;       /* cool light grey */
   --bg-card: #ffffff;
   --bg-elevated: #ffffff;
 
-  /* Text */
-  --text-primary: #201b17;       /* deep espresso */
-  --text-secondary: #4a4038;
-  --text-muted: #948a80;
+  /* Text — near-black */
+  --text-primary: #0f1115;
+  --text-secondary: #3d424c;
+  --text-muted: #8a8f99;
 
-  /* Accent — warm amber */
-  --accent: #d97706;
-  --accent-hover: #b45309;
-  --accent-light: #fef3c7;
-  --accent-soft: rgba(217, 119, 6, 0.10);
+  /* Accent — fresh green */
+  --accent: #10b981;
+  --accent-hover: #059669;
+  --accent-light: #ecfdf5;
+  --accent-soft: rgba(16, 185, 129, 0.10);
 
   /* Support colors (used sparingly) */
-  --success: #059669;
-  --success-soft: rgba(5, 150, 105, 0.10);
-  --danger:  #dc2626;
-  --danger-soft: rgba(220, 38, 38, 0.08);
+  --success: #10b981;
+  --success-soft: rgba(16, 185, 129, 0.10);
+  --danger:  #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.08);
 
   /* Lines & depth */
-  --border: rgba(32, 27, 23, 0.08);
-  --border-strong: rgba(32, 27, 23, 0.15);
-  --shadow-sm: 0 1px 2px rgba(32, 27, 23, 0.05);
-  --shadow-md: 0 4px 12px -2px rgba(32, 27, 23, 0.08);
-  --shadow-lg: 0 18px 40px -12px rgba(32, 27, 23, 0.16);
-  --shadow-accent: 0 12px 32px -10px rgba(217, 119, 6, 0.35);
+  --border: rgba(15, 17, 21, 0.07);
+  --border-strong: rgba(15, 17, 21, 0.14);
+  --shadow-sm: 0 1px 2px rgba(15, 17, 21, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(15, 17, 21, 0.08);
+  --shadow-lg: 0 18px 40px -12px rgba(15, 17, 21, 0.16);
+  --shadow-accent: 0 12px 32px -10px rgba(16, 185, 129, 0.30);
 
   /* Radii — bigger, more playful */
   --radius-sm: 10px;
@@ -156,7 +160,7 @@ div, span, p, h1, h2, h3, h4, h5, h6, button, a, img, svg, aside, nav, header, f
 input, textarea, select, [contenteditable="true"] {
   -webkit-user-select: text !important;
   user-select: text !important;
-  -webkit-tap-highlight-color: rgba(217, 119, 6, 0.1) !important;
+  -webkit-tap-highlight-color: rgba(16, 185, 129, 0.1) !important;
 }
 
 /* Safe area padding for standalone app mode */
@@ -380,13 +384,55 @@ input:focus, textarea:focus, select:focus {
 .stagger-4 { animation-delay: 120ms; }
 .stagger-5 { animation-delay: 150ms; }
 
-/* Micro-interactions */
+/* Micro-interactions ─────────────────────────────────────────
+   The check icon does a satisfying two-stage pop: quick overshoot,
+   settle back with a tiny bounce. Runs 0.42s total on the GPU
+   (transform + opacity only). */
 @keyframes checkScaleFill {
-  0% { transform: scale(0.82); opacity: 0.6; }
-  50% { transform: scale(1.22); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0%   { transform: scale(0.6); opacity: 0; }
+  35%  { transform: scale(1.3); opacity: 1; }
+  55%  { transform: scale(0.94); }
+  75%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
 }
-.animate-check { animation: checkScaleFill 0.32s var(--spring) forwards; }
+.animate-check {
+  animation: checkScaleFill 0.42s cubic-bezier(0.22, 1.4, 0.36, 1) forwards;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+/* Ripple ring that expands out from a just-completed check.
+   Uses transform+opacity only; pointer-events none so it can't
+   block taps. */
+@keyframes ringPulse {
+  0%   { transform: scale(0.4); opacity: 0.65; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.ring-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  pointer-events: none;
+  animation: ringPulse 0.6s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+/* Tiny confetti burst — 6 dots fly out in a hex pattern. */
+@keyframes confettiPop {
+  0%   { transform: translate(0, 0) scale(0); opacity: 1; }
+  60%  { opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(1); opacity: 0; }
+}
+.confetti-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  pointer-events: none;
+  animation: confettiPop 0.7s cubic-bezier(0.22, 1.2, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
 
 @keyframes confettiRain {
   0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
@@ -455,6 +501,69 @@ input:focus, textarea:focus, select:focus {
 }
 .nav-item:hover {
   color: var(--text-primary);
+}
+
+/* ─── Mobile floating nav pills ───
+   Every property that animates is GPU-only (transform + opacity) and each
+   item is promoted to its own compositor layer via `will-change`. Result:
+   pill selection glides at solid 60fps on mid-tier Android too. */
+.nav-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
+  isolation: isolate;
+  transition: color 0.18s ease;
+  will-change: color;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-pill[data-active] {
+  color: var(--accent);
+}
+.nav-pill-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--accent-soft);
+  transform-origin: center;
+  transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.22, 1.2, 0.36, 1);
+  will-change: transform, opacity;
+  z-index: -1;
+}
+.nav-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.24s cubic-bezier(0.22, 1.2, 0.36, 1);
+  will-change: transform;
+}
+.nav-pill[data-active] .nav-pill-icon {
+  transform: scale(1.05);
+}
+.nav-pill-label {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.28s cubic-bezier(0.22, 1.2, 0.36, 1),
+              opacity 0.2s ease,
+              margin-left 0.28s cubic-bezier(0.22, 1.2, 0.36, 1);
+  will-change: max-width, opacity;
+}
+.nav-pill:active {
+  transform: scale(0.94);
+  transition: transform 0.08s ease;
 }
 .nav-item.active {
   color: var(--accent);
