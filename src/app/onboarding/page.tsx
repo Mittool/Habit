@@ -435,54 +435,19 @@ export default function OnboardingPage() {
         {/* STEP 3: Live AI Habit Preview */}
         {step === 3 && (
           <div className="fade-in">
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "20px" }}>
               <div style={{ padding: "10px", borderRadius: "14px", backgroundColor: "var(--accent)", color: "#FFFFFF" }}>
                 <Sparkles size={24} />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={{ fontSize: "22px", fontWeight: "600", margin: 0, color: "var(--text-primary)" }}>
-                  Your AI-Designed Habits
-                </h2>
-                <p style={{ fontSize: "13px", fontWeight: "500", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                  Live recommendations for your goals — edit, remove, or regenerate
-                </p>
-              </div>
-            </div>
-
-            {/* Goals recap */}
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px", padding: "10px 12px", backgroundColor: "var(--bg-secondary)", borderRadius: "10px" }}>
-              <span style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", alignSelf: "center", marginRight: "4px" }}>For:</span>
-              {selectedGoals.map((g, i) => (
-                <span key={i} style={{ padding: "4px 10px", borderRadius: "9999px", backgroundColor: "var(--accent-light)", color: "var(--accent)", fontSize: "11px", fontWeight: "600" }}>{g}</span>
-              ))}
-              <button
-                onClick={() => setStep(2)}
-                className="cursor-pointer"
-                style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--accent)", fontSize: "11px", fontWeight: "600", textDecoration: "underline", padding: 0 }}
-              >
-                Change goals
-              </button>
-            </div>
-
-            {/* Regenerate row */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-              <div style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "500" }}>
-                {aiLoading
-                  ? "Trac AI is designing your habits..."
-                  : aiHabits.length > 0
-                    ? (() => {
-                        if (aiSource === "ai") return `${aiHabits.length} habits suggested · live AI`;
-                        if (aiSource === "fallback-rate-limit") return `${aiHabits.length} habits suggested · AI quota hit, using smart fallback`;
-                        if (aiSource.startsWith("fallback")) return `${aiHabits.length} habits suggested · offline mode`;
-                        return `${aiHabits.length} habit${aiHabits.length === 1 ? "" : "s"} suggested`;
-                      })()
-                    : "No habits yet"}
-              </div>
+              <h2 style={{ fontSize: "22px", fontWeight: "600", margin: 0, color: "var(--text-primary)", flex: 1, minWidth: 0 }}>
+                Your Habits
+              </h2>
               <button
                 onClick={() => fetchHabits(true)}
                 disabled={aiLoading || selectedGoals.length === 0}
                 className="btn-secondary cursor-pointer"
-                style={{ padding: "6px 12px", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px" }}
+                style={{ padding: "6px 12px", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}
+                title="Regenerate suggestions"
               >
                 <RefreshCw size={13} className={aiLoading ? "spin" : ""} />
                 Regenerate
