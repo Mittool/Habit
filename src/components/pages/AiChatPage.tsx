@@ -449,8 +449,6 @@ export default function AiChatPage() {
           maxWidth: 720,
           margin: "0 auto",
           pointerEvents: "auto",
-          background:
-            "linear-gradient(to bottom, transparent 0%, var(--bg-primary) 24px, var(--bg-primary) 100%)",
         }}
        >
         {showFollowUps && (
