@@ -228,7 +228,7 @@ export default function AiChatPage() {
           minHeight: "calc(100dvh - 140px)",
           display: "flex",
           flexDirection: "column",
-          padding: "56px 22px 20px",
+          padding: "56px 22px 160px",
           maxWidth: 720,
           margin: "0 auto",
           width: "100%",
@@ -322,25 +322,34 @@ export default function AiChatPage() {
           </div>
         </div>
 
-        {/* Composer pill — always visible at bottom */}
+        {/* Composer pill — fixed to viewport, always above the nav */}
         <div
           className="fade-in stagger-3"
           style={{
-            position: "sticky",
+            position: "fixed",
+            left: 0,
+            right: 0,
             bottom: "calc(env(safe-area-inset-bottom) + var(--nav-clearance))",
-            zIndex: 10,
-            paddingTop: 12,
-            background:
-              "linear-gradient(to bottom, transparent 0%, var(--bg-primary) 20px, var(--bg-primary) 100%)",
+            zIndex: 40,
+            padding: "12px 22px 0",
+            pointerEvents: "none",
           }}
         >
-          <Composer
-            value={inputVal}
-            setValue={setInputVal}
-            onSend={() => handleSendMessage()}
-            disabled={chatLoading}
-            textareaRef={textareaRef}
-          />
+          <div
+            style={{
+              maxWidth: 720,
+              margin: "0 auto",
+              pointerEvents: "auto",
+            }}
+          >
+            <Composer
+              value={inputVal}
+              setValue={setInputVal}
+              onSend={() => handleSendMessage()}
+              disabled={chatLoading}
+              textareaRef={textareaRef}
+            />
+          </div>
         </div>
       </div>
     );
@@ -405,8 +414,8 @@ export default function AiChatPage() {
         </button>
       </div>
 
-      {/* Message stream */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 20, paddingBottom: 28 }}>
+      {/* Message stream — bottom padding leaves room for the fixed composer */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 20, paddingBottom: 180 }}>
         {messages.map((m, i) => (
           <MessageRow key={i} message={m} />
         ))}
@@ -423,17 +432,27 @@ export default function AiChatPage() {
         <div ref={scrollAnchor} />
       </div>
 
-      {/* Sticky composer with contextual follow-ups */}
+      {/* Fixed composer with contextual follow-ups — always above the nav */}
       <div
         style={{
-          position: "sticky",
+          position: "fixed",
+          left: 0,
+          right: 0,
           bottom: "calc(env(safe-area-inset-bottom) + var(--nav-clearance))",
-          zIndex: 10,
-          paddingTop: 8,
+          zIndex: 40,
+          padding: "8px 22px 0",
+          pointerEvents: "none",
+        }}
+      >
+       <div
+        style={{
+          maxWidth: 720,
+          margin: "0 auto",
+          pointerEvents: "auto",
           background:
             "linear-gradient(to bottom, transparent 0%, var(--bg-primary) 24px, var(--bg-primary) 100%)",
         }}
-      >
+       >
         {showFollowUps && (
           <div
             className="fade-in"
@@ -503,6 +522,7 @@ export default function AiChatPage() {
           disabled={chatLoading}
           textareaRef={textareaRef}
         />
+       </div>
       </div>
     </div>
   );
