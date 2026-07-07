@@ -153,22 +153,22 @@ html {
    (nav is hidden). Set from Navigation.tsx via a data-keyboard attribute
    on <html>. */
 /* --nav-clearance is the distance the AI Chat composer keeps between
-   its bottom edge and the viewport bottom. It's calibrated so the
-   composer sits FLUSH with the top of the floating nav pill:
+   its bottom edge and the viewport bottom. Calibrated so the composer
+   floats with a small, deliberate breathing gap above the nav pill:
 
      nav pill bottom  = 14px + env(safe-area-inset-bottom)
      nav pill height  ≈ 54px (padding 6+6, pill 40, border 2)
      nav pill top     = 14 + 54 = 68px above screen bottom
-                        + safe-area (already added by the composer wrapper)
-
-   → composer bottom = 68px + safe-area → --nav-clearance = 68px.
+     breathing gap    = 12px  ← intentional visual spacing
+                      ─────
+     composer bottom  = 80px + safe-area  →  --nav-clearance = 80px
 
    When the keyboard is open the nav pill hides, so we drop the
    clearance to 8px so the composer floats just above the keyboard.
    On desktop (≥641px) there's a left rail instead of a bottom pill,
    so a small 16px baseline is enough. */
 :root {
-  --nav-clearance: 68px;
+  --nav-clearance: 80px;
 }
 html[data-keyboard-open="true"] {
   --nav-clearance: 8px;
