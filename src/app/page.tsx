@@ -184,7 +184,12 @@ export default function MainApp() {
           boxSizing: "border-box",
         }}
       >
-        <div className="fade-in" style={{ flex: 1, display: "flex", flexDirection: "column", width: "100%" }} key={currentPage}>
+        {/* NOTE: this wrapper deliberately has NO `fade-in` class.
+            `fade-in` animates a transform which creates a new containing
+            block, which traps `position: fixed` descendants (like the
+            AI chat composer) inside this box instead of the viewport.
+            Individual pages apply their own `fade-in` on inner sections. */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", width: "100%" }} key={currentPage}>
           {renderPage()}
         </div>
       </main>
