@@ -635,3 +635,84 @@ input:focus, textarea:focus, select:focus {
     scroll-behavior: auto !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   AI CHAT — DESKTOP REFINEMENTS
+   Everything here is scoped to (min-width: 641px). Mobile behavior
+   is deliberately untouched (user has confirmed mobile is perfect).
+
+   What we're fixing on desktop:
+   1. The composer was full-width fixed with left:0/right:0. On desktop
+      the 76px left rail sits over the composer's left edge and the
+      inner 720px column centers on the viewport (wrong) instead of
+      centering on the content area (right).
+   2. The message stream had 180px bottom padding calibrated for the
+      tall mobile composer + safe-area; desktop needs less.
+   3. Starter cards used 150px min-width which stretched thin on wide
+      screens. Bumped to 200px so 4 cards read as a comfortable 2×2
+      grid on typical desktop, and can flow to 4-across on ultra-wide.
+   4. Empty-state hero got more generous side padding and a bit more
+      vertical air.
+   5. Habit picker became a centered dialog instead of a bottom sheet
+      (a bottom sheet on a 1440×900 desktop looks broken).
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 641px) {
+  /* --- Empty state root --- */
+  .ai-chat-empty-root {
+    padding: 80px 40px 140px !important;
+    max-width: 780px !important;
+  }
+  .ai-chat-empty-root .ai-chat-starter-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 14px !important;
+    margin-top: 8px;
+  }
+
+  /* --- Conversation root --- */
+  .ai-chat-convo-root {
+    padding: 32px 40px 10px !important;
+    max-width: 780px !important;
+  }
+  .ai-chat-convo-root .ai-chat-message-stream {
+    padding-bottom: 140px !important;
+    gap: 24px !important;
+  }
+
+  /* --- Composer wrapper: respect the 76px sidebar so the inner
+         column centers on the CONTENT area, not the viewport --- */
+  .ai-chat-composer-fixed {
+    left: 76px !important;
+    right: 0 !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+    padding-top: 12px !important;
+  }
+  .ai-chat-composer-fixed .ai-chat-composer-inner {
+    max-width: 780px !important;
+  }
+
+  /* --- Habit picker becomes a centered modal on desktop --- */
+  .ai-chat-habit-sheet-root {
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 40px;
+  }
+  .ai-chat-habit-sheet-panel {
+    border-radius: 24px !important;
+    max-width: 520px;
+    width: 100%;
+    max-height: 76vh !important;
+    padding: 20px 24px 24px !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28) !important;
+    animation: sheetPop 0.22s cubic-bezier(0.22, 1.2, 0.36, 1) both !important;
+  }
+  .ai-chat-habit-sheet-handle {
+    display: none !important;
+  }
+}
+
+@keyframes sheetPop {
+  from { transform: translateY(12px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}

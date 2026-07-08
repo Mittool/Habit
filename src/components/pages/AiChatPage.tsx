@@ -224,6 +224,7 @@ export default function AiChatPage() {
   if (isEmpty) {
     return (
       <div
+        className="ai-chat-empty-root"
         style={{
           minHeight: "calc(100dvh - 140px)",
           display: "flex",
@@ -282,7 +283,7 @@ export default function AiChatPage() {
 
           {/* Starter prompt cards */}
           <div
-            className="fade-in stagger-2"
+            className="fade-in stagger-2 ai-chat-starter-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
@@ -324,7 +325,7 @@ export default function AiChatPage() {
 
         {/* Composer pill — fixed to viewport, always above the nav */}
         <div
-          className="fade-in stagger-3"
+          className="fade-in stagger-3 ai-chat-composer-fixed"
           style={{
             position: "fixed",
             left: 0,
@@ -336,6 +337,7 @@ export default function AiChatPage() {
           }}
         >
           <div
+            className="ai-chat-composer-inner"
             style={{
               maxWidth: 720,
               margin: "0 auto",
@@ -361,6 +363,7 @@ export default function AiChatPage() {
 
   return (
     <div
+      className="ai-chat-convo-root"
       style={{
         padding: "20px 22px 10px",
         maxWidth: 720,
@@ -415,7 +418,7 @@ export default function AiChatPage() {
       </div>
 
       {/* Message stream — bottom padding leaves room for the fixed composer */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 20, paddingBottom: 180 }}>
+      <div className="ai-chat-message-stream" style={{ display: "flex", flexDirection: "column", gap: 20, paddingBottom: 180 }}>
         {messages.map((m, i) => (
           <MessageRow key={i} message={m} />
         ))}
@@ -434,6 +437,7 @@ export default function AiChatPage() {
 
       {/* Fixed composer with contextual follow-ups — always above the nav */}
       <div
+        className="ai-chat-composer-fixed"
         style={{
           position: "fixed",
           left: 0,
@@ -445,6 +449,7 @@ export default function AiChatPage() {
         }}
       >
        <div
+        className="ai-chat-composer-inner"
         style={{
           maxWidth: 720,
           margin: "0 auto",
@@ -704,6 +709,7 @@ function HabitPickerSheet({
       role="dialog"
       aria-modal="true"
       aria-label="Pick a habit to get help with"
+      className="ai-chat-habit-sheet-root"
       style={{
         position: "fixed",
         inset: 0,
@@ -729,6 +735,7 @@ function HabitPickerSheet({
       />
       {/* Sheet */}
       <div
+        className="ai-chat-habit-sheet-panel"
         style={{
           position: "relative",
           backgroundColor: "var(--bg-card)",
@@ -745,6 +752,7 @@ function HabitPickerSheet({
         {/* Grab handle */}
         <div
           aria-hidden
+          className="ai-chat-habit-sheet-handle"
           style={{
             width: 44,
             height: 5,
