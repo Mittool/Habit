@@ -38,7 +38,7 @@ export default function MoodPage() {
   });
 
   return (
-    <div style={{ padding: "24px", maxWidth: "600px" }}>
+    <div style={{ padding: "24px", maxWidth: "600px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "24px" }}>
         <Smile size={20} color="var(--accent)" />
         <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)", margin: 0 }}>
