@@ -77,12 +77,28 @@ export default function MainApp() {
   // Wait for Supabase to tell us whether a session exists before redirecting.
   // We call restoreFromCloudDatabase here (it will noop if no session) and
   // only after it returns do we consider the auth state authoritative.
+  //
+  // FAST PATH: first-time visitors (no 'trac-start-seen' flag AND no
+  // persisted auth) don't need any Supabase round-trip — they're going
+  // straight to /start regardless. Skip the network wait and mark auth
+  // "restored" immediately so the redirect fires on the next tick.
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
+
+    let startSeen = false;
+    try {
+      startSeen = localStorage.getItem("trac-start-seen") === "1";
+    } catch {}
+
+    if (!startSeen && !isAuthenticated) {
+      // First-time visitor — no need to wait on Supabase.
+      setAuthRestored(true);
+      return;
+    }
+
     (async () => {
       try {
-        // If supabase isn't configured, skip straight to whatever the store says
         if (supabase) {
           await restoreFromCloudDatabase();
         }
@@ -93,7 +109,7 @@ export default function MainApp() {
       }
     })();
     return () => { cancelled = true; };
-  }, [hydrated]);
+  }, [hydrated, isAuthenticated]);
 
   // Redirect only AFTER the auth restore has finished. This is what fixes
   // the "stuck on Redirecting" loop.

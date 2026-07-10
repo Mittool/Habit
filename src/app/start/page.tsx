@@ -41,18 +41,25 @@ import {
   Play,
 } from "lucide-react";
 
+// display: "swap" + adjustFontFallback let the page render with system
+// fonts instantly, then swap to the loaded webfonts without a FOUT gap.
+// preload: true is default but explicit here for clarity.
 const serif = Instrument_Serif({
   subsets: ["latin"],
   weight: ["400"],
   style: ["normal", "italic"],
   display: "swap",
   variable: "--font-trac-serif",
+  preload: true,
+  fallback: ["Georgia", "serif"],
 });
 const sans = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-trac-sans",
+  preload: true,
+  fallback: ["system-ui", "-apple-system", "sans-serif"],
 });
 
 // ── Palette ──────────────────────────────────────────────────────
@@ -78,12 +85,13 @@ const START_SEEN_KEY = "trac-start-seen";
 export default function StartScreen() {
   const router = useRouter();
   const [reduced, setReduced] = useState(false);
-  const [ready, setReady] = useState(false);
 
+  // Only check the motion pref — don't gate visibility behind a state
+  // flag. The page should render on the first paint, not fade in after
+  // React has mounted (which used to add ~200ms of black screen).
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    setReady(true);
+    if (mq.matches) setReduced(true);
   }, []);
 
   function goStart() {
@@ -108,8 +116,6 @@ export default function StartScreen() {
         color: C.text,
         fontFamily: "var(--font-trac-sans), system-ui, sans-serif",
         zIndex: 9999,
-        opacity: ready ? 1 : 0,
-        transition: "opacity 200ms ease",
       }}
     >
       {/* ═══ Ambient background ═══ */}
@@ -129,15 +135,7 @@ export default function StartScreen() {
           </div>
           <span style={brandName}>Trac</span>
         </div>
-        <button
-          type="button"
-          onClick={goStart}
-          className="trac-link cursor-pointer"
-          style={skipBtn}
-          aria-label="Skip intro"
-        >
-          Skip
-        </button>
+        {/* Skip button removed — the primary CTA below is the only way forward. */}
       </header>
 
       {/* ═══ HERO ═══ */}
