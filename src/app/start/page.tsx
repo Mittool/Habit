@@ -180,11 +180,18 @@ export default function StartScreen() {
             </div>
           </div>
 
-          {/* Mockups column */}
+          {/* Mockups column — side-by-side, NO overlap.
+              Desktop takes ~72% of the stage, phone ~24%, with a clean
+              4% gap between them. On mobile the desktop is hidden and
+              the phone becomes the single centered hero mockup. */}
           <div className={cls("trac-mock-in")} style={heroMockCol}>
             <div className="trac-mock-stage" style={mockStage} aria-hidden>
-              <DesktopMock />
-              <PhoneMock />
+              <div className="trac-mock-desktop-wrap" style={mockDesktopWrap}>
+                <DesktopMock />
+              </div>
+              <div className="trac-mock-phone-wrap" style={mockPhoneWrap}>
+                <PhoneMock />
+              </div>
             </div>
           </div>
         </div>
@@ -473,32 +480,22 @@ export default function StartScreen() {
         }
 
         /* Hero: side-by-side on desktop, stacked on mobile.
-           On mobile we hide the desktop mockup entirely and center a
-           larger phone mockup — the phone IS the primary experience,
-           and cramming both into a tiny viewport just makes them
-           unreadable and overlapping. */
+           On mobile we hide the desktop mockup entirely and let the
+           phone be the single centered hero. The phone IS the primary
+           experience — cramming both into a small viewport makes
+           everything unreadable. */
         @media (max-width: 899px) {
           .trac-hero-inner { grid-template-columns: 1fr !important; gap: 28px !important; }
           .trac-hero-copy { text-align: center; align-items: center !important; }
           .trac-hero-copy h1 { font-size: clamp(38px, 10vw, 60px) !important; }
           .trac-hero-cta-row { justify-content: center !important; }
-          .trac-mock-stage {
-            max-width: 260px !important;
-            aspect-ratio: 9 / 18 !important;
-            margin: 0 auto;
-          }
-          /* Hide the desktop mock; promote the phone to full stage.
-             Keep position: relative on the phone so its absolutely-
-             positioned children (notch, nav pill) still anchor to it. */
-          .trac-mock-desktop { display: none !important; }
-          .trac-mock-phone {
-            position: relative !important;
+
+          /* Hide the desktop mock; phone takes the full stage. */
+          .trac-mock-desktop-wrap { display: none !important; }
+          .trac-mock-phone-wrap {
+            flex: 0 0 auto !important;
             width: 100% !important;
-            aspect-ratio: 9 / 19 !important;
-            top: auto !important;
-            bottom: auto !important;
-            left: auto !important;
-            right: auto !important;
+            max-width: 260px !important;
           }
         }
 
@@ -1643,26 +1640,37 @@ const heroMockCol: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  minHeight: 520,
+  minHeight: 460,
 };
-/* The stage is a fixed-aspect canvas the two mocks are composed inside.
-   Wider than tall so the desktop reads as the primary screen and the
-   phone sits cleanly at bottom-left without overrunning the container. */
+
+/* Stage = simple flex row. Desktop on the left, phone on the right,
+   clean gap between them. NO overlap, NO absolute positioning tricks
+   — the composition just falls out of flexbox. */
 const mockStage: React.CSSProperties = {
   position: "relative",
   width: "100%",
-  maxWidth: 560,
-  aspectRatio: "5 / 4",
+  maxWidth: 640,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "5%",
 };
 
-/* Desktop mock — occupies the top-right ~90% of the stage.
-   Anchored inside the stage (right/top offsets) instead of overflowing
-   with negative values, so it never spills onto the copy column. */
+/* Wrappers own the WIDTH inside the flex row. That way the desktop
+   and phone components themselves can be simple relative blocks. */
+const mockDesktopWrap: React.CSSProperties = {
+  flex: "0 0 64%",
+  minWidth: 0,
+};
+const mockPhoneWrap: React.CSSProperties = {
+  flex: "0 0 30%",
+  minWidth: 0,
+};
+
+/* Desktop mock — fills its wrapper, no absolute positioning. */
 const desktopFrame: React.CSSProperties = {
-  position: "absolute",
-  top: 0,
-  right: 0,
-  width: "88%",
+  position: "relative",
+  width: "100%",
   borderRadius: 16,
   background: `linear-gradient(180deg, #131719 0%, #0C1012 100%)`,
   border: `1px solid ${C.borderHi}`,
@@ -1714,15 +1722,13 @@ const desktopMain: React.CSSProperties = {
   padding: 16,
 };
 
-/* Phone mock — anchored to the bottom-left of the stage, deliberately
-   overlapping ~35% with the desktop above/right of it. Width is a
-   fraction of the stage so it scales in lockstep on any container.
-   z-index puts the phone ON TOP of the desktop for a composed depth. */
+/* Phone mock — fills its wrapper (position: relative, not absolute).
+   Aspect-ratio locked so the frame is proportional to whatever width
+   the wrapper gives it. No z-index tricks needed since we're not
+   overlapping anything. */
 const phoneFrame: React.CSSProperties = {
-  position: "absolute",
-  bottom: 0,
-  left: 0,
-  width: "38%",
+  position: "relative",
+  width: "100%",
   aspectRatio: "9 / 19",
   borderRadius: 30,
   background: `linear-gradient(180deg, #131719 0%, #0C1012 100%)`,
@@ -1730,7 +1736,6 @@ const phoneFrame: React.CSSProperties = {
   boxShadow: `0 40px 90px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03) inset`,
   padding: 7,
   paddingTop: 20,
-  zIndex: 2,
   willChange: "transform",
   boxSizing: "border-box",
 };
