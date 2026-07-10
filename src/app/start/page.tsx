@@ -32,10 +32,6 @@ import {
   Lock,
   Cloud,
   ArrowRight,
-  ArrowUp,
-  Home,
-  CalendarDays,
-  Target,
   TrendingUp,
   Flame,
   Play,
@@ -138,60 +134,45 @@ export default function StartScreen() {
         {/* Skip button removed — the primary CTA below is the only way forward. */}
       </header>
 
-      {/* ═══ HERO ═══ */}
+      {/* ═══ HERO ═══
+          Single centered column — no product mockups. The bento grid
+          below shows what the app looks like via real UI micro-visuals
+          in each cell, so the hero can stay clean and typographic. */}
       <section className="trac-hero" style={heroWrap}>
-        <div className="trac-hero-inner" style={heroInner}>
-          {/* Copy column */}
-          <div className="trac-hero-copy" style={heroCopy}>
-            <div className={cls("trac-fade-1")} style={heroEyebrow}>
-              <span style={eyebrowDot} />
-              Introducing Trac 1.0
-            </div>
-            <h1 className={cls("trac-fade-2")} style={heroH1}>
-              Every habit,
-              <br />
-              every task,
-              <br />
-              <em style={emStyle}>one calm app.</em>
-            </h1>
-            <p className={cls("trac-fade-3")} style={heroSub}>
-              An AI-powered habit and productivity platform that plans your day,
-              coaches you through the hard parts, and quietly keeps score — so
-              showing up feels lighter, not louder.
-            </p>
-            <div className={cls("trac-fade-4") + " trac-hero-cta-row"} style={heroCtaRow}>
-              <button
-                type="button"
-                onClick={goStart}
-                aria-label="Get started with Trac"
-                className="trac-cta cursor-pointer"
-                style={ctaPrimary}
-              >
-                <span>Get started</span>
-                <ArrowRight size={17} className="trac-cta-arrow" />
-              </button>
-              <div style={ctaMeta}>
-                <span>Free</span>
-                <span style={metaDot} />
-                <span>Private by default</span>
-                <span style={metaDot} />
-                <span>30 seconds</span>
-              </div>
-            </div>
+        <div className="trac-hero-copy" style={heroCopyCentered}>
+          <div className={cls("trac-fade-1")} style={heroEyebrow}>
+            <span style={eyebrowDot} />
+            Introducing Trac 1.0
           </div>
-
-          {/* Mockups column — side-by-side, NO overlap.
-              Desktop takes ~72% of the stage, phone ~24%, with a clean
-              4% gap between them. On mobile the desktop is hidden and
-              the phone becomes the single centered hero mockup. */}
-          <div className={cls("trac-mock-in")} style={heroMockCol}>
-            <div className="trac-mock-stage" style={mockStage} aria-hidden>
-              <div className="trac-mock-desktop-wrap" style={mockDesktopWrap}>
-                <DesktopMock />
-              </div>
-              <div className="trac-mock-phone-wrap" style={mockPhoneWrap}>
-                <PhoneMock />
-              </div>
+          <h1 className={cls("trac-fade-2")} style={heroH1Centered}>
+            Every habit,
+            <br />
+            every task,
+            <br />
+            <em style={emStyle}>one calm app.</em>
+          </h1>
+          <p className={cls("trac-fade-3")} style={heroSubCentered}>
+            An AI-powered habit and productivity platform that plans your day,
+            coaches you through the hard parts, and quietly keeps score — so
+            showing up feels lighter, not louder.
+          </p>
+          <div className={cls("trac-fade-4") + " trac-hero-cta-row"} style={heroCtaRowCentered}>
+            <button
+              type="button"
+              onClick={goStart}
+              aria-label="Get started with Trac"
+              className="trac-cta cursor-pointer"
+              style={ctaPrimary}
+            >
+              <span>Get started</span>
+              <ArrowRight size={17} className="trac-cta-arrow" />
+            </button>
+            <div style={ctaMeta}>
+              <span>Free</span>
+              <span style={metaDot} />
+              <span>Private by default</span>
+              <span style={metaDot} />
+              <span>30 seconds</span>
             </div>
           </div>
         </div>
@@ -385,23 +366,6 @@ export default function StartScreen() {
         .trac-fade-5 { animation-delay: 100ms; }
         .trac-fade-6 { animation-delay: 100ms; }
 
-        /* Mockup: fade + gentle lift + subtle float */
-        @keyframes tracMockIn {
-          from { opacity: 0; transform: translateY(24px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes tracMockFloat {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-6px); }
-        }
-        .trac-mock-in {
-          opacity: 0;
-          animation: tracMockIn 900ms cubic-bezier(0.22, 1, 0.36, 1) 400ms forwards;
-        }
-        .trac-mock-float {
-          animation: tracMockFloat 6s ease-in-out infinite;
-        }
-
         /* Bento cells: stagger via IntersectionObserver-free approach:
            just delay them by class index. */
         @keyframes tracBentoIn {
@@ -479,23 +443,10 @@ export default function StartScreen() {
           .trac-bento-grid { grid-template-columns: 1fr !important; }
         }
 
-        /* Hero: side-by-side on desktop, stacked on mobile.
-           On mobile we hide the desktop mockup entirely and let the
-           phone be the single centered hero. The phone IS the primary
-           experience — cramming both into a small viewport makes
-           everything unreadable. */
-        @media (max-width: 899px) {
-          .trac-hero-inner { grid-template-columns: 1fr !important; gap: 28px !important; }
-          .trac-hero-copy { text-align: center; align-items: center !important; }
-          .trac-hero-copy h1 { font-size: clamp(38px, 10vw, 60px) !important; }
-          .trac-hero-cta-row { justify-content: center !important; }
-
-          /* Hide the desktop mock; phone takes the full stage. */
-          .trac-mock-desktop-wrap { display: none !important; }
-          .trac-mock-phone-wrap {
-            flex: 0 0 auto !important;
-            width: 100% !important;
-            max-width: 260px !important;
+        /* Hero: tighten headline size on narrow screens. */
+        @media (max-width: 640px) {
+          .trac-hero-copy h1 {
+            font-size: clamp(40px, 11vw, 64px) !important;
           }
         }
 
@@ -637,246 +588,6 @@ function BentoCell({
         </p>
       </div>
     </article>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   HERO MOCKUPS — inline SVG-based interface renderings
-   ═══════════════════════════════════════════════════════════════ */
-
-function DesktopMock() {
-  return (
-    <div className="trac-mock-float trac-mock-desktop" style={desktopFrame}>
-      {/* Browser chrome */}
-      <div style={desktopChrome}>
-        <div style={{ display: "flex", gap: 6 }}>
-          <span style={{ width: 10, height: 10, borderRadius: 9999, background: "#3a3a3a" }} />
-          <span style={{ width: 10, height: 10, borderRadius: 9999, background: "#3a3a3a" }} />
-          <span style={{ width: 10, height: 10, borderRadius: 9999, background: "#3a3a3a" }} />
-        </div>
-        <div style={desktopUrl}>trac.app</div>
-        <div />
-      </div>
-      {/* Content area */}
-      <div style={desktopBody}>
-        {/* Sidebar */}
-        <aside style={desktopSidebar}>
-          <div style={sidebarLogo}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-inside.png" alt="" width={20} height={20} style={{ borderRadius: 5 }} />
-          </div>
-          {[
-            { icon: <Home size={14} />, active: true },
-            { icon: <CalendarDays size={14} /> },
-            { icon: <Sparkles size={14} /> },
-            { icon: <Target size={14} /> },
-            { icon: <TrendingUp size={14} /> },
-          ].map((it, i) => (
-            <div
-              key={i}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: it.active ? C.accentSoft : "transparent",
-                color: it.active ? C.accent : C.textMute,
-              }}
-            >
-              {it.icon}
-            </div>
-          ))}
-        </aside>
-        {/* Main */}
-        <main style={desktopMain}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
-            <div>
-              <div style={{ fontSize: 8, color: C.textMute, letterSpacing: "0.14em", fontWeight: 700, marginBottom: 4 }}>
-                WEDNESDAY · JUL 10
-              </div>
-              <div
-                style={{
-                  fontFamily: "var(--font-trac-serif)",
-                  fontSize: 26,
-                  color: C.text,
-                  lineHeight: 1,
-                }}
-              >
-                Good morning, <em style={{ fontStyle: "italic", color: C.accent }}>Alex</em>
-              </div>
-            </div>
-            <ProgressRing size={40} percent={72} />
-          </div>
-
-          {/* Heatmap — the star */}
-          <div style={{ padding: 12, borderRadius: 10, background: "rgba(255,255,255,0.02)", border: `1px solid ${C.border}` }}>
-            <div style={{ fontSize: 9, color: C.textMute, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 8 }}>
-              CONSISTENCY · LAST 12 WEEKS
-            </div>
-            <Heatmap cols={12} rows={7} />
-          </div>
-
-          {/* Stat tiles */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 10 }}>
-            {[
-              { label: "STREAK", value: "14", unit: "days", accent: true },
-              { label: "FOCUS", value: "2.4", unit: "hr today" },
-              { label: "RATE", value: "82", unit: "% this week" },
-            ].map((s) => (
-              <div
-                key={s.label}
-                style={{
-                  padding: 10,
-                  borderRadius: 10,
-                  background: "rgba(255,255,255,0.02)",
-                  border: `1px solid ${C.border}`,
-                }}
-              >
-                <div style={{ fontSize: 7.5, color: C.textMute, fontWeight: 700, letterSpacing: "0.12em" }}>
-                  {s.label}
-                </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 3, marginTop: 3 }}>
-                  <span
-                    style={{
-                      fontFamily: "var(--font-trac-serif)",
-                      fontSize: 22,
-                      color: s.accent ? C.accent : C.text,
-                      lineHeight: 1,
-                    }}
-                  >
-                    {s.value}
-                  </span>
-                  <span style={{ fontSize: 9, color: C.textMute }}>{s.unit}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-}
-
-function PhoneMock() {
-  return (
-    <div className="trac-mock-float trac-mock-phone" style={{ ...phoneFrame, animationDelay: "1.5s" }}>
-      {/* Notch */}
-      <div style={phoneNotch} />
-      {/* Screen */}
-      <div style={phoneScreen}>
-        <div style={{ fontSize: 8, color: C.textMute, letterSpacing: "0.14em", fontWeight: 700, marginBottom: 4 }}>
-          TRAC AI · YOUR COACH
-        </div>
-        <div
-          style={{
-            fontFamily: "var(--font-trac-serif)",
-            fontSize: 22,
-            lineHeight: 1.05,
-            color: C.text,
-            marginBottom: 14,
-          }}
-        >
-          Hey <em style={{ fontStyle: "italic", color: C.accent }}>Alex</em>,
-          <br />
-          what&rsquo;s on your mind?
-        </div>
-
-        {/* Chat exchange */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <div
-              style={{
-                maxWidth: "82%",
-                padding: "7px 11px",
-                borderRadius: "14px 14px 4px 14px",
-                background: C.accent,
-                color: "#0B0F0C",
-                fontSize: 11,
-                fontWeight: 500,
-                lineHeight: 1.35,
-              }}
-            >
-              How do I fix my sleep?
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
-            <div
-              style={{
-                width: 18,
-                height: 18,
-                borderRadius: 9999,
-                background: `linear-gradient(135deg, ${C.accentBright}, ${C.accentDeep})`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                marginTop: 1,
-              }}
-            >
-              <Sparkles size={10} color="#07090A" />
-            </div>
-            <div style={{ fontSize: 10.5, lineHeight: 1.45, color: C.textDim }}>
-              <div style={{ color: C.text, fontWeight: 600, marginBottom: 3 }}>
-                Try one small anchor.
-              </div>
-              Same wake time, 7 days.
-              <br />
-              Lights out 30 min earlier tonight.
-            </div>
-          </div>
-        </div>
-
-        {/* Composer */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "6px 6px 6px 12px",
-            borderRadius: 9999,
-            background: "rgba(255,255,255,0.04)",
-            border: `1px solid ${C.border}`,
-          }}
-        >
-          <div style={{ flex: 1, fontSize: 10, color: C.textMute }}>Ask Trac anything…</div>
-          <div
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 9999,
-              background: C.accent,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <ArrowUp size={12} color="#07090A" strokeWidth={2.5} />
-          </div>
-        </div>
-      </div>
-      {/* Nav pill */}
-      <div style={phoneNav}>
-        {[Home, CalendarDays, Sparkles, Target, TrendingUp].map((Icon, i) => (
-          <div
-            key={i}
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 9999,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: i === 2 ? C.accentSoft : "transparent",
-              color: i === 2 ? C.accent : C.textMute,
-            }}
-          >
-            <Icon size={11} />
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -1544,17 +1255,18 @@ const heroWrap: React.CSSProperties = {
   margin: "0 auto",
   boxSizing: "border-box",
 };
-const heroInner: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "1.05fr 1fr",
-  gap: 48,
-  alignItems: "center",
-};
-const heroCopy: React.CSSProperties = {
+/* Centered hero column — no mockup sidecar, so the copy fills the
+   whole hero width and reads like a big, considered opening line
+   instead of half of a two-up. */
+const heroCopyCentered: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  alignItems: "flex-start",
+  alignItems: "center",
+  textAlign: "center",
   gap: 22,
+  maxWidth: 780,
+  margin: "0 auto",
+  padding: "8px 0 20px",
 };
 const heroEyebrow: React.CSSProperties = {
   display: "inline-flex",
@@ -1575,10 +1287,10 @@ const eyebrowDot: React.CSSProperties = {
   background: C.accent,
   boxShadow: `0 0 10px ${C.accentGlow}`,
 };
-const heroH1: React.CSSProperties = {
+const heroH1Centered: React.CSSProperties = {
   fontFamily: "var(--font-trac-serif), Georgia, serif",
   fontWeight: 400,
-  fontSize: "clamp(46px, 6.5vw, 84px)",
+  fontSize: "clamp(48px, 7.5vw, 92px)",
   lineHeight: 1.02,
   letterSpacing: "-0.02em",
   color: C.text,
@@ -1588,19 +1300,20 @@ const emStyle: React.CSSProperties = {
   fontStyle: "italic",
   color: C.accent,
 };
-const heroSub: React.CSSProperties = {
-  fontSize: 16,
-  lineHeight: 1.55,
+const heroSubCentered: React.CSSProperties = {
+  fontSize: 17,
+  lineHeight: 1.6,
   color: C.textDim,
   margin: 0,
-  maxWidth: "32em",
+  maxWidth: "34em",
 };
-const heroCtaRow: React.CSSProperties = {
+const heroCtaRowCentered: React.CSSProperties = {
   display: "flex",
   flexWrap: "wrap",
   alignItems: "center",
+  justifyContent: "center",
   gap: 16,
-  marginTop: 4,
+  marginTop: 8,
 };
 const ctaPrimary: React.CSSProperties = {
   display: "inline-flex",
@@ -1635,157 +1348,9 @@ const metaDot: React.CSSProperties = {
   opacity: 0.6,
 };
 
-const heroMockCol: React.CSSProperties = {
-  position: "relative",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minHeight: 460,
-};
-
-/* Stage = simple flex row. Desktop on the left, phone on the right,
-   clean gap between them. NO overlap, NO absolute positioning tricks
-   — the composition just falls out of flexbox. */
-const mockStage: React.CSSProperties = {
-  position: "relative",
-  width: "100%",
-  maxWidth: 640,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "5%",
-};
-
-/* Wrappers own the WIDTH inside the flex row. That way the desktop
-   and phone components themselves can be simple relative blocks. */
-const mockDesktopWrap: React.CSSProperties = {
-  flex: "0 0 64%",
-  minWidth: 0,
-};
-const mockPhoneWrap: React.CSSProperties = {
-  flex: "0 0 30%",
-  minWidth: 0,
-};
-
-/* Desktop mock — fills its wrapper, no absolute positioning. */
-const desktopFrame: React.CSSProperties = {
-  position: "relative",
-  width: "100%",
-  borderRadius: 16,
-  background: `linear-gradient(180deg, #131719 0%, #0C1012 100%)`,
-  border: `1px solid ${C.borderHi}`,
-  boxShadow: `0 40px 90px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03) inset`,
-  overflow: "hidden",
-  willChange: "transform",
-};
-const desktopChrome: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "1fr auto 1fr",
-  alignItems: "center",
-  padding: "10px 14px",
-  borderBottom: `1px solid ${C.border}`,
-  background: "rgba(255,255,255,0.02)",
-};
-const desktopUrl: React.CSSProperties = {
-  fontSize: 10,
-  color: C.textMute,
-  padding: "3px 12px",
-  borderRadius: 9999,
-  background: "rgba(255,255,255,0.04)",
-  textAlign: "center",
-  minWidth: 100,
-};
-const desktopBody: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "44px 1fr",
-  minHeight: 260,
-};
-const desktopSidebar: React.CSSProperties = {
-  padding: "10px 6px",
-  borderRight: `1px solid ${C.border}`,
-  display: "flex",
-  flexDirection: "column",
-  gap: 6,
-  alignItems: "center",
-};
-const sidebarLogo: React.CSSProperties = {
-  width: 30,
-  height: 30,
-  borderRadius: 8,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: C.accentSoft,
-  marginBottom: 4,
-};
-const desktopMain: React.CSSProperties = {
-  padding: 16,
-};
-
-/* Phone mock — fills its wrapper (position: relative, not absolute).
-   Aspect-ratio locked so the frame is proportional to whatever width
-   the wrapper gives it. No z-index tricks needed since we're not
-   overlapping anything. */
-const phoneFrame: React.CSSProperties = {
-  position: "relative",
-  width: "100%",
-  aspectRatio: "9 / 19",
-  borderRadius: 30,
-  background: `linear-gradient(180deg, #131719 0%, #0C1012 100%)`,
-  border: `1px solid ${C.borderHi}`,
-  boxShadow: `0 40px 90px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03) inset`,
-  padding: 7,
-  paddingTop: 20,
-  willChange: "transform",
-  boxSizing: "border-box",
-};
-const phoneNotch: React.CSSProperties = {
-  position: "absolute",
-  top: 8,
-  left: "50%",
-  transform: "translateX(-50%)",
-  width: "34%",
-  height: 16,
-  borderRadius: 10,
-  background: "#000",
-  zIndex: 1,
-};
-/* Phone screen fills the frame's remaining space — no fixed height so
-   it scales with the frame's aspect ratio. Bottom padding reserves
-   room for the absolutely-positioned nav pill so content never gets
-   covered by it. */
-const phoneScreen: React.CSSProperties = {
-  borderRadius: 24,
-  background: C.bg,
-  padding: "14px 14px 44px",
-  border: `1px solid ${C.border}`,
-  height: "calc(100% - 34px)",
-  boxSizing: "border-box",
-  overflow: "hidden",
-  display: "flex",
-  flexDirection: "column",
-};
-/* Nav pill floats INSIDE the screen (not in the frame padding),
-   anchored to the screen's bottom. The screen has 44px bottom
-   padding to reserve room for it, so nothing hides underneath. */
-const phoneNav: React.CSSProperties = {
-  position: "absolute",
-  bottom: 16,
-  left: "50%",
-  transform: "translateX(-50%)",
-  padding: "5px 7px",
-  borderRadius: 9999,
-  background: "rgba(255,255,255,0.08)",
-  border: `1px solid ${C.borderHi}`,
-  display: "flex",
-  justifyContent: "space-around",
-  alignItems: "center",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
-  gap: 3,
-  zIndex: 2,
-  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-};
+/* (Product mockups removed — the hero is now a single centered copy
+   column and the bento grid below carries the "what does this app
+   look like" job via real UI micro-visuals in each cell.) */
 
 /* Bento */
 const bentoOuter: React.CSSProperties = {
