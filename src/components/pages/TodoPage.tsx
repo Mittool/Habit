@@ -29,7 +29,7 @@ export default function TodoPage({ onNavigate }: { onNavigate: (p: string) => vo
   const doneCount = todos.filter((t) => t.completed).length;
 
   return (
-    <div style={{ padding: "24px", maxWidth: "720px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+    <div style={{ padding: "24px", maxWidth: "820px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
       <div
         style={{
           display: "flex",

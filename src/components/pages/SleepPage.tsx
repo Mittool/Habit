@@ -99,7 +99,7 @@ export default function SleepPage() {
     : 7.5;
 
   return (
-    <div style={{ padding: "32px 24px", maxWidth: "800px", margin: "0 auto" }}>
+    <div style={{ padding: "32px 24px", maxWidth: "820px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
       {/* Header */}
       <div className="fade-in" style={{ marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>

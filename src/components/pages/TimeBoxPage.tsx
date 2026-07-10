@@ -95,7 +95,7 @@ export default function TimeBoxPage() {
   const nowMinutes = isToday ? new Date().getHours() * 60 + new Date().getMinutes() : -1;
 
   return (
-    <div style={{ padding: "24px", maxWidth: "720px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+    <div style={{ padding: "24px", maxWidth: "820px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
       <div
         style={{
           display: "flex",

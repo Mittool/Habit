@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div style={{ padding: "24px", maxWidth: "720px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+    <div style={{ padding: "24px", maxWidth: "820px", margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
       <h2 style={{ fontSize: "20px", fontWeight: "600", color: "var(--text-primary)", margin: "0 0 8px" }}>
         Stats
       </h2>
