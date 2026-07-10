@@ -100,7 +100,16 @@ export default function MainApp() {
   useEffect(() => {
     if (!hydrated || !authRestored) return;
     if (!isAuthenticated) {
-      router.replace("/auth");
+      // First-time visitors see the /start splash before /auth.
+      // The splash sets 'trac-start-seen' on tapping Get started so
+      // returning users skip straight to /auth.
+      let startSeen = false;
+      try {
+        startSeen = localStorage.getItem("trac-start-seen") === "1";
+      } catch {
+        // Storage disabled — fall through to /start (same as first-time).
+      }
+      router.replace(startSeen ? "/auth" : "/start");
     } else if (!onboardingDone) {
       router.replace("/onboarding");
     }
