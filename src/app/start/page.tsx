@@ -472,16 +472,34 @@ export default function StartScreen() {
           .trac-bento-grid { grid-template-columns: 1fr !important; }
         }
 
-        /* Hero: side-by-side on desktop, stacked on mobile */
+        /* Hero: side-by-side on desktop, stacked on mobile.
+           On mobile we hide the desktop mockup entirely and center a
+           larger phone mockup — the phone IS the primary experience,
+           and cramming both into a tiny viewport just makes them
+           unreadable and overlapping. */
         @media (max-width: 899px) {
-          .trac-hero-inner { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .trac-hero-inner { grid-template-columns: 1fr !important; gap: 28px !important; }
           .trac-hero-copy { text-align: center; align-items: center !important; }
           .trac-hero-copy h1 { font-size: clamp(38px, 10vw, 60px) !important; }
           .trac-hero-cta-row { justify-content: center !important; }
-          .trac-mock-stage { transform: scale(0.85); transform-origin: top center; }
-        }
-        @media (max-width: 499px) {
-          .trac-mock-stage { transform: scale(0.68); transform-origin: top center; margin-bottom: -60px; }
+          .trac-mock-stage {
+            max-width: 260px !important;
+            aspect-ratio: 9 / 18 !important;
+            margin: 0 auto;
+          }
+          /* Hide the desktop mock; promote the phone to full stage.
+             Keep position: relative on the phone so its absolutely-
+             positioned children (notch, nav pill) still anchor to it. */
+          .trac-mock-desktop { display: none !important; }
+          .trac-mock-phone {
+            position: relative !important;
+            width: 100% !important;
+            aspect-ratio: 9 / 19 !important;
+            top: auto !important;
+            bottom: auto !important;
+            left: auto !important;
+            right: auto !important;
+          }
         }
 
         /* OS-level reduced motion */
@@ -631,7 +649,7 @@ function BentoCell({
 
 function DesktopMock() {
   return (
-    <div className="trac-mock-float" style={desktopFrame}>
+    <div className="trac-mock-float trac-mock-desktop" style={desktopFrame}>
       {/* Browser chrome */}
       <div style={desktopChrome}>
         <div style={{ display: "flex", gap: 6 }}>
@@ -746,7 +764,7 @@ function DesktopMock() {
 
 function PhoneMock() {
   return (
-    <div className="trac-mock-float" style={{ ...phoneFrame, animationDelay: "1.5s" }}>
+    <div className="trac-mock-float trac-mock-phone" style={{ ...phoneFrame, animationDelay: "1.5s" }}>
       {/* Notch */}
       <div style={phoneNotch} />
       {/* Screen */}
@@ -1622,24 +1640,30 @@ const metaDot: React.CSSProperties = {
 
 const heroMockCol: React.CSSProperties = {
   position: "relative",
-  minHeight: 480,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  minHeight: 520,
 };
+/* The stage is a fixed-aspect canvas the two mocks are composed inside.
+   Wider than tall so the desktop reads as the primary screen and the
+   phone sits cleanly at bottom-left without overrunning the container. */
 const mockStage: React.CSSProperties = {
   position: "relative",
   width: "100%",
-  height: 460,
+  maxWidth: 560,
+  aspectRatio: "5 / 4",
 };
 
-/* Desktop mock */
+/* Desktop mock — occupies the top-right ~90% of the stage.
+   Anchored inside the stage (right/top offsets) instead of overflowing
+   with negative values, so it never spills onto the copy column. */
 const desktopFrame: React.CSSProperties = {
   position: "absolute",
-  top: 40,
-  right: -20,
-  width: 460,
-  borderRadius: 18,
+  top: 0,
+  right: 0,
+  width: "88%",
+  borderRadius: 16,
   background: `linear-gradient(180deg, #131719 0%, #0C1012 100%)`,
   border: `1px solid ${C.borderHi}`,
   boxShadow: `0 40px 90px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03) inset`,
@@ -1690,47 +1714,72 @@ const desktopMain: React.CSSProperties = {
   padding: 16,
 };
 
-/* Phone mock */
+/* Phone mock — anchored to the bottom-left of the stage, deliberately
+   overlapping ~35% with the desktop above/right of it. Width is a
+   fraction of the stage so it scales in lockstep on any container.
+   z-index puts the phone ON TOP of the desktop for a composed depth. */
 const phoneFrame: React.CSSProperties = {
   position: "absolute",
-  bottom: -20,
-  left: -10,
-  width: 230,
-  borderRadius: 34,
+  bottom: 0,
+  left: 0,
+  width: "38%",
+  aspectRatio: "9 / 19",
+  borderRadius: 30,
   background: `linear-gradient(180deg, #131719 0%, #0C1012 100%)`,
   border: `1px solid ${C.borderHi}`,
   boxShadow: `0 40px 90px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.03) inset`,
-  padding: 8,
-  paddingTop: 22,
+  padding: 7,
+  paddingTop: 20,
+  zIndex: 2,
   willChange: "transform",
+  boxSizing: "border-box",
 };
 const phoneNotch: React.CSSProperties = {
   position: "absolute",
-  top: 10,
+  top: 8,
   left: "50%",
   transform: "translateX(-50%)",
-  width: 70,
-  height: 20,
-  borderRadius: 12,
+  width: "34%",
+  height: 16,
+  borderRadius: 10,
   background: "#000",
+  zIndex: 1,
 };
+/* Phone screen fills the frame's remaining space — no fixed height so
+   it scales with the frame's aspect ratio. Bottom padding reserves
+   room for the absolutely-positioned nav pill so content never gets
+   covered by it. */
 const phoneScreen: React.CSSProperties = {
-  borderRadius: 26,
+  borderRadius: 24,
   background: C.bg,
-  padding: 16,
-  minHeight: 360,
+  padding: "14px 14px 44px",
   border: `1px solid ${C.border}`,
+  height: "calc(100% - 34px)",
+  boxSizing: "border-box",
+  overflow: "hidden",
+  display: "flex",
+  flexDirection: "column",
 };
+/* Nav pill floats INSIDE the screen (not in the frame padding),
+   anchored to the screen's bottom. The screen has 44px bottom
+   padding to reserve room for it, so nothing hides underneath. */
 const phoneNav: React.CSSProperties = {
-  marginTop: 8,
-  padding: "6px 8px",
+  position: "absolute",
+  bottom: 16,
+  left: "50%",
+  transform: "translateX(-50%)",
+  padding: "5px 7px",
   borderRadius: 9999,
-  background: "rgba(255,255,255,0.06)",
-  border: `1px solid ${C.border}`,
+  background: "rgba(255,255,255,0.08)",
+  border: `1px solid ${C.borderHi}`,
   display: "flex",
   justifyContent: "space-around",
   alignItems: "center",
   backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  gap: 3,
+  zIndex: 2,
+  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
 };
 
 /* Bento */
